@@ -30,7 +30,8 @@
 #define EMS_VALUE_BOOL_ON2 0xFF        // boolean true, EMS sometimes uses 0xFF for TRUE
 #define EMS_VALUE_BOOL_OFF 0x00        // boolean false
 #define EMS_VALUE_BOOL_NOTSET 0xFE     // random number that's not 0, 1 or FF
-#define EMS_VALUE_INT_NOTSET 0xFF      // for 8-bit unsigned ints/bytes
+#define EMS_VALUE_INT_NOTSET 0x7F      // for 8-bit signed ints/bytes
+#define EMS_VALUE_UINT_NOTSET 0xFF     // for 8-bit unsiged bytes
 #define EMS_VALUE_SHORT_NOTSET -32000  // was -32768 for 2-byte signed shorts
 #define EMS_VALUE_USHORT_NOTSET 32000  // was 0x8000 for 2-byte unsigned shorts
 #define EMS_VALUE_LONG_NOTSET 0xFFFFFF // for 3-byte longs
@@ -50,7 +51,7 @@
 enum EMS_DEVICE_FLAG_TYPES : uint8_t {
     EMS_DEVICE_FLAG_NONE     = 0,
     EMS_DEVICE_FLAG_MMPLUS   = 20, // mixing EMS+
-    EMS_DEVICE_FLAG_MM10     = 21, // mixing MM10, MM50
+    EMS_DEVICE_FLAG_MM10     = 21, // mixing MM10
     EMS_DEVICE_FLAG_SM10     = 10,
     EMS_DEVICE_FLAG_SM100    = 11, // for SM100 and SM200
     EMS_DEVICE_FLAG_EASY     = 1,
@@ -61,6 +62,7 @@ enum EMS_DEVICE_FLAG_TYPES : uint8_t {
     EMS_DEVICE_FLAG_RC35     = 6,
     EMS_DEVICE_FLAG_RC100    = 7,
     EMS_DEVICE_FLAG_RC300    = 8,
+    EMS_DEVICE_FLAG_RC20N    = 9,
     EMS_DEVICE_FLAG_JUNKERS1 = 31,       // use 0x65 for HC
     EMS_DEVICE_FLAG_JUNKERS2 = 32,       // use 0x79 for HC, older models
     EMS_DEVICE_FLAG_JUNKERS  = (1 << 6), // 6th bit set if its junkers HT3
@@ -418,27 +420,33 @@ typedef struct {
     uint8_t daytemp;
     uint8_t nighttemp;
     uint8_t holidaytemp;
-    uint8_t heatingtype;     // type of heating: 1 radiator, 2 convectors, 3 floors, 4 room supply
-    uint8_t circuitcalctemp; // calculated setpoint flow temperature
+    uint8_t heatingtype;       // type of heating: 1 radiator, 2 convectors, 3 floors, 4 room supply
+    uint8_t circuitcalctemp;   // calculated setpoint flow temperature
+    uint8_t designtemp;        // heatingcurve design temp at MinExtTemp
+    int8_t  offsettemp;        // heatingcurve offest temp at roomtemp. Signed!
 } _EMS_Thermostat_HC;
 
 // Thermostat data
 typedef struct {
-    uint8_t      device_id;    // the device ID of the thermostat
-    uint8_t      device_flags; // thermostat model flags
+    uint8_t      device_id;       // the device ID of the thermostat
+    uint8_t      device_flags;    // thermostat model flags
     const char * device_desc_p;
     uint8_t      product_id;
     char         version[10];
-    char         datetime[25]; // HH:MM:SS DD/MM/YYYY
+    char         datetime[25];    // HH:MM:SS DD/MM/YYYY
     bool         write_supported;
+    int8_t       dampedoutdoortemp;
+    uint16_t     tempsensor1;     // corrected temperature affected by ibaCalIntTemperature
+    uint16_t     tempsensor2;     // second internal RC35 sensor
 
     // Installation parameters (tested on RC30)
-    uint8_t ibaMainDisplay; // 00, display on Thermostat: 0 int. temp, 1 int. setpoint, 2 ext. temp., 3 burner temp., 4 ww temp, 5 functioning mode, 6 time, 7 data, 9 smoke temp
+    uint8_t ibaMainDisplay;       // 00, display on Thermostat: 0 int. temp, 1 int. setpoint, 2 ext. temp.,
+                                  //     3 burner temp., 4 ww temp, 5 functioning mode, 6 time, 7 data, 9 smoke temp
     uint8_t ibaLanguage;          // 01, language on Thermostat: 0 german, 1 dutch, 2 french, 3 italian
-    uint8_t ibaCalIntTemperature; // 02, offset int. temperature sensor, by * 0.1 Kelvin
-    int16_t ibaMinExtTemperature; // 05, min ext temp for heating curve, in deg., 0xF6=-10, 0x0 = 0, 0xFF=-1 (actually a int8_t, coded as int16_t to benefit from negative value rendering)
-    uint8_t ibaBuildingType; // 06, building type: 0 = light, 1 = medium, 2 = heavy
-    uint8_t ibaClockOffset;  // 12, offset (in sec) to clock, 0xff = -1 s, 0x02 = 2 s
+    int8_t  ibaCalIntTemperature; // 02, offset int. temperature sensor, by * 0.1 Kelvin (-5.0K to 5.0K)
+    int8_t  ibaMinExtTemperature; // 05, min ext temp for heating curve, in deg.
+    uint8_t ibaBuildingType;      // 06, building type: 0 = light, 1 = medium, 2 = heavy
+    int8_t  ibaClockOffset;       // 12, offset (in sec) to clock
 
     _EMS_Thermostat_HC hc[EMS_THERMOSTAT_MAXHC]; // array for the 4 heating circuits
 } _EMS_Thermostat;
@@ -465,7 +473,9 @@ typedef enum : uint8_t {
     EMS_THERMOSTAT_MODE_ECO, // 'sparen'
     EMS_THERMOSTAT_MODE_COMFORT,
     EMS_THERMOSTAT_MODE_HOLIDAY,
-    EMS_THERMOSTAT_MODE_NOFROST
+    EMS_THERMOSTAT_MODE_NOFROST,
+    EMS_THERMOSTAT_MODE_OFFSET,
+    EMS_THERMOSTAT_MODE_DESIGN
 } _EMS_THERMOSTAT_MODE;
 
 #define EMS_THERMOSTAT_MODE_UNKNOWN_STR "unknown"
@@ -479,12 +489,14 @@ typedef enum : uint8_t {
 #define EMS_THERMOSTAT_MODE_COMFORT_STR "comfort"
 #define EMS_THERMOSTAT_MODE_HOLIDAY_STR "holiday"
 #define EMS_THERMOSTAT_MODE_NOFROST_STR "nofrost"
+#define EMS_THERMOSTAT_MODE_OFFSET_STR "offset"
+#define EMS_THERMOSTAT_MODE_DESIGN_STR "design"
 
 // function definitions
 void    ems_dumpBuffer(const char * prefix, uint8_t * telegram, uint8_t length);
 void    ems_parseTelegram(uint8_t * telegram, uint8_t len);
 void    ems_init();
-void    ems_doReadCommand(uint16_t type, uint8_t dest);
+void    ems_doReadCommand(uint16_t type, uint8_t dest, uint8_t offset = 0);
 void    ems_sendRawTelegram(char * telegram);
 void    ems_printDevices();
 uint8_t ems_printDevices_s(char * buffer, uint16_t len);
@@ -496,6 +508,10 @@ bool    ems_checkEMSBUSAlive();
 void ems_setSettingsLanguage(uint8_t lg);
 void ems_setSettingsBuilding(uint8_t bg);
 void ems_setSettingsDisplay(uint8_t ds);
+void ems_setSettingsMinExtTemperature(int8_t mt);
+void ems_setSettingsClockOffset(int8_t co);
+void ems_setSettingsCalIntTemp(float f);
+
 
 void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE temptype);
 void ems_setThermostatTemp(float temperature, uint8_t hc, const char * mode_s);

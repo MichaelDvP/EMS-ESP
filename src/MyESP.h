@@ -96,7 +96,7 @@ extern struct rst_info resetInfo;
 #define MQTT_WILL_TOPIC "status"            // for last will & testament topic name
 #define MQTT_MAX_TOPIC_SIZE 50              // max length of MQTT topic
 #define MQTT_QUEUE_MAX_SIZE 50              // Size of the MQTT queue
-#define MQTT_PUBLISH_WAIT 750               // time in ms before sending MQTT messages
+#define MQTT_PUBLISH_WAIT 250               // time in ms before sending MQTT messages
 #define MQTT_PUBLISH_MAX_RETRY 4            // max retries for giving up on publishing
 #define MYESP_JSON_MAXSIZE_LARGE 2000       // for large Dynamic json files - https://arduinojson.org/v6/assistant/
 #define MYESP_JSON_MAXSIZE_MEDIUM 800       // for medium Dynamic json files - https://arduinojson.org/v6/assistant/
@@ -146,13 +146,15 @@ PROGMEM const char         custom_reset_terminal[] = "Restart from terminal";
 PROGMEM const char         custom_reset_mqtt[]     = "Restart from MQTT";
 PROGMEM const char         custom_reset_ota[]      = "Restart after successful OTA update";
 PROGMEM const char         custom_reset_factory[]  = "Factory reset";
-PROGMEM const char * const custom_reset_string[]   = {custom_reset_hardware, custom_reset_terminal, custom_reset_mqtt, custom_reset_ota, custom_reset_factory};
+PROGMEM const char         custom_reset_web[]      = "Restart from web";
+PROGMEM const char * const custom_reset_string[]   = {custom_reset_hardware, custom_reset_terminal, custom_reset_mqtt, custom_reset_ota, custom_reset_factory, custom_reset_web};
 #define CUSTOM_RESET_HARDWARE 1 // Reset from hardware button
 #define CUSTOM_RESET_TERMINAL 2 // Reset from terminal
 #define CUSTOM_RESET_MQTT 3     // Reset via MQTT
 #define CUSTOM_RESET_OTA 4      // Reset after successful OTA update
 #define CUSTOM_RESET_FACTORY 5  // Factory reset
-#define CUSTOM_RESET_MAX 5
+#define CUSTOM_RESET_WEB 6      // Reset from web 
+#define CUSTOM_RESET_MAX 6
 
 // SPIFFS - max allocation is 1000 KB
 // https://arduinojson.org/v6/assistant/
@@ -285,6 +287,7 @@ class MyESP {
     bool mqttPublish(const char * topic, JsonDocument & payload, bool retain);
     void setMQTT(mqtt_callback_f callback);
     bool mqttUseNestedJson();
+    bool mqttUseSensorNum();
 
     // OTA
     void setOTA(ota_callback_f OTACallback_pre, ota_callback_f OTACallback_post);
@@ -322,7 +325,6 @@ class MyESP {
     void          end();
     void          loop();
     void          begin(const char * app_hostname, const char * app_name, const char * app_version, const char * app_url, const char * app_url_api);
-    void          resetESP();
     int           getWifiQuality();
     void          showSystemStats();
     bool          getHeartbeat();
@@ -367,6 +369,7 @@ class MyESP {
     bool            _mqtt_connecting;
     bool            _mqtt_heartbeat;
     bool            _mqtt_nestedjson;
+    bool            _mqtt_sensornum;
     uint16_t        _mqtt_publish_fails;
 
     // wifi

@@ -12,7 +12,28 @@
 #include "ems.h"
 
 // Fixed EMS Device IDs
-#define EMS_ID_BOILER 0x08 // all UBA Boilers have 0x08
+#define EMS_ID_BOILER 0x08        // all UBA Boilers have 0x08
+#define EMS_ID_CONTROLLER 0x09    // all Controllers have 0x09
+#define EMS_ID_THERMO_MASTER 0x10 // Masterthermostats have 0x10
+#define EMS_ID_THERMOSTAT 0x17    // Thermostats for 1 hc have 0x17
+#define EMS_ID_SOLAR 0x30
+#define EMS_ID_SOLAR_1 0x31       // second solar module
+#define EMS_ID_HEATPUMP 0x38
+#define EMS_ID_CONNECT 0x02
+#define EMS_ID_GATEWAY 0x48        // KM200
+#define EMS_ID_HEATPUMP 0x38
+#define EMS_ID_SWITCH 0x11         // WM10
+#define EMS_ID_SWITCH_U 0x13       // universal switch
+#define EMS_ID_MIXER_HC1 0x20      // mixers/switches per hc
+#define EMS_ID_MIXER_HC2 0x21
+#define EMS_ID_MIXER_HC3 0x22
+#define EMS_ID_MIXER_HC4 0x23
+#define EMS_ID_MIXER_WW1 0x28      // DHW loading switches (mixers)
+#define EMS_ID_MIXER_WW2 0x29
+#define EMS_ID_REMOTE_HC1 0x18     // remote room controllers per hc
+#define EMS_ID_REMOTE_HC2 0x19
+#define EMS_ID_REMOTE_HC3 0x1A
+#define EMS_ID_REMOTE_HC4 0x1B
 
 /*
  * Common Type
@@ -55,6 +76,7 @@
 // Installation settings
 #define EMS_TYPE_IBASettingsMessage 0xA5      // installation settings
 #define EMS_OFFSET_IBASettings_Display 0      // display
+#define EMS_OFFSET_IBASettingsRC35_Display 22 // display line on RC35
 #define EMS_OFFSET_IBASettings_Language 1     // language
 #define EMS_OFFSET_IBASettings_MinExtTemp 5   // min. ext. temperature
 #define EMS_OFFSET_IBASettings_Building 6     // building
@@ -80,6 +102,11 @@
 #define EMS_VALUE_IBASettings_DISPLAY_DATE 7
 #define EMS_VALUE_IBASettings_DISPLAY_SMOKETEMP 9
 
+#define EMS_VALUE_IBASettings_DISPLAYRC35_DATETIME 0
+#define EMS_VALUE_IBASettings_DISPLAYRC35_EXTTEMP 1
+#define EMS_VALUE_IBASettings_DISPLAYRC35_BURNERTEMP 2
+#define EMS_VALUE_IBASettings_DISPLAYRC35_WWTEMP 3
+
 // Mixing Modules
 // MM100/MM200 (EMS Plus)
 #define EMS_TYPE_MMPLUSStatusMessage_HC1 0x01D7          // mixing status HC1
@@ -102,6 +129,11 @@
 #define EMS_OFFSET_MMStatusMessage_pump_mod 3     // pump modulation in percent
 #define EMS_OFFSET_MMStatusMessage_valve_status 4 // valve 0..255
 #define EMS_TYPE_MM10ParameterMessage 0xAC        // mixing parameters
+
+// Switch module WM10 id 0x11
+#define EMS_TYPE_WMStatusMessage 0x9C         // switch status HC1
+#define EMS_OFFSET_WMStatusMessage_temp 0     // flow temperature
+#define EMS_OFFSET_WMStatusMessage_switch 3   // switch on/off (1/0)
 
 // Solar Module
 // Assuming here that the SM200 behaves like SM100
@@ -140,8 +172,15 @@
 #define EMS_OFFSET_RC20StatusMessage_setpoint 1 // setpoint temp
 #define EMS_OFFSET_RC20StatusMessage_curr 2     // current temp
 
-#define EMS_TYPE_RC20StatusMessage2 0xAD
-#define EMS_TYPE_RC20StatusMessage3 0xAE
+#define EMS_TYPE_RC20NStatusMessage 0xAE
+#define EMS_OFFSET_RC20NStatusMessage_setpoint 2 // setpoint temp in AE
+#define EMS_OFFSET_RC20NStatusMessage_curr 3     // current temp in AE
+
+#define EMS_TYPE_RC20NSet 0xAD
+#define EMS_OFFSET_RC20NSet_temp_day 2           // position of thermostat setpoint temperature for day time
+#define EMS_OFFSET_RC20NSet_temp_night 1         // position of thermostat setpoint temperature for night time
+#define EMS_OFFSET_RC20NSet_mode 3               // position mode
+#define EMS_OFFSET_RC20NSet_heatingtype 0
 
 #define EMS_TYPE_RC20Set 0xA8      // for setting values like temp and mode
 #define EMS_OFFSET_RC20Set_mode 23 // position of thermostat mode
@@ -179,6 +218,16 @@
 #define EMS_OFFSET_RC35Set_heatingtype 0      // e.g. floor heating = 3
 #define EMS_OFFSET_RC35Set_circuitcalctemp 14 // calculated circuit temperature
 #define EMS_OFFSET_RC35Set_seltemp 37         // selected temp
+#define EMS_OFFSET_RC35Set_temp_offset 6      // position of thermostat heatingcurve offset temperature
+#define EMS_OFFSET_RC35Set_temp_design 17     // position of thermostat heatingcurve design temperature
+
+#define EMS_OFFSET_RC35Status_dtemp 0         // damped outdoor temp
+#define EMS_OFFSET_RC35Status_temp1 3         // sensor 1
+#define EMS_OFFSET_RC35Status_temp2 5         // sensor 2
+
+#define EMS_VALUE_RC35Mode_night 0
+#define EMS_VALUE_RC35Mode_day 1
+#define EMS_VALUE_RC35Mode_auto 2
 
 // Easy specific
 #define EMS_TYPE_EasyStatusMessage 0x0A          // reading values on an Easy Thermostat
@@ -276,7 +325,7 @@ static const _EMS_Device EMS_Devices[] = {
     {160, EMS_DEVICE_TYPE_MIXING, "MM100 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
     {161, EMS_DEVICE_TYPE_MIXING, "MM200 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
     {69, EMS_DEVICE_TYPE_MIXING, "MM10 Mixing Module", EMS_DEVICE_FLAG_MM10},
-    {159, EMS_DEVICE_TYPE_MIXING, "MM50 Mixing Module", EMS_DEVICE_FLAG_MM10},
+    {159, EMS_DEVICE_TYPE_MIXING, "MM50 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
 
     //
     // HeatPump - type 0x38
@@ -289,6 +338,7 @@ static const _EMS_Device EMS_Devices[] = {
     // such as 0x11 for Switching, 0x09 for controllers, 0x02 for Connect, 0x48 for Gateway
     //
     {71, EMS_DEVICE_TYPE_SWITCH, "WM10 Switch Module", EMS_DEVICE_FLAG_NONE},                                   // 0x11
+    {82, EMS_DEVICE_TYPE_SWITCH, "Switch Module", EMS_DEVICE_FLAG_NONE},                                        // 0x13
     {68, EMS_DEVICE_TYPE_CONTROLLER, "BC10/RFM20 Receiver", EMS_DEVICE_FLAG_NONE},                              // 0x09
     {218, EMS_DEVICE_TYPE_CONTROLLER, "Junkers M200/Buderus RFM200 Receiver", EMS_DEVICE_FLAG_NONE},            // 0x50
     {190, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
@@ -328,7 +378,7 @@ static const _EMS_Device EMS_Devices[] = {
 
     // Sieger
     {76, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES73", EMS_DEVICE_FLAG_RC35},  // 0x10
-    {113, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES72", EMS_DEVICE_FLAG_RC20}, // 0x17
+    {113, EMS_DEVICE_TYPE_THERMOSTAT, "RC20/Sieger ES72", EMS_DEVICE_FLAG_RC20N}, // 0x17
 
     // Junkers - all 0x10
     {105, EMS_DEVICE_TYPE_THERMOSTAT, "Junkers FW100", EMS_DEVICE_FLAG_JUNKERS1}, // 0x10

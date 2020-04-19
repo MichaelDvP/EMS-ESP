@@ -34,7 +34,7 @@ std::deque<mqtt_message_t> _mqtt_queue;
 
 // nasty global variables that are called from internal ws functions
 static char * _general_password = nullptr;
-static bool   _shouldRestart    = false;
+static uint8_t   _shouldRestart = 0;
 
 static char _debug_buffer[TELNET_MAX_BUFFER_LENGTH];
 
@@ -83,7 +83,8 @@ MyESP::MyESP() {
     _mqtt_heartbeat            = false;
     _mqtt_keepalive            = MQTT_KEEPALIVE;
     _mqtt_qos                  = MQTT_QOS;
-    _mqtt_nestedjson           = false;
+    _mqtt_nestedjson           = true;
+    _mqtt_sensornum            = true;
     _mqtt_retain               = MQTT_RETAIN;
     _mqtt_will_topic           = strdup(MQTT_WILL_TOPIC);
     _mqtt_will_online_payload  = strdup(MQTT_WILL_ONLINE_PAYLOAD);
@@ -371,7 +372,7 @@ void MyESP::_mqttOnMessage(char * topic, char * payload, size_t len) {
     // Restart the device
     if (strcmp(topic, MQTT_TOPIC_RESTART) == 0) {
         myDebug_P(PSTR("[MQTT] Received restart command"), message);
-        resetESP();
+        _shouldRestart = CUSTOM_RESET_MQTT;
         return;
     }
 
@@ -951,7 +952,9 @@ void MyESP::_printSetCommands() {
     myDebug_P(PSTR("  set mqtt_keepalive [seconds]"));
     myDebug_P(PSTR("  set mqtt_retain [on | off]"));
     myDebug_P(PSTR("  set mqtt_nestedjson [on | off]"));
+    myDebug_P(PSTR("  set mqtt_sensornum [on | off]"));
     myDebug_P(PSTR("  set ntp_enabled <on | off>"));
+    myDebug_P(PSTR("  set ntp_server [server]"));
     myDebug_P(PSTR("  set ntp_interval [minutes]"));
     myDebug_P(PSTR("  set ntp_timezone [n]"));
     myDebug_P(PSTR("  set serial <on | off>"));
@@ -1014,6 +1017,7 @@ void MyESP::_printSetCommands() {
     myDebug_P(PSTR("  mqtt_qos=%d"), _mqtt_qos);
     myDebug_P(PSTR("  mqtt_heartbeat=%s"), (_mqtt_heartbeat) ? "on" : "off");
     myDebug_P(PSTR("  mqtt_nestedjson=%s"), (_mqtt_nestedjson) ? "on" : "off");
+    myDebug_P(PSTR("  mqtt_sensornum=%s"), (_mqtt_sensornum) ? "on" : "off");
 
 #ifdef FORCE_SERIAL
     myDebug_P(PSTR("  serial=%s (this is always when compiled with -DFORCE_SERIAL)"), (_general_serial) ? "on" : "off");
@@ -1022,6 +1026,7 @@ void MyESP::_printSetCommands() {
 #endif
 
     myDebug_P(PSTR("  ntp_enabled=%s"), (_ntp_enabled) ? "on" : "off");
+    myDebug_P(PSTR("  ntp_server=%s"), _ntp_server);
     myDebug_P(PSTR("  ntp_interval=%d"), _ntp_interval);
     myDebug_P(PSTR("  ntp_timezone=%d"), _ntp_timezone);
 
@@ -1038,18 +1043,6 @@ void MyESP::_printSetCommands() {
     }
 
     myDebug_P(PSTR("")); // newline
-}
-
-// reset / restart
-void MyESP::resetESP() {
-    myDebug_P(PSTR("* Restart ESP..."));
-    end();
-    _deferredReset(500, CUSTOM_RESET_TERMINAL);
-#if defined(ARDUINO_ARCH_ESP32)
-    ESP.restart();
-#else
-    ESP.restart();
-#endif
 }
 
 // read next word from string buffer
@@ -1120,8 +1113,12 @@ bool MyESP::_changeSetting(uint8_t wc, const char * setting, const char * value)
         save_config = fs_setSettingValue(&_mqtt_heartbeat, value, false);
     } else if (strcmp(setting, "mqtt_nestedjson") == 0) {
         save_config = fs_setSettingValue(&_mqtt_nestedjson, value, false);
+    } else if (strcmp(setting, "mqtt_sensornum") == 0) {
+        save_config = fs_setSettingValue(&_mqtt_sensornum, value, false);
     } else if (strcmp(setting, "ntp_enabled") == 0) {
         save_config = fs_setSettingValue(&_ntp_enabled, value, false);
+    } else if (strcmp(setting, "ntp_server") == 0) {
+        save_config = fs_setSettingValue(&_ntp_server, value, "");
     } else if (strcmp(setting, "ntp_interval") == 0) {
         save_config = fs_setSettingValue(&_ntp_interval, value, NTP_INTERVAL_DEFAULT);
     } else if (strcmp(setting, "ntp_timezone") == 0) {
@@ -1234,7 +1231,7 @@ void MyESP::_telnetCommand(char * commandLine) {
 
     // restart command
     if (((strcmp(ptrToCommandName, "restart") == 0) || (strcmp(ptrToCommandName, "reboot") == 0)) && (wc == 1)) {
-        resetESP();
+        _shouldRestart = CUSTOM_RESET_TERMINAL;
         return;
     }
 
@@ -1257,7 +1254,7 @@ void MyESP::_telnetCommand(char * commandLine) {
     }
 
     // quit
-    if ((strcmp(ptrToCommandName, "quit") == 0) && (wc == 1)) {
+    if (((strcmp(ptrToCommandName, "exit") == 0) || (strcmp(ptrToCommandName, "quit") == 0)) && (wc == 1)) {
         myDebug_P(PSTR("[TELNET] exiting telnet session"));
         SerialAndTelnet.disconnectClient();
         return;
@@ -1948,6 +1945,7 @@ bool MyESP::_fs_loadConfig() {
     _mqtt_retain     = mqtt["retain"];
     _mqtt_qos        = mqtt["qos"] | MQTT_QOS;
     _mqtt_nestedjson = mqtt["nestedjson"] | true; // default to on
+    _mqtt_sensornum = mqtt["sensornum"] | true;   // default to on
     _mqtt_password   = strdup(mqtt["password"] | "");
     _mqtt_base       = strdup(mqtt["base"] | MQTT_BASE_DEFAULT);
 
@@ -2165,6 +2163,7 @@ bool MyESP::_fs_writeConfig() {
     mqtt["password"]   = _mqtt_password;
     mqtt["base"]       = _mqtt_base;
     mqtt["nestedjson"] = _mqtt_nestedjson;
+    mqtt["sensornum"]  = _mqtt_sensornum;
 
     JsonObject ntp  = doc.createNestedObject("ntp");
     ntp["server"]   = _ntp_server;
@@ -2269,6 +2268,11 @@ void MyESP::_calculateLoad() {
 // returns true if nested JSON setting is enabled
 bool MyESP::mqttUseNestedJson() {
     return _mqtt_nestedjson;
+}
+
+// returns true if sesornumber setting is enabled
+bool MyESP::mqttUseSensorNum() {
+    return _mqtt_sensornum;
 }
 
 // returns true is MQTT is alive
@@ -2549,7 +2553,7 @@ void MyESP::_procMsg(AsyncWebSocketClient * client, size_t sz) {
     } else if (strcmp(command, "custom_status") == 0) {
         _sendCustomStatus();
     } else if (strcmp(command, "restart") == 0) {
-        _shouldRestart = true;
+        _shouldRestart = CUSTOM_RESET_WEB;
     } else if (strcmp(command, "destroy") == 0) {
         _formatreq = true;
     } else if (strcmp(command, "forcentp") == 0) {
@@ -2757,7 +2761,7 @@ void MyESP::_webserver_setup() {
         "/update",
         HTTP_POST,
         [](AsyncWebServerRequest * request) {
-            AsyncWebServerResponse * response = request->beginResponse(200, "text/plain", _shouldRestart ? "OK" : "FAIL");
+            AsyncWebServerResponse * response = request->beginResponse(200, "text/plain", (_shouldRestart > 0) ? "OK" : "FAIL");
             response->addHeader("Connection", "close");
             request->send(response);
         },
@@ -2787,7 +2791,9 @@ void MyESP::_webserver_setup() {
             if (final) {
                 if (Update.end(true)) {
                     //_writeLogEvent(MYESP_SYSLOG_INFO, "Firmware update finished");
-                    _shouldRestart = !Update.hasError();
+                    if(!Update.hasError()) {
+                        _shouldRestart = CUSTOM_RESET_OTA;
+                    }
                 } else {
                 //_writeLogEvent(MYESP_SYSLOG_ERROR, "Firmware update failed");
 #ifdef MYESP_DEBUG
@@ -3038,10 +3044,10 @@ void MyESP::loop() {
         ESP.restart();
     }
 
-    if (_shouldRestart) {
+    if (_shouldRestart > 0) {
         writeLogEvent(MYESP_SYSLOG_INFO, "System is restarting");
         myDebug_P(PSTR("[SYSTEM] Restarting..."));
-        _deferredReset(500, CUSTOM_RESET_TERMINAL);
+        _deferredReset(500, _shouldRestart);
         ESP.restart();
     }
 
