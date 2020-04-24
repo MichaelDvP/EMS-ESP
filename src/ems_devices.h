@@ -131,9 +131,21 @@
 #define EMS_TYPE_MM10ParameterMessage 0xAC        // mixing parameters
 
 // Switch module WM10 id 0x11
-#define EMS_TYPE_WMStatusMessage 0x9C         // switch status HC1
+// Switching Module -> UBAMaster, type 0x1E, telegram: 11 08 1E 00 01 13 (CRC=73) #data=2
+#define EMS_TYPE_WMStatusMessage 0x1E         // switch status HC1
 #define EMS_OFFSET_WMStatusMessage_temp 0     // flow temperature
-#define EMS_OFFSET_WMStatusMessage_switch 3   // switch on/off (1/0)
+#define EMS_TYPE_WMStatusMessage2 0x9C        // switch status 2
+#define EMS_OFFSET_WMStatusMessage2_temp 0    // flow temperature
+#define EMS_OFFSET_WMStatusMessage2_switch 3  // switch on/off (1/0)
+
+// Remote HC1 0x18, HC2 0x19, etc. 
+// 18 -> All, type 0xAF, telegram: 18 00 AF 00 83 00 09 00 00 (CRC=B5) #data=5
+// 18 -> Controller, type 0x29, telegram: 18 89 29 00 01 (CRC=10) #data=1
+// Controller -> 18, type 0x29, telegram: 09 18 29 00 7B (CRC=8F) #data=1
+// 0x19 -> All, type 0xAF, telegram: 19 00 AF 00 00 86 00 06 06 (CRC=2E) #data=5
+#define EMS_TYPE_REMOTEStatusMessage 0xAF
+#define EMS_OFFSET_REMOTEStatusMessage_temp 0
+
 
 // Solar Module
 // Assuming here that the SM200 behaves like SM100

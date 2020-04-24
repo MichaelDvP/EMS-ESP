@@ -413,9 +413,9 @@ void showInfo() {
                       (EMS_SolarModule.pumpWorkMin % 1440) / 60,
                       EMS_SolarModule.pumpWorkMin % 60);
         }
-        _renderUShortValue("Energy last hour", "Wh", EMS_SolarModule.EnergyLastHour, 1); // *10
-        _renderUShortValue("Energy today", "Wh", EMS_SolarModule.EnergyToday, 0);
-        _renderUShortValue("Energy total", "kWh", EMS_SolarModule.EnergyTotal, 1); // *10
+        _renderLongValue("Energy last hour", "Wh", EMS_SolarModule.EnergyLastHour, 1); // *10
+        _renderLongValue("Energy today", "Wh", EMS_SolarModule.EnergyToday);
+        _renderLongValue("Energy total", "kWh", EMS_SolarModule.EnergyTotal,1); // *10
     }
 
     // For HeatPumps
@@ -1215,13 +1215,13 @@ bool publishEMSValues_solar() {
     if (EMS_SolarModule.pumpWorkMin != EMS_VALUE_LONG_NOTSET) {
         rootSM[SM_PUMPWORKMIN] = (float)EMS_SolarModule.pumpWorkMin;
     }
-    if (EMS_SolarModule.EnergyLastHour < EMS_VALUE_USHORT_NOTSET) {
+    if (EMS_SolarModule.EnergyLastHour < EMS_VALUE_LONG_NOTSET) {
         rootSM[SM_ENERGYLASTHOUR] = (float)EMS_SolarModule.EnergyLastHour / 10;
     }
-    if (EMS_SolarModule.EnergyToday < EMS_VALUE_USHORT_NOTSET) {
+    if (EMS_SolarModule.EnergyToday < EMS_VALUE_LONG_NOTSET) {
         rootSM[SM_ENERGYTODAY] = EMS_SolarModule.EnergyToday;
     }
-    if (EMS_SolarModule.EnergyTotal < EMS_VALUE_USHORT_NOTSET) {
+    if (EMS_SolarModule.EnergyTotal < EMS_VALUE_LONG_NOTSET) {
         rootSM[SM_ENERGYTOTAL] = (float)EMS_SolarModule.EnergyTotal / 10;
     }
 
@@ -2580,13 +2580,13 @@ void WebCallback(JsonObject root) {
             sm["sm4"] = _bool_to_char(s, EMS_SolarModule.pump); // Pump active on/off
         }
 
-        if (EMS_SolarModule.EnergyLastHour < EMS_VALUE_USHORT_NOTSET)
+        if (EMS_SolarModule.EnergyLastHour < EMS_VALUE_LONG_NOTSET)
             sm["sm5"] = (float)EMS_SolarModule.EnergyLastHour / 10; // Energy last hour Wh
 
-        if (EMS_SolarModule.EnergyToday < EMS_VALUE_USHORT_NOTSET) // Energy today Wh
+        if (EMS_SolarModule.EnergyToday < EMS_VALUE_LONG_NOTSET) // Energy today Wh
             sm["sm6"] = EMS_SolarModule.EnergyToday;
 
-        if (EMS_SolarModule.EnergyTotal < EMS_VALUE_USHORT_NOTSET) // Energy total KWh
+        if (EMS_SolarModule.EnergyTotal < EMS_VALUE_LONG_NOTSET) // Energy total KWh
             sm["sm7"] = (float)EMS_SolarModule.EnergyTotal / 10;
     } else {
         sm["ok"] = false;

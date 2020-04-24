@@ -222,9 +222,9 @@ void ems_init() {
     EMS_SolarModule.pumpModulation         = EMS_VALUE_UINT_NOTSET;  // modulation solar pump SM10/SM100/SM200
     EMS_SolarModule.pump                   = EMS_VALUE_BOOL_NOTSET;  // pump active
     EMS_SolarModule.valveStatus            = EMS_VALUE_BOOL_NOTSET;  // valve status from SM200
-    EMS_SolarModule.EnergyLastHour         = EMS_VALUE_USHORT_NOTSET;
-    EMS_SolarModule.EnergyToday            = EMS_VALUE_USHORT_NOTSET;
-    EMS_SolarModule.EnergyTotal            = EMS_VALUE_USHORT_NOTSET;
+    EMS_SolarModule.EnergyLastHour         = EMS_VALUE_LONG_NOTSET;
+    EMS_SolarModule.EnergyToday            = EMS_VALUE_LONG_NOTSET;
+    EMS_SolarModule.EnergyTotal            = EMS_VALUE_LONG_NOTSET;
     EMS_SolarModule.device_id              = EMS_ID_NONE;
     EMS_SolarModule.product_id             = EMS_ID_NONE;
     EMS_SolarModule.pumpWorkMin            = EMS_VALUE_LONG_NOTSET;
@@ -586,6 +586,46 @@ void _debugPrintTelegram(const char * prefix, _EMS_RxTelegram * EMS_RxTelegram, 
     myDebug(output_str);
 }
 
+// send temperature from Remote controller to all, hc 1..4
+void _ems_sendRCTemp(uint16_t temp) {
+    _EMS_TxTelegram EMS_TxTelegram;
+    EMS_TxTelegram.data[0] = 0x19; 
+    EMS_TxTelegram.data[1] = 0x00; 
+    EMS_TxTelegram.data[2] = 0xAF; 
+    EMS_TxTelegram.data[3] = 0x00; 
+    EMS_TxTelegram.data[4] = (uint8_t)(temp>>8); 
+    EMS_TxTelegram.data[5] = (uint8_t)(temp & 0x00FF);
+    EMS_TxTelegram.data[6] = 0x00; 
+    EMS_TxTelegram.data[7] = 0x06; 
+    EMS_TxTelegram.data[8] = 0x06; 
+    EMS_TxTelegram.length  = 10; 
+    // finally calculate CRC and add it to the end
+    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
+    // send the telegram to the UART Tx
+    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
+    if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
+            // Tx Error!
+    }
+}
+void _ems_sendRCVer(uint8_t dst) {
+    _EMS_TxTelegram EMS_TxTelegram;
+    EMS_TxTelegram.data[0] = 0x19; 
+    EMS_TxTelegram.data[1] = dst; 
+    EMS_TxTelegram.data[2] = 0x02; 
+    EMS_TxTelegram.data[3] = 0x00; 
+    EMS_TxTelegram.data[4] = 113;   // Product ID 113 (RC20), 93 RC20RF
+    EMS_TxTelegram.data[5] = 0x02;  // Version 2.01
+    EMS_TxTelegram.data[6] = 0x01; 
+    EMS_TxTelegram.length  = 8; 
+    // finally calculate CRC and add it to the end
+    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
+    // send the telegram to the UART Tx
+    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
+    if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
+            // Tx Error!
+    }
+
+}
 /**
  * send the contents of the Tx buffer to the UART
  * we take telegram from the queue and send it, but don't remove it until later when its confirmed successful
@@ -852,6 +892,17 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                     ems_tx_pollAck();
                 }
             }
+/*
+        } else if ((value ^ 0x80 ^ EMS_Sys_Status.emsIDMask) == 0x19) { // check for remote hc2
+            static  uint32_t timerRemote = millis();
+            if(((millis() - timerRemote) > 10000) && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE)) {  // send every 10 sec
+                _ems_sendRCTemp(210);
+                timerRemote = millis();
+            } else if (EMS_Sys_Status.emsPollEnabled) {
+                uint8_t ack = 0x19;
+                emsuart_tx_buffer(&ack, 1);
+            }
+ /**/
         } else if (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_WAIT) {
             // this may be a byte 01 (success) or 04 (error) from a recent write command?
             if (value == EMS_TX_SUCCESS) {
@@ -949,6 +1000,12 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     EMS_Sys_Status.emsRxTimestamp  = millis(); // timestamp of last read
     EMS_Sys_Status.emsBusConnected = true;
 
+/*
+    if(EMS_RxTelegram.type == 0x02 && EMS_RxTelegram.dest == 0x19) {
+        _ems_sendRCVer(EMS_RxTelegram.src);
+        return;
+    }
+ /**/
     // now lets process it and see what to do next
     _processType(&EMS_RxTelegram);
 }
@@ -1652,9 +1709,9 @@ void _process_SM100Status2(_EMS_RxTelegram * EMS_RxTelegram) {
  * e.g. 30 00 FF 00 02 8E 00 00 00 00 00 00 06 C5 00 00 76 35
  */
 void _process_SM100Energy(_EMS_RxTelegram * EMS_RxTelegram) {
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyLastHour, 2); // last hour / 10 in Wh
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyToday, 6);    //  todays in Wh
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyTotal, 10);   //  total / 10 in kWh
+    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyLastHour, 0); // last hour / 10 in Wh
+    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyToday, 4);    //  todays in Wh
+    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyTotal, 8);   //  total / 10 in kWh
 }
 
 /*
@@ -1815,7 +1872,7 @@ bool _addDevice(_EMS_DEVICE_TYPE device_type, uint8_t product_id, uint8_t device
 }
 
 /**
- * type 0x07 - shows us the connected EMS devices
+ * type 0x07 - shows us the co nnected EMS devices
  * e.g. 08 00 07 00 0B 80 00 00 00 00 00 00 00 00 00 00 00
  * Junkers has 15 bytes of data
  * each byte is a bitmask for which devices are active
@@ -2107,7 +2164,7 @@ void ems_getThermostatValues() {
             }
             ems_doReadCommand(statusMsg, device_id);   // to get the temps
             ems_doReadCommand(opMode, device_id);      // to get the mode
-            ems_doReadCommand(opMode, device_id, 27);  // to get the mode
+            ems_doReadCommand(opMode, device_id, 27);  // to get seltemp
         }
         break;
     case EMS_DEVICE_FLAG_RC300:
@@ -2128,7 +2185,7 @@ void ems_getThermostatValues() {
  */
 void ems_getBoilerValues() {
     ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id);        // get boiler data, instead of waiting 10secs for the broadcast
-    ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id, 27);    // get boiler data, instead of waiting 10secs for the broadcast
+    //ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id, 27);    // get boiler data, there are no value for us in the higher region 
     ems_doReadCommand(EMS_TYPE_UBAMonitorSlow, EMS_Boiler.device_id);        // get more boiler data, instead of waiting 60secs for the broadcast
     ems_doReadCommand(EMS_TYPE_UBAParameterWW, EMS_Boiler.device_id);        // get Warm Water values
     ems_doReadCommand(EMS_TYPE_UBAParametersMessage, EMS_Boiler.device_id);  // get MC10 boiler values
@@ -2483,20 +2540,22 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
     }
 
     else if (model == EMS_DEVICE_FLAG_RC20N) {
-        EMS_Thermostat.hc[hc- 1].setpoint_roomTemp = temperature * 2;
         EMS_TxTelegram.type               = EMS_TYPE_RC20NSet;
         EMS_TxTelegram.comparisonPostRead = EMS_TYPE_RC20NStatusMessage;
         EMS_TxTelegram.type_validate      = EMS_TxTelegram.type;
         switch (temptype) {
         case EMS_THERMOSTAT_MODE_NIGHT: // change the night temp
             EMS_TxTelegram.offset = EMS_OFFSET_RC20NSet_temp_night;
+            EMS_Thermostat.hc[hc- 1].nighttemp = temperature * 2;
             break;
         case EMS_THERMOSTAT_MODE_DAY: // change the day temp
             EMS_TxTelegram.offset = EMS_OFFSET_RC20NSet_temp_day;
+            EMS_Thermostat.hc[hc- 1].daytemp = temperature * 2;
             break;
         default:
         case EMS_THERMOSTAT_MODE_AUTO: // automatic selection, if no type is defined, we use the standard code
             EMS_TxTelegram.offset = (EMS_Thermostat.hc[hc - 1].mode_type == 0) ? EMS_OFFSET_RC20NSet_temp_night : EMS_OFFSET_RC20NSet_temp_day;
+            EMS_Thermostat.hc[hc- 1].setpoint_roomTemp = temperature * 2;
             break;
         }
     }
@@ -2597,7 +2656,6 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
 
     else if ((model == EMS_DEVICE_FLAG_JUNKERS1) || (model == EMS_DEVICE_FLAG_JUNKERS2)) {
         EMS_TxTelegram.emsplus = true; // Assuming here that all Junkers use EMS+
-        EMS_Thermostat.hc[hc- 1].setpoint_roomTemp = temperature * 2;
 
         // figure out if we have older or new thermostats
         // Heating Circuits on 0x65 or 0x79
@@ -2606,17 +2664,21 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
             switch (temptype) {
             case EMS_THERMOSTAT_MODE_NOFROST:
                 EMS_TxTelegram.offset = EMS_OFFSET_JunkersSetMessage_no_frost_temp;
+                EMS_Thermostat.hc[hc- 1].holidaytemp = temperature * 2;
                 break;
             case EMS_THERMOSTAT_MODE_NIGHT:
                 EMS_TxTelegram.offset = EMS_OFFSET_JunkersSetMessage_night_temp;
+                EMS_Thermostat.hc[hc- 1].nighttemp = temperature * 2;
                 break;
             case EMS_THERMOSTAT_MODE_DAY:
                 EMS_TxTelegram.offset = EMS_OFFSET_JunkersSetMessage_day_temp;
+                EMS_Thermostat.hc[hc- 1].daytemp = temperature * 2;
                 break;
             default:
             case EMS_THERMOSTAT_MODE_AUTO: // automatic selection, if no type is defined, we use the standard code
                 EMS_TxTelegram.offset =
                     (EMS_Thermostat.hc[hc - 1].mode_type == 0) ? EMS_OFFSET_JunkersSetMessage_night_temp : EMS_OFFSET_JunkersSetMessage_day_temp;
+                EMS_Thermostat.hc[hc- 1].setpoint_roomTemp = temperature * 2;
                 break;
             }
             EMS_TxTelegram.type               = EMS_TYPE_JunkersSetMessage1_HC1 + hc - 1; // 0x65

@@ -401,9 +401,9 @@ typedef struct {
     uint8_t      pump;                   // pump active
     uint8_t      valveStatus;            // valve status (VS2)
     int16_t      setpoint_maxBottomTemp; // setpoint for maximum collector temp
-    uint16_t     EnergyLastHour;
-    uint16_t     EnergyToday;
-    uint16_t     EnergyTotal;
+    uint32_t     EnergyLastHour;
+    uint32_t     EnergyToday;
+    uint32_t     EnergyTotal;
     uint32_t     pumpWorkMin; // Total solar pump operating time
 } _EMS_SolarModule;
 
