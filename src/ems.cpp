@@ -400,7 +400,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint16_t * param_op, uint8_t in
     uint16_t value = (EMS_RxTelegram->data[pos] << 8) + EMS_RxTelegram->data[pos + 1];
 
     // check for undefined/unset values, 0x8000
-    if (value >= EMS_VALUE_USHORT_NOTSET) {
+    if ((value == EMS_VALUE_USHORT_NOTSET) || (value == EMS_VALUE_SHORT_NOTSET) || (value == EMS_VALUE_USHORT_NOTVALID)) {
         return false;
     }
 
@@ -418,7 +418,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t ind
     int16_t value = (EMS_RxTelegram->data[pos] << 8) + EMS_RxTelegram->data[pos + 1];
 
     // check for undefined/unset values, 0x8000
-    if ((value == EMS_VALUE_SHORT_NOTSET) || (EMS_RxTelegram->data[pos] == 0x7D)) {
+    if ((value == EMS_VALUE_USHORT_NOTSET) || (value == EMS_VALUE_SHORT_NOTSET) || (value == EMS_VALUE_USHORT_NOTVALID)) {
         return false;
     }
 
