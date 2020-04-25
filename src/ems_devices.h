@@ -138,7 +138,7 @@
 #define EMS_OFFSET_WMStatusMessage2_temp 0    // flow temperature
 #define EMS_OFFSET_WMStatusMessage2_switch 3  // switch on/off (1/0)
 
-// Remote HC1 0x18, HC2 0x19, etc. 
+// Remote HC1 0x18, HC2 0x19, etc.
 // 18 -> All, type 0xAF, telegram: 18 00 AF 00 83 00 09 00 00 (CRC=B5) #data=5
 // 18 -> Controller, type 0x29, telegram: 18 89 29 00 01 (CRC=10) #data=1
 // Controller -> 18, type 0x29, telegram: 09 18 29 00 7B (CRC=8F) #data=1
@@ -317,7 +317,7 @@ static const _EMS_Device EMS_Devices[] = {
     {64, EMS_DEVICE_TYPE_BOILER, "Sieger BK13,BK15/Nefit Smartline/Buderus GB1x2", EMS_DEVICE_FLAG_NONE},
     {234, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax Plus GB122", EMS_DEVICE_FLAG_NONE},
     {84, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax Plus GB022", EMS_DEVICE_FLAG_NONE},
-    {95, EMS_DEVICE_TYPE_BOILER, "Bosch Condens 2500/Buderus Logamax GB062/Junkers Cerapur Top/Worcester Greenstar i/Generic HT3", EMS_DEVICE_FLAG_NONE},
+    {95, EMS_DEVICE_TYPE_BOILER, "Bosch Condens 2500/Buderus Logamax,Logomatic/Junkers Cerapur Top/Worcester Greenstar i/Generic HT3", EMS_DEVICE_FLAG_NONE},
     {122, EMS_DEVICE_TYPE_BOILER, "Nefit Proline", EMS_DEVICE_FLAG_NONE},
     {170, EMS_DEVICE_TYPE_BOILER, "Buderus Logano GB212", EMS_DEVICE_FLAG_NONE},
     {172, EMS_DEVICE_TYPE_BOILER, "Nefit Enviline", EMS_DEVICE_FLAG_NONE},
@@ -390,7 +390,7 @@ static const _EMS_Device EMS_Devices[] = {
 
     // Sieger
     {76, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES73", EMS_DEVICE_FLAG_RC35},  // 0x10
-    {113, EMS_DEVICE_TYPE_THERMOSTAT, "RC20/Sieger ES72", EMS_DEVICE_FLAG_RC20N}, // 0x17
+    {113, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES72/Buderus RC20", EMS_DEVICE_FLAG_RC20N}, // 0x17
 
     // Junkers - all 0x10
     {105, EMS_DEVICE_TYPE_THERMOSTAT, "Junkers FW100", EMS_DEVICE_FLAG_JUNKERS1}, // 0x10
