@@ -227,6 +227,7 @@
 #define EMS_OFFSET_RC35Set_temp_day 2         // position of thermostat setpoint temperature for day time
 #define EMS_OFFSET_RC35Set_temp_night 1       // position of thermostat setpoint temperature for night time
 #define EMS_OFFSET_RC35Set_temp_holiday 3     // temp during holiday mode
+#define EMS_OFFSET_RC35Set_temp_summer 22     // temp switch to summer mode
 #define EMS_OFFSET_RC35Set_heatingtype 0      // e.g. floor heating = 3
 #define EMS_OFFSET_RC35Set_circuitcalctemp 14 // calculated circuit temperature
 #define EMS_OFFSET_RC35Set_seltemp 37         // selected temp

@@ -42,6 +42,7 @@
 #define THERMOSTAT_DAYTEMP "daytemp"                        // RC35 specific
 #define THERMOSTAT_NIGHTTEMP "nighttemp"                    // RC35 specific
 #define THERMOSTAT_HOLIDAYTEMP "holidayttemp"               // RC35 specific
+#define THERMOSTAT_SUMMERTEMP "summertemp"                  // RC35 specific
 #define THERMOSTAT_HEATINGTYPE "heatingtype"                // RC35 specific (3=floorheating)
 #define THERMOSTAT_CIRCUITCALCTEMP "circuitcalctemp"        // RC35 specific for mixers
 #define THERMOSTAT_OFFSETTEMP "offsettemp"                  // RC35 specific heatingcurve offset

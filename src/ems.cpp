@@ -127,6 +127,7 @@ void ems_init() {
         EMS_Thermostat.hc[i].daytemp           = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].nighttemp         = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].holidaytemp       = EMS_VALUE_UINT_NOTSET;
+        EMS_Thermostat.hc[i].summertemp        = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].heatingtype       = EMS_VALUE_UINT_NOTSET; // floor heating = 3
         EMS_Thermostat.hc[i].circuitcalctemp   = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].setpoint_roomTemp = EMS_VALUE_SHORT_NOTSET;
@@ -383,24 +384,25 @@ uint8_t _crcCalculator(uint8_t * data, uint8_t len) {
     return crc;
 }
 
-// validate we have data at the offset (index) requested
+// validate we have the data requested at the offset (index) and following cnt bytes
 // returns -1 if out of bounds
-int8_t _getDataPosition(_EMS_RxTelegram * EMS_RxTelegram, uint8_t index) {
+int8_t _getDataPosition(_EMS_RxTelegram * EMS_RxTelegram, uint8_t index, uint8_t cnt) {
     int8_t pos = index - EMS_RxTelegram->offset;            // get adjusted index position based on offset
-    return (pos >= EMS_RxTelegram->data_length) ? -1 : pos; // return -1 if out of bounds
+    return ((pos + cnt) >= EMS_RxTelegram->data_length) ? -1 : pos; // return -1 if out of bounds
 }
 
 // unsigned short
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint16_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 1);
     if (pos < 0) {
         return false;
     }
 
     uint16_t value = (EMS_RxTelegram->data[pos] << 8) + EMS_RxTelegram->data[pos + 1];
 
-    // check for undefined/unset values, 0x8000
+    // check for undefined/unset values, 0x8000, 0x8300, 0x7D00
     if ((value == EMS_VALUE_USHORT_NOTSET) || (value == EMS_VALUE_SHORT_NOTSET) || (value == EMS_VALUE_USHORT_NOTVALID)) {
+        *param_op = EMS_VALUE_USHORT_NOTSET;
         return false;
     }
 
@@ -410,16 +412,17 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint16_t * param_op, uint8_t in
 
 // signed short
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 1);
     if (pos < 0) {
         return false;
     }
 
     int16_t value = (EMS_RxTelegram->data[pos] << 8) + EMS_RxTelegram->data[pos + 1];
 
-    // check for undefined/unset values, 0x8000
+    // check for undefined/unset values, 0x8000, 0x8300, 0x7D00
     if ((value == EMS_VALUE_USHORT_NOTSET) || (value == EMS_VALUE_SHORT_NOTSET) || (value == EMS_VALUE_USHORT_NOTVALID)) {
-        return false;
+       *param_op = EMS_VALUE_SHORT_NOTSET;
+       return false;
     }
 
     *param_op = value;
@@ -427,7 +430,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t ind
 }
 // signed Byte
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, int8_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 0);
     if (pos < 0) {
         return false;
     }
@@ -438,7 +441,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, int8_t * param_op, uint8_t inde
 
 // Byte
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint8_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 0);
     if (pos < 0) {
         return false;
     }
@@ -449,7 +452,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint8_t * param_op, uint8_t ind
 
 // convert signed short to single 8 byte, for setpoint thermostat temperatures that don't store their temps in 2 bytes
 bool _setValue8(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 0);
     if (pos < 0) {
         return false;
     }
@@ -460,7 +463,7 @@ bool _setValue8(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t in
 
 // Long
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint32_t * param_op, uint8_t index) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 3);
     if (pos < 0) {
         return false;
     }
@@ -471,7 +474,7 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint32_t * param_op, uint8_t in
 
 // bit from a byte
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint8_t * param_op, uint8_t index, uint8_t bit) {
-    int8_t pos = _getDataPosition(EMS_RxTelegram, index);
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 0);
     if (pos < 0) {
         return false;
     }
@@ -1341,6 +1344,7 @@ void _process_RC35StatusMessage(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].curr_roomTemp, EMS_OFFSET_RC35StatusMessage_curr); // is * 10 - or 0x7D00 if thermostat is mounted on boiler
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].mode_type, EMS_OFFSET_RC35StatusMessage_mode, 1);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].summer_mode, EMS_OFFSET_RC35StatusMessage_mode, 0);
+    _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].party_mode, EMS_OFFSET_RC35StatusMessage_mode, 7);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].holiday_mode, EMS_OFFSET_RC35StatusMessage_mode1, 5);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].circuitcalctemp, EMS_OFFSET_RC35Set_circuitcalctemp);
 }
@@ -1647,6 +1651,7 @@ void _process_RC35Set(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].heatingtype, EMS_OFFSET_RC35Set_heatingtype);  // byte 0 bit floor heating = 3
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].designtemp, EMS_OFFSET_RC35Set_temp_design);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].offsettemp, EMS_OFFSET_RC35Set_temp_offset);
+    _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].summertemp, EMS_OFFSET_RC35Set_temp_summer);
 }
 
 /**
@@ -2508,6 +2513,10 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
         myDebug_P(PSTR("Invalid HC number"));
         return;
     }
+    if (temptype >= EMS_THERMOSTAT_MODE_PARTY) {
+        myDebug_P(PSTR("Invalid mode"));
+        return;
+    }
 
     _EMS_TxTelegram EMS_TxTelegram = EMS_TX_TELEGRAM_NEW; // create new Tx
     EMS_TxTelegram.timestamp       = millis();            // set timestamp
@@ -2609,6 +2618,11 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
         case EMS_THERMOSTAT_MODE_HOLIDAY: // change the holiday temp
             EMS_Thermostat.hc[hc - 1].holidaytemp = temperature * 2;
             EMS_TxTelegram.offset                 = EMS_OFFSET_RC35Set_temp_holiday;
+            break;
+        case EMS_THERMOSTAT_MODE_SUMMER: // change the summer/winter temp
+            EMS_Thermostat.hc[hc - 1].summertemp = temperature;
+            EMS_TxTelegram.offset                = EMS_OFFSET_RC35Set_temp_summer;
+            temperature = temperature / 2;
             break;
         case EMS_THERMOSTAT_MODE_OFFSET:
             EMS_Thermostat.hc[hc - 1].offsettemp = temperature * 2;
@@ -2746,6 +2760,14 @@ _EMS_THERMOSTAT_MODE ems_getThermostatMode(const char * mode_s) {
         return EMS_THERMOSTAT_MODE_OFFSET;
     } else if (strncmp(mode_s, EMS_THERMOSTAT_MODE_DESIGN_STR, 10) == 0) {
         return EMS_THERMOSTAT_MODE_DESIGN;
+    } else if (strncmp(mode_s, EMS_THERMOSTAT_MODE_SUMMER_STR, 10) == 0) {
+        return EMS_THERMOSTAT_MODE_SUMMER;
+    } else if (strncmp(mode_s, EMS_THERMOSTAT_MODE_HOLIDAY_STR, 10) == 0) {
+        return EMS_THERMOSTAT_MODE_HOLIDAY;
+    } else if (strncmp(mode_s, EMS_THERMOSTAT_MODE_PARTY_STR, 10) == 0) {
+        return EMS_THERMOSTAT_MODE_PARTY;
+    } else if (strncmp(mode_s, EMS_THERMOSTAT_MODE_PAUSE_STR, 10) == 0) {
+        return EMS_THERMOSTAT_MODE_PAUSE;
     }
 
     return EMS_THERMOSTAT_MODE_UNKNOWN;
@@ -2786,6 +2808,15 @@ char * ems_getThermostatModeString(_EMS_THERMOSTAT_MODE mode, char * mode_str) {
         break;
     case EMS_THERMOSTAT_MODE_OFFSET:
         strlcpy(mode_str, EMS_THERMOSTAT_MODE_OFFSET_STR, 10);
+        break;
+    case EMS_THERMOSTAT_MODE_SUMMER:
+        strlcpy(mode_str, EMS_THERMOSTAT_MODE_SUMMER_STR, 10);
+        break;
+    case EMS_THERMOSTAT_MODE_PARTY:
+        strlcpy(mode_str, EMS_THERMOSTAT_MODE_PARTY_STR, 10);
+        break;
+    case EMS_THERMOSTAT_MODE_PAUSE:
+        strlcpy(mode_str, EMS_THERMOSTAT_MODE_PAUSE_STR, 10);
         break;
     case EMS_THERMOSTAT_MODE_UNKNOWN:
     default:
@@ -2837,10 +2868,17 @@ void ems_setThermostatMode(_EMS_THERMOSTAT_MODE mode, uint8_t hc) {
     case EMS_THERMOSTAT_MODE_NOFROST:
         set_mode_value = 1;
         break;
-
+    case EMS_THERMOSTAT_MODE_SUMMER:
+    case EMS_THERMOSTAT_MODE_OFFSET:
+    case EMS_THERMOSTAT_MODE_DESIGN:
+    case EMS_THERMOSTAT_MODE_HOLIDAY:
+    case EMS_THERMOSTAT_MODE_PARTY:
+    case EMS_THERMOSTAT_MODE_PAUSE:
+        myDebug_P(PSTR("Invalid mode"));
+        return;
+        break;
     default:
     case EMS_THERMOSTAT_MODE_AUTO:
-    case EMS_THERMOSTAT_MODE_HOLIDAY:
     case EMS_THERMOSTAT_MODE_ECO:
     case EMS_THERMOSTAT_MODE_UNKNOWN:
         set_mode_value = 2;
