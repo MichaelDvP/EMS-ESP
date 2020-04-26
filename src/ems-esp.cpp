@@ -312,7 +312,7 @@ void showInfo() {
         // UBAParameterWW
         _renderBoolValue("Warm Water activated", EMS_Boiler.wWActivated);
         _renderBoolValue("Warm Water circulation pump available", EMS_Boiler.wWCircPump);
-        myDebug_P(PSTR("  Warm Water circulation pump type: %s"), EMS_Boiler.wWCircPumpType ? "charge pump" : "3-way pump");
+        myDebug_P(PSTR("  Warm Water circulation pump type: %s"), EMS_Boiler.wWCircPumpType ? "3-way pump" : "charge pump");
         if (EMS_Boiler.wWCircPumpMode == 7) {
             myDebug_P(PSTR("  Warm Water circulation pump freq: continuous"));
         } else {
@@ -548,11 +548,11 @@ void showInfo() {
                 // Render Day/Night/Holiday Temperature on RC35s
                 // there is no single setpoint temp, but one for day, night and vacation
                 if ((model == EMS_DEVICE_FLAG_RC35) || (model == EMS_DEVICE_FLAG_RC30N)) {
-                    if (EMS_Thermostat.hc[hc_num - 1].summer_mode) {
-                        myDebug_P(PSTR("   Program is set to Summer mode"));
-                    } else if (EMS_Thermostat.hc[hc_num - 1].holiday_mode) {
-                        myDebug_P(PSTR("   Program is set to Holiday mode"));
-                    }
+                    //if (EMS_Thermostat.hc[hc_num - 1].summer_mode) {
+                    //    myDebug_P(PSTR("   Program is set to Summer mode"));
+                    //} else if (EMS_Thermostat.hc[hc_num - 1].holiday_mode) {
+                    //    myDebug_P(PSTR("   Program is set to Holiday mode"));
+                    //}
 
                     _renderIntValue(" Day temperature", "C", EMS_Thermostat.hc[hc_num - 1].daytemp, 2);
                     _renderIntValue(" Night temperature", "C", EMS_Thermostat.hc[hc_num - 1].nighttemp, 2);
@@ -2396,7 +2396,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 float f = doc["data"];
                 if (f) {
-                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_ECO); // holiday
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_ECO);
                 }
                 return;
             }
@@ -2408,7 +2408,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 float f = doc["data"];
                 if (f) {
-                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HEAT); // holiday
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HEAT);
                 }
                 return;
             }
@@ -2420,11 +2420,12 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 float f = doc["data"];
                 if (f) {
-                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NOFROST); // holiday
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NOFROST);
                 }
                 return;
             }
         }
+
         // set heatingcurve design temperature at MinExtTemp
         hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_DESIGNTEMP, command);
         if (hc) {
@@ -2436,11 +2437,12 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 return;
             }
         }
+
         // set heatingcurve offset temperature at room temp (20°C)
         hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_OFFSETTEMP, command);
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
-                 float f = doc["data"];
+                float f = doc["data"];
                 if (f<10) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_OFFSET);
                 }
@@ -2448,6 +2450,17 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             }
         }
 
+        // set summer temperature
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_SUMMERTEMP, command);
+        if (hc) {
+            if (EMS_Thermostat.hc[hc - 1].active) {
+                float f = doc["data"];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_SUMMER);
+                }
+                return;
+            }
+        }
     }
 }
 
