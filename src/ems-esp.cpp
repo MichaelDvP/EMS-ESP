@@ -312,7 +312,7 @@ void showInfo() {
         // UBAParameterWW
         _renderBoolValue("Warm Water activated", EMS_Boiler.wWActivated);
         _renderBoolValue("Warm Water circulation pump available", EMS_Boiler.wWCircPump);
-        myDebug_P(PSTR("  Warm Water circulation pump type: %s"), EMS_Boiler.wWCircPumpType ? "3-way pump" : "charge pump");
+        myDebug_P(PSTR("  Warm Water circulation pump type: %s"), EMS_Boiler.wWCircPumpType ? "3-way valve" : "charge pump");
         if (EMS_Boiler.wWCircPumpMode == 7) {
             myDebug_P(PSTR("  Warm Water circulation pump freq: continuous"));
         } else {
@@ -781,13 +781,16 @@ bool publishEMSValues_boiler() {
         rootBoiler["pumpMod"] = EMS_Boiler.pumpMod;
     }
     if (EMS_Boiler.wWCircPump != EMS_VALUE_BOOL_NOTSET) {
-        rootBoiler["wWCircPump"] = EMS_Boiler.wWCircPump;
+        rootBoiler["wWCircPump"] = _bool_to_char(s, EMS_Boiler.wWCircPump);
     }
     if (EMS_Boiler.wWCircPumpType != EMS_VALUE_BOOL_NOTSET) {
-        rootBoiler["wWCiPuType"] = EMS_Boiler.wWCircPumpType;
+        rootBoiler["wWCiPuType"] = EMS_Boiler.wWCircPumpType ? "valve" : "pump";
     }
     if (EMS_Boiler.wWCircPumpMode != EMS_VALUE_UINT_NOTSET) {
         rootBoiler["wWCiPuMode"] = EMS_Boiler.wWCircPumpMode;
+    }
+    if (EMS_Boiler.wWCirc != EMS_VALUE_BOOL_NOTSET) {
+        rootBoiler["wWCirc"] = _bool_to_char(s, EMS_Boiler.wWCirc);
     }
     if (EMS_Boiler.extTemp != EMS_VALUE_SHORT_NOTSET) {
         rootBoiler["outdoorTemp"] = (float)EMS_Boiler.extTemp / 10;
@@ -839,9 +842,6 @@ bool publishEMSValues_boiler() {
     }
     if (EMS_Boiler.wWTemperatureOK != EMS_VALUE_BOOL_NOTSET) {
         rootBoiler["wWTempOK"] = _bool_to_char(s, EMS_Boiler.wWTemperatureOK);
-    }
-    if (EMS_Boiler.wWCirc != EMS_VALUE_BOOL_NOTSET) {
-        rootBoiler["wWCirc"] = _bool_to_char(s, EMS_Boiler.wWCirc);
     }
     if (EMS_Boiler.burnGas != EMS_VALUE_BOOL_NOTSET) {
         rootBoiler["burnGas"] = _bool_to_char(s, EMS_Boiler.burnGas);
@@ -943,7 +943,8 @@ bool publishEMSValues_thermostat() {
         _EMS_Thermostat_HC * thermostat = &EMS_Thermostat.hc[hc_v - 1];
 
         // only send if we have an active Heating Circuit with an actual setpoint temp temperature values
-        if ((thermostat->active) && (thermostat->setpoint_roomTemp != EMS_VALUE_SHORT_NOTSET)) {
+        //if ((thermostat->active) && (thermostat->setpoint_roomTemp != EMS_VALUE_SHORT_NOTSET)) {
+        if (thermostat->active) {
             has_data = true;
 
             if (myESP.mqttUseNestedJson()) {
@@ -2034,8 +2035,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             myESP.mqttSubscribe(topic_s);
         }
         // also subscribe without the HC appended to the end of the topic
-        myESP.mqttSubscribe(TOPIC_THERMOSTAT_CMD_TEMP_HA);
-        myESP.mqttSubscribe(TOPIC_THERMOSTAT_CMD_MODE_HA);
+        //myESP.mqttSubscribe(TOPIC_THERMOSTAT_CMD_TEMP_HA);
+        //myESP.mqttSubscribe(TOPIC_THERMOSTAT_CMD_MODE_HA);
 
         // generic incoming MQTT command for Thermostat
         // this is used for example for setting daytemp, nighttemp, holidaytemp
