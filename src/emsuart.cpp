@@ -200,10 +200,6 @@ void ICACHE_FLASH_ATTR emsuart_tx_brk() {
 _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
     _EMS_TX_STATUS result = EMS_TX_STATUS_OK;
 
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_JABBER) {
-        ems_dumpBuffer("emsuart_tx_buffer: ", buf, len); // validate and transmit the EMS buffer, excluding the BRK
-    }
-
     if (len) {
         if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_EMSPLUS) { // With extra tx delay for EMS+
             for (uint8_t i = 0; i < len; i++) {
@@ -294,5 +290,13 @@ _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
             ETS_UART_INTR_ENABLE(); // receive anything from FIFO...
         }
     }
+    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_JABBER) {
+        ems_dumpBuffer("emsuart_tx_buffer: ", buf, len); 
+    }
+    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_ALL) {
+        if (result == EMS_TX_STATUS_OK) ems_dumpBuffer("tx: ", buf, len);
+        else ems_dumpBuffer("tx:-", buf, len);
+    }
+
     return result;
 }

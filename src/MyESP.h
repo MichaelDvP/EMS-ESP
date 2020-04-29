@@ -153,7 +153,7 @@ PROGMEM const char * const custom_reset_string[]   = {custom_reset_hardware, cus
 #define CUSTOM_RESET_MQTT 3     // Reset via MQTT
 #define CUSTOM_RESET_OTA 4      // Reset after successful OTA update
 #define CUSTOM_RESET_FACTORY 5  // Factory reset
-#define CUSTOM_RESET_WEB 6      // Reset from web 
+#define CUSTOM_RESET_WEB 6      // Reset from web
 #define CUSTOM_RESET_MAX 6
 
 // SPIFFS - max allocation is 1000 KB
@@ -217,7 +217,7 @@ static_assert(sizeof(RtcmemData) <= (RTCMEM_BLOCKS * 4u), "RTCMEM struct is too 
 typedef struct {
     bool set; // is it a set command?
     char key[60];
-    char description[110];
+    char description[120];
 } command_t;
 
 typedef enum {

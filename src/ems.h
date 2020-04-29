@@ -124,7 +124,8 @@ typedef enum {
     EMS_SYS_LOGGING_MIXINGMODULE, // only telegrams sent from mixing module
     EMS_SYS_LOGGING_VERBOSE,      // everything
     EMS_SYS_LOGGING_JABBER,       // lots of debug output...
-    EMS_SYS_LOGGING_DEVICE        // watch the device ID
+    EMS_SYS_LOGGING_DEVICE,       // watch the device ID
+    EMS_SYS_LOGGING_ALL
 } _EMS_SYS_LOGGING;
 
 // status/counters since last power on
@@ -149,6 +150,7 @@ typedef struct {
     uint8_t          emsTxMode;           // Tx mode 1, 2 or 3
     uint8_t          emsbusid;            // EMS bus ID, default 0x0B for Service Key
     uint8_t          emsMasterThermostat; // product ID for the default thermostat to use
+    bool             emsRemoteRC;         // simulate RC20 at 0x19
 } _EMS_Sys_Status;
 
 // The Rx receive package
@@ -419,7 +421,7 @@ typedef struct {
     uint8_t mode_type;         // 0=night/eco, 1=day/comfort
     uint8_t summer_mode;
     uint8_t holiday_mode;
-    uint8_t party_mode;        // party/pause if setpoint_roomTemp == nighttemp -> pause 
+    uint8_t party_mode;        // party/pause if setpoint_roomTemp == nighttemp -> pause
     uint8_t daytemp;
     uint8_t nighttemp;
     uint8_t holidaytemp;
@@ -428,6 +430,7 @@ typedef struct {
     uint8_t circuitcalctemp;   // calculated setpoint flow temperature
     uint8_t designtemp;        // heatingcurve design temp at MinExtTemp
     int8_t  offsettemp;        // heatingcurve offest temp at roomtemp. Signed!
+    int16_t remotetemp;        // room temperature from remote contoller
 } _EMS_Thermostat_HC;
 
 // Thermostat data
@@ -494,8 +497,8 @@ typedef enum : uint8_t {
 #define EMS_THERMOSTAT_MODE_DAY_STR "day"
 #define EMS_THERMOSTAT_MODE_ECO_STR "eco"
 #define EMS_THERMOSTAT_MODE_COMFORT_STR "comfort"
-#define EMS_THERMOSTAT_MODE_HOLIDAY_STR "holiday"
 #define EMS_THERMOSTAT_MODE_NOFROST_STR "nofrost"
+#define EMS_THERMOSTAT_MODE_HOLIDAY_STR "holiday"
 #define EMS_THERMOSTAT_MODE_OFFSET_STR "offset"
 #define EMS_THERMOSTAT_MODE_DESIGN_STR "design"
 #define EMS_THERMOSTAT_MODE_SUMMER_STR "summer"
@@ -547,11 +550,11 @@ char *               ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char
 bool                 ems_getDeviceTypeDescription(uint8_t device_id, char * buffer);
 char *               ems_getDeviceTypeName(_EMS_DEVICE_TYPE device_type, char * buffer);
 _EMS_THERMOSTAT_MODE ems_getThermostatMode(const char * mode_s);
-void                 ems_getThermostatValues();
+void                 ems_getThermostatValues(bool force = false);
 void                 ems_getBoilerValues();
 void                 ems_getSettingsValues();
 void                 ems_getSolarModuleValues();
-void                 ems_getMixingModuleValues();
+void                 ems_getMixingModuleValues(bool force = false);
 char *               ems_getThermostatModeString(_EMS_THERMOSTAT_MODE mode, char * mode_str);
 
 bool ems_getPoll();

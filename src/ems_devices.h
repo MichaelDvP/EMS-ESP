@@ -193,6 +193,7 @@
 #define EMS_OFFSET_RC20NSet_temp_night 1         // position of thermostat setpoint temperature for night time
 #define EMS_OFFSET_RC20NSet_mode 3               // position mode
 #define EMS_OFFSET_RC20NSet_heatingtype 0
+#define EMS_OFFSET_RC20NSet_program 11           // position of program 1-9
 
 #define EMS_TYPE_RC20Set 0xA8      // for setting values like temp and mode
 #define EMS_OFFSET_RC20Set_mode 23 // position of thermostat mode
@@ -233,8 +234,10 @@
 #define EMS_OFFSET_RC35Set_seltemp 37         // selected temp
 #define EMS_OFFSET_RC35Set_temp_offset 6      // position of thermostat heatingcurve offset temperature
 #define EMS_OFFSET_RC35Set_temp_design 17     // position of thermostat heatingcurve design temperature
+#define EMS_OFFSET_RC35Set_remote 26          // Fernbedienung 0-no, 1-RC20, 2-RC3x
+#define EMS_OFFSET_RC35Set_optimize 19        // program optimizing off-0, on-255
 
-#define EMS_OFFSET_RC35Status_dtemp 0         // damped outdoor temp
+#define EMS_OFFSET_RC35Status_dtemp 0         // damped outdoor temp in Temperatures 0x35
 #define EMS_OFFSET_RC35Status_temp1 3         // sensor 1
 #define EMS_OFFSET_RC35Status_temp2 5         // sensor 2
 
@@ -390,7 +393,7 @@ static const _EMS_Device EMS_Devices[] = {
     {165, EMS_DEVICE_TYPE_THERMOSTAT, "RC100/Moduline 1000/1010", EMS_DEVICE_FLAG_RC100},                           // 0x18, 0x38
 
     // Sieger
-    {76, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES73", EMS_DEVICE_FLAG_RC35},  // 0x10
+    {76, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES73", EMS_DEVICE_FLAG_RC35},                // 0x10
     {113, EMS_DEVICE_TYPE_THERMOSTAT, "Sieger ES72/Buderus RC20", EMS_DEVICE_FLAG_RC20N}, // 0x17
 
     // Junkers - all 0x10

@@ -108,6 +108,8 @@ static const command_t project_cmds[] PROGMEM = {
     {true, "tx_mode <n>", "changes Tx logic. 1=EMS generic, 2=EMS+, 3=HT3"},
     {true, "bus_id <ID>", "EMS-ESP's deviceID. 0B=Service Key (default), 0D=Modem, 0A=Hand terminal, 0F=Time module, 12=Error module"},
     {true, "master_thermostat [product id]", "set default thermostat to use. No argument lists options"},
+    {true, "set poll <on | off>", "set poll answer of ems"},
+    {true, "set remote <on | off>", "set remote RC at 0x19"},
     {false, "info", "show current values deciphered from the EMS messages"},
     {false, "log <n | b | t | s | m | r | j | v | w [ID] | d [ID]>", "logging: none, basic, thermo, solar, mixing, raw, jabber, verbose, watch a type or device"},
     {false, "publish", "publish all values to MQTT"},
@@ -116,7 +118,7 @@ static const command_t project_cmds[] PROGMEM = {
     {false, "txqueue", "show current Tx queue"},
     {false, "send XX ...", "send raw telegram data to EMS bus (XX are hex values)"},
     {false, "thermostat read <type ID>", "send read request to the thermostat for heating circuit hc 1-4"},
-    {false, "thermostat temp <degrees> [mode] [hc]", "set thermostat temp. mode is manual,auto,heat,day,night,eco,comfort,holiday,nofrost,summer,offset,design"},
+    {false, "thermostat temp <degrees> [mode] [hc]", "set thermostat temp. mode is manual,auto,heat,day,night,eco,comfort,holiday,nofrost,summer,offset,design,remote"},
     {false, "thermostat mode <mode> [hc]", "set mode (manual,auto,heat,day,night,eco,comfort,nofrost)"},
     {false, "boiler read <type ID>", "send read request to boiler"},
     {false, "boiler wwtemp <degrees>", "set boiler warm water temperature"},
@@ -247,6 +249,8 @@ void showInfo() {
         myDebug_P(PSTR("  System logging set to Watch"));
     } else if (sysLog == EMS_SYS_LOGGING_DEVICE) {
         myDebug_P(PSTR("  System logging set to device"));
+    } else if (sysLog == EMS_SYS_LOGGING_ALL) {
+        myDebug_P(PSTR("  System logging set to all"));
     } else {
         myDebug_P(PSTR("  System logging set to None"));
     }
@@ -425,7 +429,7 @@ void showInfo() {
         }
         _renderLongValue("Energy last hour", "Wh", EMS_SolarModule.EnergyLastHour, 1); // *10
         _renderLongValue("Energy today", "Wh", EMS_SolarModule.EnergyToday);
-        _renderLongValue("Energy total", "kWh", EMS_SolarModule.EnergyTotal,1); // *10
+        _renderLongValue("Energy total", "kWh", EMS_SolarModule.EnergyTotal, 1); // *10
     }
 
     // For HeatPumps
@@ -1498,6 +1502,8 @@ bool LoadSaveCallback(MYESP_FSACTION_t action, JsonObject settings) {
         ems_setEMSbusid(EMSESP_Settings.bus_id);
 
         EMSESP_Settings.known_devices = strdup(settings["known_devices"] | "");
+        EMS_Sys_Status.emsRemoteRC = settings["remote"];
+        EMS_Sys_Status.emsPollEnabled = settings["poll"];
 
         return true;
     }
@@ -1515,6 +1521,8 @@ bool LoadSaveCallback(MYESP_FSACTION_t action, JsonObject settings) {
         settings["bus_id"]            = EMSESP_Settings.bus_id;
         settings["master_thermostat"] = EMSESP_Settings.master_thermostat;
         settings["known_devices"]     = EMSESP_Settings.known_devices;
+        settings["remote"]            = EMS_Sys_Status.emsRemoteRC;
+        settings["poll"]              = EMS_Sys_Status.emsPollEnabled;
 
         return true;
     }
@@ -1529,14 +1537,61 @@ MYESP_FSACTION_t SetListCallback(MYESP_FSACTION_t action, uint8_t wc, const char
     MYESP_FSACTION_t ok = MYESP_FSACTION_ERR;
 
     if (action == MYESP_FSACTION_SET) {
-        // led
-        if ((strcmp(setting, "led") == 0) && (wc == 2)) {
+         if ((strcmp(setting, "remote") == 0) && (wc == 2)) {
+            if (strcmp(value, "off") == 0) {
+                EMS_Sys_Status.emsRemoteRC = false;
+                ok                          = MYESP_FSACTION_OK;
+            } else if((strcmp(value, "on")) == 0) {
+                EMS_Sys_Status.emsRemoteRC = true;
+                ok                          = MYESP_FSACTION_OK;
+            } else {
+                myDebug_P(PSTR("Error. Usage: set remote <on | off>"));
+           }
+        } else if ((strcmp(setting, "gpio4") == 0) && (wc == 2)) {
+            pinMode(4, OUTPUT);
+            if (strcmp(value, "off") == 0) {
+                digitalWrite(4, 0);
+                ok = MYESP_FSACTION_OK;
+            } else if((strcmp(value, "on")) == 0) {
+                digitalWrite(4, 1);
+                ok = MYESP_FSACTION_OK;
+            }
+        } else if ((strcmp(setting, "gpio5") == 0) && (wc == 2)) {
+            pinMode(5, OUTPUT);
+            if (strcmp(value, "off") == 0) {
+                digitalWrite(5, 0);
+                ok = MYESP_FSACTION_OK;
+            } else if((strcmp(value, "on")) == 0) {
+                digitalWrite(5, 1);
+                ok = MYESP_FSACTION_OK;
+            }
+        } else if ((strcmp(setting, "gpio12") == 0) && (wc == 2)) {
+            pinMode(12, OUTPUT);
+            if (strcmp(value, "off") == 0) {
+                digitalWrite(12, 0);
+                ok = MYESP_FSACTION_OK;
+            } else if((strcmp(value, "on")) == 0) {
+                digitalWrite(12, 1);
+                ok = MYESP_FSACTION_OK;
+            }
+        } else if ((strcmp(setting, "poll") == 0) && (wc == 2)) {
+            if (strcmp(value, "on") == 0) {
+                EMS_Sys_Status.emsPollEnabled = true;
+                ok                            = MYESP_FSACTION_OK;
+            } else if (strcmp(value, "off") == 0) {
+                EMS_Sys_Status.emsPollEnabled = false;
+                ok                             = MYESP_FSACTION_OK;
+            } else {
+                myDebug_P(PSTR("Error. Usage: set poll <on | off>"));
+            }
+       // led
+        } else if ((strcmp(setting, "led") == 0) && (wc == 2)) {
             if (strcmp(value, "on") == 0) {
                 EMSESP_Settings.led = true;
-                ok                  = MYESP_FSACTION_RESTART;
+                ok                  = MYESP_FSACTION_OK;
             } else if (strcmp(value, "off") == 0) {
                 EMSESP_Settings.led = false;
-                ok                  = MYESP_FSACTION_RESTART;
+                ok                  = MYESP_FSACTION_OK;
                 // let's make sure LED is really off - For onboard high=off
                 digitalWrite(EMSESP_Settings.led_gpio, (EMSESP_Settings.led_gpio == LED_BUILTIN) ? HIGH : LOW);
             } else {
@@ -1706,8 +1761,9 @@ MYESP_FSACTION_t SetListCallback(MYESP_FSACTION_t action, uint8_t wc, const char
         } else {
             myDebug_P(PSTR("  master_thermostat=0 (use first detected)"));
         }
+        myDebug_P(PSTR("  poll=%s"), (EMS_Sys_Status.emsPollEnabled) ? "on" : "off");
+        myDebug_P(PSTR("  remote=%s"), (EMS_Sys_Status.emsRemoteRC) ? "on" : "off");
     }
-
     return ok;
 }
 
@@ -1874,6 +1930,9 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
         } else if ((strcmp(second_cmd, "d") == 0) && (wc == 3)) {
             ems_setLogging(EMS_SYS_LOGGING_DEVICE, _readHexNumber()); // get device_id
             ok = true;
+        } else if (strcmp(second_cmd, "a") == 0) {
+            ems_setLogging(EMS_SYS_LOGGING_ALL);
+            ok = true;
         }
     }
 
@@ -1893,7 +1952,16 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
                 // get modevalue and heatingcircuit
                 char *  mode_s = _readWord(); // get mode string next
                 uint8_t hc     = (wc == 4) ? EMS_THERMOSTAT_DEFAULTHC : _readIntNumber();
-                ems_setThermostatTemp(temp, hc, mode_s);
+                if (strcmp(mode_s,"remote") == 0) {
+                    if ((temp >0) && (temp<50)) {
+                        EMS_Thermostat.hc[hc - 1].remotetemp = (uint16_t) (temp*10);
+                    } else {
+                        EMS_Thermostat.hc[hc - 1].remotetemp = EMS_VALUE_SHORT_NOTSET;
+                    }
+                    myDebug_P(PSTR("Remote temperatur for hc%d set to %d.%d"),hc, EMS_Thermostat.hc[hc - 1].remotetemp / 10, EMS_Thermostat.hc[hc - 1].remotetemp % 10);
+                } else {
+                    ems_setThermostatTemp(temp, hc, mode_s);
+                }
                 ok = true;
             }
         } else if (strcmp(second_cmd, "mode") == 0) {
@@ -2084,6 +2152,9 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             return;
         }
         const char * command = doc["cmd"];
+        if (command == nullptr) {
+            return;
+        }
 
         // Check whatever the command is and act accordingly
 
@@ -2091,8 +2162,39 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
         if (strcmp(command, TOPIC_SHOWER_COLDSHOT) == 0) {
             _showerColdShotStart();
             return;
+        } else if (strcmp(command, "gpio4") == 0) {
+            int8_t set = doc["data"];
+            if(doc["data"] != nullptr) {
+                pinMode(4, OUTPUT);
+                if (set == 1) digitalWrite(4, HIGH);
+                else if (set == 0) digitalWrite(4, LOW);
+				myDebug_P(PSTR("[MQTT] gpio4 set to %d"), set);
+            }
+        } else if (strcmp(command, "gpio5") == 0) {
+            int8_t set = doc["data"];
+            if(doc["data"] != nullptr) {
+                pinMode(5, OUTPUT);
+                if (set == 1) digitalWrite(5, HIGH);
+                else if (set == 0) digitalWrite(5, LOW);
+				myDebug_P(PSTR("[MQTT] gpio5 set to %d"), set);
+            }
+        } else if (strcmp(command, "gpio12") == 0) {
+            int8_t set = doc["data"];
+            if(doc["data"] != nullptr) {
+                pinMode(12, OUTPUT);
+                if (set == 1) digitalWrite(12, HIGH);
+                else if (set == 0) digitalWrite(12, LOW);
+				myDebug_P(PSTR("[MQTT] gpio12 set to %d"), set);
+            }
+        } else if (strcmp(command, TOPIC_GENERIC_SEND) == 0) {
+            const char * data = doc["data"];
+            if (data != nullptr) {
+                ems_sendRawTelegram((char *)data);
+            }
+        } else {
+            const char * data = doc["data"];
+            myDebug_P(PSTR("[MQTT] Topic %s, Command  %s, data %s"), topic, command, data);
         }
-
         return; // no match for generic commands
     }
 
@@ -2458,6 +2560,19 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 float f = doc["data"];
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_SUMMER);
+                }
+                return;
+            }
+        }
+        // set remote temperature
+        hc = _hasHCspecified("remotetemp", command);
+        if (hc) {
+            if (EMS_Thermostat.hc[hc - 1].active) {
+                float f = doc["data"];
+                if ((f > 0) && (f < 50)) {
+                    EMS_Thermostat.hc[hc - 1].remotetemp = f*10;
+                } else {
+                    EMS_Thermostat.hc[hc - 1].remotetemp = EMS_VALUE_SHORT_NOTSET;
                 }
                 return;
             }

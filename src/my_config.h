@@ -112,3 +112,6 @@
 #define PAYLOAD_EXTERNAL_SENSOR_NUM "sensor" // which sensor #
 #define PAYLOAD_EXTERNAL_SENSOR_ID "id"
 #define PAYLOAD_EXTERNAL_SENSOR_TEMP "temp"
+
+// MQTT for generic_cmd
+#define TOPIC_GENERIC_SEND "send" // send raw data to ems-bus

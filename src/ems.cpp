@@ -98,6 +98,7 @@ void ems_init() {
     EMS_Sys_Status.emsTxMode         = EMS_TXMODE_DEFAULT;
     EMS_Sys_Status.emsbusid          = EMS_BUSID_DEFAULT;
     EMS_Sys_Status.emsPollAck[0]     = EMS_BUSID_DEFAULT;
+    EMS_Sys_Status.emsRemoteRC       = false;
 
     // thermostat
     strlcpy(EMS_Thermostat.datetime, "?", sizeof(EMS_Thermostat.datetime));
@@ -134,6 +135,7 @@ void ems_init() {
         EMS_Thermostat.hc[i].curr_roomTemp     = EMS_VALUE_SHORT_NOTSET;
         EMS_Thermostat.hc[i].designtemp        = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].offsettemp        = EMS_VALUE_INT_NOTSET;
+        EMS_Thermostat.hc[i].remotetemp        = EMS_VALUE_SHORT_NOTSET;
     }
 
     EMS_MixingModule.device_id = EMS_ID_NONE;
@@ -319,7 +321,9 @@ bool ems_getBusConnected() {
 }
 
 _EMS_SYS_LOGGING ems_getLogging() {
+    if(EMS_Sys_Status.emsLogging < EMS_SYS_LOGGING_ALL)
     return EMS_Sys_Status.emsLogging;
+    else return EMS_SYS_LOGGING_NONE;
 }
 
 void ems_setLogging(_EMS_SYS_LOGGING loglevel, uint16_t id) {
@@ -461,7 +465,7 @@ bool _setValue8(_EMS_RxTelegram * EMS_RxTelegram, int16_t * param_op, uint8_t in
     return true;
 }
 
-// Long
+// Long 24 bit
 bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint32_t * param_op, uint8_t index) {
     int8_t pos = _getDataPosition(EMS_RxTelegram, index, 2);
     if (pos < 0) {
@@ -469,6 +473,17 @@ bool _setValue(_EMS_RxTelegram * EMS_RxTelegram, uint32_t * param_op, uint8_t in
     }
 
     *param_op = (uint32_t)((EMS_RxTelegram->data[pos] << 16) + (EMS_RxTelegram->data[pos + 1] << 8) + (EMS_RxTelegram->data[pos + 2]));
+    return true;
+}
+
+// Long 32 bit
+bool _setValue32(_EMS_RxTelegram * EMS_RxTelegram, uint32_t * param_op, uint8_t index) {
+    int8_t pos = _getDataPosition(EMS_RxTelegram, index, 3);
+    if (pos < 0) {
+        return false;
+    }
+
+    *param_op = (uint32_t)((EMS_RxTelegram->data[pos] << 24) +(EMS_RxTelegram->data[pos + 1] << 16) + (EMS_RxTelegram->data[pos + 2] << 8) + (EMS_RxTelegram->data[pos + 3]));
     return true;
 }
 
@@ -590,39 +605,39 @@ void _debugPrintTelegram(const char * prefix, _EMS_RxTelegram * EMS_RxTelegram, 
 }
 
 // send temperature from Remote controller to all, hc 1..4
-void _ems_sendRCTemp(uint16_t temp) {
+void _ems_sendRCTemp(uint8_t hc, uint8_t dst, uint16_t temp) {
+    if (EMS_Thermostat.hc[hc - 1].remotetemp == EMS_VALUE_SHORT_NOTSET) {
+        temp = EMS_VALUE_USHORT_NOTSET; // set it to 7D00
+    } else {
+        temp = EMS_Thermostat.hc[hc - 1].remotetemp;
+    }
     _EMS_TxTelegram EMS_TxTelegram;
-    EMS_TxTelegram.data[0] = 0x19;
-    EMS_TxTelegram.data[1] = 0x00;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
+    EMS_TxTelegram.data[1] = dst;
     EMS_TxTelegram.data[2] = 0xAF;
     EMS_TxTelegram.data[3] = 0x00;
-    EMS_TxTelegram.data[4] = (uint8_t)(temp>>8);
+    EMS_TxTelegram.data[4] = (uint8_t)(temp >> 8);
     EMS_TxTelegram.data[5] = (uint8_t)(temp & 0x00FF);
     EMS_TxTelegram.data[6] = 0x00;
     EMS_TxTelegram.length  = 8;
-    // finally calculate CRC and add it to the end
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
-    // send the telegram to the UART Tx
-    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
-    if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
-            // Tx Error!
-    }
+    emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
 // send setpoint from Remote controller to thermostat, hc 1..4
-void _ems_sendRCsetpoint() {
+void _ems_sendRCsetpoint(uint8_t hc) {
     _EMS_TxTelegram EMS_TxTelegram;
-    EMS_TxTelegram.data[0] = 0x19;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
     EMS_TxTelegram.data[1] = 0x10;
     EMS_TxTelegram.data[2] = 0x47;
     EMS_TxTelegram.data[3] = 0x02;
-    EMS_TxTelegram.data[4] = EMS_Thermostat.hc[1].daytemp;
+    EMS_TxTelegram.data[4] = EMS_Thermostat.hc[hc - 1].daytemp;
     EMS_TxTelegram.length  = 6;
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
-void _ems_sendRCDHW() {
+void _ems_sendRCDHW(uint8_t hc) {
     _EMS_TxTelegram EMS_TxTelegram;
-    EMS_TxTelegram.data[0] = 0x19;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
     EMS_TxTelegram.data[1] = 0x08;
     EMS_TxTelegram.data[2] = 0x35;
     EMS_TxTelegram.data[3] = 0x00;
@@ -633,14 +648,14 @@ void _ems_sendRCDHW() {
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
 
-void _ems_sendRCVer(uint8_t dst) {
+void _ems_sendRCVer(uint8_t hc, uint8_t dst) {
     _EMS_TxTelegram EMS_TxTelegram;
-    EMS_TxTelegram.data[0] = 0x19;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
     EMS_TxTelegram.data[1] = dst;
     EMS_TxTelegram.data[2] = 0x02;
     EMS_TxTelegram.data[3] = 0x00;
     EMS_TxTelegram.data[4] = 113;   // Product ID 113 (RC20), 93 RC20RF
-    EMS_TxTelegram.data[5] = 0x02;  // Version 2.01
+    EMS_TxTelegram.data[5] = 0x02;  // Version 2.01 (RC20), Ver 2.00 (RF)
     EMS_TxTelegram.data[6] = 0x01;
     EMS_TxTelegram.length  = 8;
     // finally calculate CRC and add it to the end
@@ -650,7 +665,6 @@ void _ems_sendRCVer(uint8_t dst) {
     if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
             // Tx Error!
     }
-
 }
 
 /**
@@ -677,7 +691,7 @@ void _ems_sendTelegram() {
     if (EMS_TxTelegram.action == EMS_TX_TELEGRAM_RAW) {
         EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length); // add the CRC
 
-        if (EMS_Sys_Status.emsLogging != EMS_SYS_LOGGING_NONE) {
+        if (ems_getLogging() != EMS_SYS_LOGGING_NONE) {
             _EMS_RxTelegram EMS_RxTelegram;                     // create new Rx object
             EMS_RxTelegram.length      = EMS_TxTelegram.length; // full length of telegram
             EMS_RxTelegram.telegram    = EMS_TxTelegram.data;
@@ -689,7 +703,7 @@ void _ems_sendTelegram() {
         _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
         if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
             // Tx Error!
-            if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_VERBOSE) {
+            if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
                 myDebug_P(PSTR("** error sending buffer: %s"), _txStatus == EMS_TX_BRK_DETECT ? "BRK" : "WDTO");
             }
             // EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_IDLE;
@@ -739,8 +753,11 @@ void _ems_sendTelegram() {
     // finally calculate CRC and add it to the end
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
 
+    // send the telegram to the UART Tx
+    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length);
+
     // print debug info
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_VERBOSE) {
+    if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
         char s[64] = {0};
         if (EMS_TxTelegram.action == EMS_TX_TELEGRAM_WRITE) {
             snprintf(s, sizeof(s), "Sending write of type 0x%02X to 0x%02X, ", EMS_TxTelegram.type, EMS_TxTelegram.dest & 0x7F);
@@ -757,14 +774,11 @@ void _ems_sendTelegram() {
         EMS_RxTelegram.timestamp   = myESP.getSystemTime(); // now
         _debugPrintTelegram(s, &EMS_RxTelegram, COLOR_CYAN);
     }
-
-    // send the telegram to the UART Tx
-    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length);
     if (EMS_TX_STATUS_OK == _txStatus || EMS_TX_STATUS_IDLE == _txStatus)
         EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_WAIT;
     else {
         // Tx Error!
-        if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_VERBOSE) {
+        if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
             myDebug_P(PSTR("** error sending buffer: %s"), _txStatus == EMS_TX_BRK_DETECT ? "BRK" : "WDTO");
         }
         EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_IDLE;
@@ -835,15 +849,17 @@ void ems_dumpBuffer(const char * prefix, uint8_t * telegram, uint8_t length) {
     strlcat(output_str, _smallitoa3(timestamp % 1000, buffer), sizeof(output_str));
     strlcat(output_str, COLOR_RESET, sizeof(output_str));
     strlcat(output_str, ") ", sizeof(output_str));
-
-    strlcat(output_str, COLOR_YELLOW, sizeof(output_str));
+    if(prefix[0] == 't') strlcat(output_str, COLOR_WHITE, sizeof(output_str));
+    else strlcat(output_str, COLOR_YELLOW, sizeof(output_str));
     strlcat(output_str, prefix, sizeof(output_str));
 
     // show some EMS_Sys_Status entries
-    strlcat(output_str, _hextoa(EMS_Sys_Status.emsRxStatus, buffer), sizeof(output_str));
-    strlcat(output_str, " ", sizeof(output_str));
-    strlcat(output_str, _hextoa(EMS_Sys_Status.emsTxStatus, buffer), sizeof(output_str));
-    strlcat(output_str, ": ", sizeof(output_str));
+    if(prefix[1] != 'x') {
+        strlcat(output_str, _hextoa(EMS_Sys_Status.emsRxStatus, buffer), sizeof(output_str));
+        strlcat(output_str, " ", sizeof(output_str));
+        strlcat(output_str, _hextoa(EMS_Sys_Status.emsTxStatus, buffer), sizeof(output_str));
+        strlcat(output_str, ": ", sizeof(output_str));
+    }
 
     // print whole buffer, don't interpret any data
     for (int i = 0; i < (length); i++) {
@@ -863,8 +879,11 @@ void ems_dumpBuffer(const char * prefix, uint8_t * telegram, uint8_t length) {
  * When a telegram is processed we forcefully erase it from the stack to prevent overflow
  */
 void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_JABBER) {
+    if (ems_getLogging() == EMS_SYS_LOGGING_JABBER) {
         ems_dumpBuffer("ems_parseTelegram: ", telegram, length);
+    }
+    if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_ALL) && (length > 2)) {
+        ems_dumpBuffer("rx: ", telegram, length);
     }
 
     /*
@@ -887,7 +906,7 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
      */
     /*
     if (EMS_Sys_Status.emsRxStatus != EMS_RX_STATUS_IDLE) {
-        if (EMS_Sys_Status.emsLogging > EMS_SYS_LOGGING_NONE) {
+        if (ems_getLogging() > EMS_SYS_LOGGING_NONE) {
             myDebug_P(PSTR("** Warning, we missed the bus - Rx non-idle!"));
         }
         return;
@@ -919,21 +938,19 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                     ems_tx_pollAck();
                 }
             }
-/**/
-        } else if ((value ^ 0x80 ^ EMS_Sys_Status.emsIDMask) == 0x19) { // check for remote hc2
-            static  uint32_t timerRemote = millis();
-            static uint8_t ticker        = 0;
-            if(((millis() - timerRemote) > 10000) && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE)) {  // send every 10 sec
-                if(ticker == 0) _ems_sendRCTemp(210);
-                else if(ticker == 1) _ems_sendRCsetpoint();
-                else if(ticker == 2) _ems_sendRCDHW();
-                timerRemote = millis();
-                if (++ticker > 2) ticker = 0;
-            } else if (EMS_Sys_Status.emsPollEnabled) {
-                uint8_t ack = 0x19;
-                emsuart_tx_buffer(&ack, 1);
+        } else if (EMS_Sys_Status.emsRemoteRC && EMS_TxQueue.isEmpty() && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE))  {
+            for (uint8_t hc = 1; hc <= 4; hc++) {
+                if ((EMS_Thermostat.hc[hc - 1].remotetemp != EMS_VALUE_SHORT_NOTSET) && ((value ^ 0x80 ^ EMS_Sys_Status.emsIDMask) == (0x17 + hc))) {
+                    static  uint32_t timerRemote = millis();
+                    uint8_t add = 0x17 + hc;
+                    if((millis() - timerRemote) > 10000) {  // send every 10 sec
+                        _ems_sendRCTemp(hc, 0x00, EMS_Thermostat.hc[hc - 1].remotetemp);
+                        timerRemote = millis();
+                    } else {
+                        emsuart_tx_buffer(&add, 1);
+                    }
+                }
             }
- /**/
         } else if (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_WAIT) {
             // this may be a byte 01 (success) or 04 (error) from a recent write command?
             if (value == EMS_TX_SUCCESS) {
@@ -943,7 +960,7 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                 _createValidate(); // create a validate Tx request (if needed)
             } else if (value == EMS_TX_ERROR) {
                 // last write failed (04), delete it from queue and dont bother to retry
-                if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_VERBOSE) {
+                if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
                     myDebug_P(PSTR("-> Error: Write command failed from host"));
                 }
                 ems_tx_pollAck(); // send a poll to free the EMS bus
@@ -1007,12 +1024,12 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     // if we are in raw logging mode then just print out the telegram as it is
     // else if we're watching a specific type ID show it and also log an event to the SysLog
     // but still continue to process it
-    if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_RAW)) {
+    if ((ems_getLogging() == EMS_SYS_LOGGING_RAW)) {
         _debugPrintTelegram("", &EMS_RxTelegram, COLOR_WHITE, true);
-    } else if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_WATCH) && (EMS_RxTelegram.type == EMS_Sys_Status.emsLogging_ID)) {
+    } else if ((ems_getLogging() == EMS_SYS_LOGGING_WATCH) && (EMS_RxTelegram.type == EMS_Sys_Status.emsLogging_ID)) {
         _debugPrintTelegram("", &EMS_RxTelegram, COLOR_WHITE, true);
         // raw printout for log d [id] disabled, moved to _printMessage()
-        //    } else if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_DEVICE) && ((EMS_RxTelegram.src == EMS_Sys_Status.emsLogging_ID) || (EMS_RxTelegram.dest == EMS_Sys_Status.emsLogging_ID))) {
+        //    } else if ((ems_getLogging() == EMS_SYS_LOGGING_DEVICE) && ((EMS_RxTelegram.src == EMS_Sys_Status.emsLogging_ID) || (EMS_RxTelegram.dest == EMS_Sys_Status.emsLogging_ID))) {
         //        _debugPrintTelegram("", &EMS_RxTelegram, COLOR_WHITE, true);
     }
 
@@ -1031,12 +1048,18 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     EMS_Sys_Status.emsRxTimestamp  = millis(); // timestamp of last read
     EMS_Sys_Status.emsBusConnected = true;
 
-/**/
-    if(EMS_RxTelegram.type == 0x02 && EMS_RxTelegram.dest == 0x19) {
-        _ems_sendRCVer(EMS_RxTelegram.src);
-        return;
+    if (EMS_Sys_Status.emsRemoteRC && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE)) {
+        for (uint8_t hc = 0; hc <= 4; hc++) {
+            if ((EMS_Thermostat.hc[hc - 1].remotetemp != EMS_VALUE_SHORT_NOTSET) && EMS_RxTelegram.dest == (0x17 + hc)) {
+                if( EMS_RxTelegram.type == 0x02) {
+                    _ems_sendRCVer((hc), EMS_RxTelegram.src);
+                } else if (EMS_RxTelegram.type == 0xAF) {
+                    _ems_sendRCTemp(hc, EMS_RxTelegram.src, EMS_Thermostat.hc[1].remotetemp);
+                }
+            }
+        }
+        // return;
     }
- /**/
     // now lets process it and see what to do next
     _processType(&EMS_RxTelegram);
 }
@@ -1740,9 +1763,9 @@ void _process_SM100Status2(_EMS_RxTelegram * EMS_RxTelegram) {
  * e.g. 30 00 FF 00 02 8E 00 00 00 00 00 00 06 C5 00 00 76 35
  */
 void _process_SM100Energy(_EMS_RxTelegram * EMS_RxTelegram) {
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyLastHour, 0); // last hour / 10 in Wh
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyToday, 4);    //  todays in Wh
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyTotal, 8);    //  total / 10 in kWh
+    _setValue32(EMS_RxTelegram, &EMS_SolarModule.EnergyLastHour, 0); // last hour / 10 in Wh
+    _setValue32(EMS_RxTelegram, &EMS_SolarModule.EnergyToday, 4);    //  todays in Wh
+    _setValue32(EMS_RxTelegram, &EMS_SolarModule.EnergyTotal, 8);    //  total / 10 in kWh
 }
 
 /*
@@ -1788,7 +1811,7 @@ void _process_ISM1Set(_EMS_RxTelegram * EMS_RxTelegram) {
  * UBASetPoint 0x1A
  */
 void _process_SetPoints(_EMS_RxTelegram * EMS_RxTelegram) {
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_VERBOSE) {
+    if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
         if (EMS_RxTelegram->data_length) {
             uint8_t setpoint = EMS_RxTelegram->data[0]; // flow temp
             //uint8_t ww_power = data[2]; // power in %
@@ -2059,7 +2082,7 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
             EMS_Thermostat.product_id      = product_id;
             EMS_Thermostat.device_desc_p   = device_desc_p;
             strlcpy(EMS_Thermostat.version, version, sizeof(EMS_Thermostat.version));
-            ems_getThermostatValues(); // get Thermostat values
+            ems_getThermostatValues(true); // get Thermostat values
             ems_getSettingsValues();   // get Settings from Thermostat
         }
     } else if (type == EMS_DEVICE_TYPE_SOLAR) {
@@ -2081,7 +2104,7 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
         EMS_MixingModule.device_desc_p = device_desc_p;
         EMS_MixingModule.device_flags  = flags;
         strlcpy(EMS_MixingModule.version, version, sizeof(EMS_MixingModule.version));
-        ems_getMixingModuleValues(); // fetch Mixing Module values
+        ems_getMixingModuleValues(true); // fetch Mixing Module values
     }
 }
 
@@ -2152,7 +2175,7 @@ void ems_printTxQueue() {
  * Generic function to return various settings from the thermostat
  * This is called manually to fetch values which don't come from broadcast messages
  */
-void ems_getThermostatValues() {
+void ems_getThermostatValues(bool force) {
     if (!ems_getThermostatEnabled()) {
         return;
     }
@@ -2193,7 +2216,7 @@ void ems_getThermostatValues() {
                 statusMsg = EMS_TYPE_RC35StatusMessage_HC4;
                 opMode    = EMS_TYPE_RC35Set_HC4;
             }
-            if (EMS_Thermostat.hc[hc_num - 1].active) {
+            if ((EMS_Thermostat.hc[hc_num - 1].active) || force) {
                 ems_doReadCommand(statusMsg, device_id);   // to get the temps
                 ems_doReadCommand(opMode, device_id);      // to get the mode
                 ems_doReadCommand(opMode, device_id, 27);  // to get seltemp
@@ -2203,8 +2226,8 @@ void ems_getThermostatValues() {
     case EMS_DEVICE_FLAG_RC300:
     case EMS_DEVICE_FLAG_RC100:
         for (uint8_t hc_num = 1; hc_num <= EMS_THERMOSTAT_MAXHC; hc_num++) {
-            if (EMS_Thermostat.hc[hc_num - 1].active) {
-                ems_doReadCommand(EMS_TYPE_RCPLUSStatusMessage_HC1 + hc - 1, device_id);
+            if ((EMS_Thermostat.hc[hc_num - 1].active) || force) {
+                ems_doReadCommand(EMS_TYPE_RCPLUSStatusMessage_HC1 + hc_num - 1, device_id);
             }
         }
     default:
@@ -2219,7 +2242,7 @@ void ems_getThermostatValues() {
  */
 void ems_getBoilerValues() {
     ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id);        // get boiler data, instead of waiting 10secs for the broadcast
-    //ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id, 27);    // get boiler data, there are no value for us in the higher region 
+    //ems_doReadCommand(EMS_TYPE_UBAMonitorFast, EMS_Boiler.device_id, 27);    // get boiler data, there are no value for us in the higher region
     ems_doReadCommand(EMS_TYPE_UBAMonitorSlow, EMS_Boiler.device_id);        // get more boiler data, instead of waiting 60secs for the broadcast
     ems_doReadCommand(EMS_TYPE_UBAParameterWW, EMS_Boiler.device_id);        // get Warm Water values
     ems_doReadCommand(EMS_TYPE_UBAParametersMessage, EMS_Boiler.device_id);  // get MC10 boiler values
@@ -2261,11 +2284,11 @@ void ems_getSolarModuleValues() {
 /*
  * Get mixing module values from EMS devices
  */
-void ems_getMixingModuleValues() {
+void ems_getMixingModuleValues(bool force) {
     if (ems_getMixingModuleEnabled()) {
         if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MMPLUS) {
             for (uint8_t hc_num = 1; hc_num <= EMS_THERMOSTAT_MAXHC; hc_num++) {
-                if (EMS_Thermostat.hc[hc_num - 1].active) {
+                if (EMS_Thermostat.hc[hc_num - 1].active || force) {
                     ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + hc_num - 1, EMS_MixingModule.device_id);
                 }
             }
@@ -2664,7 +2687,7 @@ void ems_setThermostatTemp(float temperature, uint8_t hc, _EMS_THERMOSTAT_MODE t
         default:
         case EMS_THERMOSTAT_MODE_AUTO: // automatic selection, if no type is defined, we use the standard code
             if (model == EMS_DEVICE_FLAG_RC35) {
-                switch(EMS_Thermostat.hc[hc - 1].mode) {
+                switch (EMS_Thermostat.hc[hc - 1].mode) {
                 case EMS_VALUE_RC35Mode_night:    // if in nightmode, change nighttemp, seltemp is set automatically
                     EMS_TxTelegram.offset = EMS_OFFSET_RC35Set_temp_night;
                     break;
@@ -3596,7 +3619,7 @@ int8_t _ems_findType(uint16_t type) {
  */
 void _printMessage(_EMS_RxTelegram * EMS_RxTelegram, const int8_t show_type) {
     // only print if we have logging enabled
-    if (EMS_Sys_Status.emsLogging < EMS_SYS_LOGGING_THERMOSTAT) {
+    if (ems_getLogging() < EMS_SYS_LOGGING_THERMOSTAT) {
         return;
     }
 
@@ -3650,17 +3673,17 @@ void _printMessage(_EMS_RxTelegram * EMS_RxTelegram, const int8_t show_type) {
 
     strlcat(output_str, ", ", sizeof(output_str));
 
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_THERMOSTAT) {
+    if (ems_getLogging() == EMS_SYS_LOGGING_THERMOSTAT) {
         // only print ones to/from thermostat if logging is set to thermostat only
         if ((src == EMS_Thermostat.device_id) || (dest == EMS_Thermostat.device_id)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
         }
-    } else if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_SOLARMODULE) {
+    } else if (ems_getLogging() == EMS_SYS_LOGGING_SOLARMODULE) {
         // only print ones to/from solar module if logging is set to solar module only
         if ((src == EMS_SolarModule.device_id) || (dest == EMS_SolarModule.device_id)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
         }
-    } else if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_MIXINGMODULE) {
+    } else if (ems_getLogging() == EMS_SYS_LOGGING_MIXINGMODULE) {
         // only print ones to/from mixing module if logging is set to mixing module only
         if ((src == EMS_MixingModule.device_id) || (dest == EMS_MixingModule.device_id)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
@@ -3670,7 +3693,7 @@ void _printMessage(_EMS_RxTelegram * EMS_RxTelegram, const int8_t show_type) {
                    || (type == EMS_TYPE_UBAFlags)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
         }
-    } else if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_DEVICE) {
+    } else if (ems_getLogging() == EMS_SYS_LOGGING_DEVICE) {
         // only print ones to/from DeviceID
         if ((src == EMS_Sys_Status.emsLogging_ID) || (dest == EMS_Sys_Status.emsLogging_ID)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
@@ -3704,7 +3727,7 @@ void _ems_processTelegram(_EMS_RxTelegram * EMS_RxTelegram) {
     }
 
     // we have a matching type ID, print the detailed telegram to the console
-    if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_BASIC) {
+    if (ems_getLogging() == EMS_SYS_LOGGING_BASIC) {
         if (type == -1) {
             myDebug_P(PSTR("<--- Type(0x%02X)"), type);
         } else {
@@ -3738,7 +3761,7 @@ void _processType(_EMS_RxTelegram * EMS_RxTelegram) {
 
     // if its an echo of ourselves from the master UBA, ignore. This should never happen mind you
     if (EMS_RxTelegram->src == EMS_Sys_Status.emsbusid) {
-        if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_JABBER)
+        if (ems_getLogging() == EMS_SYS_LOGGING_JABBER)
             _debugPrintTelegram("echo: ", EMS_RxTelegram, COLOR_WHITE);
         return;
     }
@@ -3791,12 +3814,12 @@ void _processType(_EMS_RxTelegram * EMS_RxTelegram) {
                 EMS_Sys_Status.txRetryCount++;
                 // if retried too many times, give up and remove it
                 if (EMS_Sys_Status.txRetryCount >= TX_WRITE_TIMEOUT_COUNT) {
-                    if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+                    if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                         myDebug_P(PSTR("-> Read failed. Giving up and removing write from queue"));
                     }
                     _removeTxQueue();
                 } else {
-                    if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+                    if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                         myDebug_P(PSTR("-> Read failed. Retrying (%d/%d)..."), EMS_Sys_Status.txRetryCount, TX_WRITE_TIMEOUT_COUNT);
                     }
                 }
@@ -3820,24 +3843,24 @@ void _processType(_EMS_RxTelegram * EMS_RxTelegram) {
         if (EMS_TxTelegram.comparisonValue == dataReceived) {
             // validate was successful, the write changed the value
             _removeTxQueue(); // now we can remove the Tx validate command the queue
-            if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+            if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                 myDebug_P(PSTR("-> Validate confirmed, last Write to 0x%02X was successful"), EMS_TxTelegram.dest);
             }
             // follow up with the post read command
             ems_doReadCommand(EMS_TxTelegram.comparisonPostRead, EMS_TxTelegram.dest);
         } else {
             // write failed
-            if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+            if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                 myDebug_P(PSTR("-> Write failed. Compared set value 0x%02X with received value of 0x%02X"), EMS_TxTelegram.comparisonValue, dataReceived);
             }
             if (++EMS_Sys_Status.txRetryCount > TX_WRITE_TIMEOUT_COUNT) {
-                if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+                if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                     myDebug_P(PSTR("-> Write failed. Giving up, removing from queue"));
                 }
                 _removeTxQueue();
             } else {
                 // retry, turn the validate back into a write and try again
-                if (EMS_Sys_Status.emsLogging >= EMS_SYS_LOGGING_BASIC) {
+                if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
                     myDebug_P(PSTR("-> Write didn't work, retrying (%d/%d)..."), EMS_Sys_Status.txRetryCount, TX_WRITE_TIMEOUT_COUNT);
                 }
                 EMS_TxTelegram.action    = EMS_TX_TELEGRAM_WRITE;
@@ -3878,7 +3901,7 @@ void ems_doReadCommand(uint16_t type, uint8_t dest, uint8_t offset) {
     // see if its a known type
     int8_t i = _ems_findType(type);
 
-    if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC)  {
+    if (ems_getLogging() >= EMS_SYS_LOGGING_BASIC) {
         if (i == -1) {
             myDebug_P(PSTR("Requesting type (0x%02X) from dest 0x%02X"), type, dest);
         } else {

@@ -959,6 +959,9 @@ void MyESP::_printSetCommands() {
     myDebug_P(PSTR("  set ntp_timezone [n]"));
     myDebug_P(PSTR("  set serial <on | off>"));
     myDebug_P(PSTR("  set log_events <on | off>"));
+    //myDebug_P(PSTR("  set poll <on | off>"));
+    //myDebug_P(PSTR("  set remote <on | off>"));
+
 
     // call callback function
     if (_telnet_callback_f) {
