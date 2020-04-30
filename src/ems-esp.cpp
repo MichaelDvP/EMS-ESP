@@ -315,8 +315,10 @@ void showInfo() {
 
         // UBAParameterWW
         _renderBoolValue("Warm Water activated", EMS_Boiler.wWActivated);
+        myDebug_P(PSTR("  Warm Water charging system: %s"), EMS_Boiler.wWCircPumpType ? "3-way valve" : "charge pump");
+        _renderBoolValue("Warm Water charging active", EMS_Boiler.wWHeat);
+
         _renderBoolValue("Warm Water circulation pump available", EMS_Boiler.wWCircPump);
-        myDebug_P(PSTR("  Warm Water circulation pump type: %s"), EMS_Boiler.wWCircPumpType ? "3-way valve" : "charge pump");
         if (EMS_Boiler.wWCircPumpMode == 7) {
             myDebug_P(PSTR("  Warm Water circulation pump freq: continuous"));
         } else {
@@ -328,6 +330,8 @@ void showInfo() {
             strlcat(s, "x3min", sizeof(s));
             myDebug_P(PSTR("  Warm Water circulation pump freq: %s"), s);
         }
+        _renderBoolValue("Warm Water circulation active", EMS_Boiler.wWCirc);
+
         if (EMS_Boiler.wWComfort == EMS_VALUE_UBAParameterWW_wwComfort_Hot) {
             myDebug_P(PSTR("  Warm Water comfort setting: Hot"));
         } else if (EMS_Boiler.wWComfort == EMS_VALUE_UBAParameterWW_wwComfort_Eco) {
@@ -338,7 +342,6 @@ void showInfo() {
 
         _renderIntValue("Warm Water selected temperature", "C", EMS_Boiler.wWSelTemp);
         _renderIntValue("Warm Water desinfection temperature", "C", EMS_Boiler.wWDesinfectTemp);
-        _renderBoolValue("Warm Water circulation active", EMS_Boiler.wWCirc);
 
         // UBAMonitorWWMessage
         _renderIntValue("Warm Water set temperature", "C", EMS_Boiler.wWSetTmp);
@@ -354,7 +357,6 @@ void showInfo() {
                       (EMS_Boiler.wWWorkM % 1440) / 60,
                       EMS_Boiler.wWWorkM % 60);
         }
-        _renderBoolValue("Warm Water 3-way valve", EMS_Boiler.wWHeat);
 
         // UBAMonitorFast
         _renderIntValue("Selected flow temperature", "C", EMS_Boiler.selFlowTemp);
@@ -366,7 +368,6 @@ void showInfo() {
         _renderBoolValue("Boiler pump", EMS_Boiler.heatPmp);
         _renderBoolValue("Fan", EMS_Boiler.fanWork);
         _renderBoolValue("Ignition", EMS_Boiler.ignWork);
-        _renderBoolValue("Circulation pump", EMS_Boiler.wWCirc);
         _renderIntValue("Burner selected max power", "%", EMS_Boiler.selBurnPow);
         _renderIntValue("Burner current power", "%", EMS_Boiler.curBurnPow);
         _renderShortValue("Flame current", "uA", EMS_Boiler.flameCurr);
@@ -1953,7 +1954,7 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
                 char *  mode_s = _readWord(); // get mode string next
                 uint8_t hc     = (wc == 4) ? EMS_THERMOSTAT_DEFAULTHC : _readIntNumber();
                 if (strcmp(mode_s,"remote") == 0) {
-                    if ((temp >0) && (temp<50)) {
+                    if ((temp >0) && (temp<100)) {
                         EMS_Thermostat.hc[hc - 1].remotetemp = (uint16_t) (temp*10);
                     } else {
                         EMS_Thermostat.hc[hc - 1].remotetemp = EMS_VALUE_SHORT_NOTSET;
@@ -2071,16 +2072,14 @@ uint8_t _hasHCspecified(const char * key, const char * input) {
     if (strncmp(input, key, orig_len) == 0) {
         // see if we have additional chars at the end, we want none or 1
         uint8_t diff = (strlen(input) - orig_len);
-        if (diff > 1) {
-            return 0; // invalid
-        }
 
         if (diff == 0) {
             return EMS_THERMOSTAT_DEFAULTHC; // identical, use default which is 1
         }
 
-        // return the value of the last char, 0-9
-        return input[orig_len] - '0';
+        // return the value of the last char, 1-4
+        if ((diff == 1) && (input[orig_len] > '0') && (input[orig_len] < '5'))
+            return input[orig_len] - '0';
     }
 
     return 0; // invalid
@@ -2569,7 +2568,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 float f = doc["data"];
-                if ((f > 0) && (f < 50)) {
+                if ((f > 0) && (f < 100)) {
                     EMS_Thermostat.hc[hc - 1].remotetemp = f*10;
                 } else {
                     EMS_Thermostat.hc[hc - 1].remotetemp = EMS_VALUE_SHORT_NOTSET;

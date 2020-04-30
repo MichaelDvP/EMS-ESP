@@ -62,10 +62,12 @@
 #define EMS_TYPE_UBAMonitorFast2 0xE4 // Monitor fast for newer EMS+
 #define EMS_TYPE_UBAMonitorSlow2 0xE5 // Monitor slow for newer EMS+
 
-#define EMS_OFFSET_UBAParameterWW_wwtemp 2                  // WW Temperature
 #define EMS_OFFSET_UBAParameterWW_wwactivated 1             // WW Activated
-#define EMS_OFFSET_UBAParameterWW_wwOneTime 0x00            // WW OneTime loading
-#define EMS_OFFSET_UBAParameterWW_wwCirulation 1            // WW circulation
+#define EMS_OFFSET_UBAParameterWW_wwtemp 2                  // WW Temperature
+#define EMS_OFFSET_UBAParameterWW_wwcircPump 6              // WW circulation pump 00-No, FF-yes
+
+#define EMS_OFFSET_UBAFlags_wwOneTime 0x00                  // WW OneTime loading
+#define EMS_OFFSET_UBAFlags_wwCirculation 1                 // WW circulation in 0x35 
 #define EMS_OFFSET_UBAParameterWW_wwComfort 9               // WW is in comfort or eco mode
 #define EMS_VALUE_UBAParameterWW_wwComfort_Hot 0x00         // the value for hot
 #define EMS_VALUE_UBAParameterWW_wwComfort_Eco 0xD8         // the value for eco
@@ -143,6 +145,7 @@
 // 18 -> Controller, type 0x29, telegram: 18 89 29 00 01 (CRC=10) #data=1
 // Controller -> 18, type 0x29, telegram: 09 18 29 00 7B (CRC=8F) #data=1
 // 0x19 -> All, type 0xAF, telegram: 19 00 AF 00 00 86 00 06 06 (CRC=2E) #data=5
+// Type AF also with 3 bytes (RC20N)
 #define EMS_TYPE_REMOTEStatusMessage 0xAF
 #define EMS_OFFSET_REMOTEStatusMessage_temp 0
 

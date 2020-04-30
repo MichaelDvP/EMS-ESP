@@ -604,17 +604,14 @@ void _debugPrintTelegram(const char * prefix, _EMS_RxTelegram * EMS_RxTelegram, 
     myDebug(output_str);
 }
 
-// send temperature from Remote controller to all, hc 1..4
+/**
+* send temperature from Remote controller, hc 1..4 and answer all telegrams 
+*/
 void _ems_sendRCTemp(uint8_t hc, uint8_t dst, uint16_t temp) {
-    if (EMS_Thermostat.hc[hc - 1].remotetemp == EMS_VALUE_SHORT_NOTSET) {
-        temp = EMS_VALUE_USHORT_NOTSET; // set it to 7D00
-    } else {
-        temp = EMS_Thermostat.hc[hc - 1].remotetemp;
-    }
     _EMS_TxTelegram EMS_TxTelegram;
     EMS_TxTelegram.data[0] = 0x17 + hc;
     EMS_TxTelegram.data[1] = dst;
-    EMS_TxTelegram.data[2] = 0xAF;
+    EMS_TxTelegram.data[2] = EMS_TYPE_REMOTEStatusMessage;
     EMS_TxTelegram.data[3] = 0x00;
     EMS_TxTelegram.data[4] = (uint8_t)(temp >> 8);
     EMS_TxTelegram.data[5] = (uint8_t)(temp & 0x00FF);
@@ -623,6 +620,35 @@ void _ems_sendRCTemp(uint8_t hc, uint8_t dst, uint16_t temp) {
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
+
+void _ems_sendRCReply(uint8_t hc, uint8_t dst, uint8_t type, uint8_t offset) {
+    _EMS_TxTelegram EMS_TxTelegram;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
+    EMS_TxTelegram.data[1] = dst;
+    EMS_TxTelegram.data[2] = type;
+    EMS_TxTelegram.data[3] = offset;
+    EMS_TxTelegram.length  = 5;
+    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
+    emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
+}
+
+void _ems_sendRCVer(uint8_t hc, uint8_t dst) {
+    _EMS_TxTelegram EMS_TxTelegram;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
+    EMS_TxTelegram.data[1] = dst;
+    EMS_TxTelegram.data[2] = EMS_TYPE_Version;
+    EMS_TxTelegram.data[3] = 0x00;
+    EMS_TxTelegram.data[4] = 113;   // Product ID 113 (RC20), 93 RC20RF
+    EMS_TxTelegram.data[5] = 0x02;  // Version 2.01 (RC20), Ver 2.00 (RF)
+    EMS_TxTelegram.data[6] = 0x01;
+    EMS_TxTelegram.length  = 8;
+    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
+    emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
+}
+
+/**
+ * Telegrams from remote RC20, not needed, we set these values from ems-esp
+ *
 // send setpoint from Remote controller to thermostat, hc 1..4
 void _ems_sendRCsetpoint(uint8_t hc) {
     _EMS_TxTelegram EMS_TxTelegram;
@@ -635,7 +661,7 @@ void _ems_sendRCsetpoint(uint8_t hc) {
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
-void _ems_sendRCDHW(uint8_t hc) {
+void _ems_sendRCwW(uint8_t hc) {
     _EMS_TxTelegram EMS_TxTelegram;
     EMS_TxTelegram.data[0] = 0x17 + hc;
     EMS_TxTelegram.data[1] = 0x08;
@@ -647,25 +673,7 @@ void _ems_sendRCDHW(uint8_t hc) {
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
-
-void _ems_sendRCVer(uint8_t hc, uint8_t dst) {
-    _EMS_TxTelegram EMS_TxTelegram;
-    EMS_TxTelegram.data[0] = 0x17 + hc;
-    EMS_TxTelegram.data[1] = dst;
-    EMS_TxTelegram.data[2] = 0x02;
-    EMS_TxTelegram.data[3] = 0x00;
-    EMS_TxTelegram.data[4] = 113;   // Product ID 113 (RC20), 93 RC20RF
-    EMS_TxTelegram.data[5] = 0x02;  // Version 2.01 (RC20), Ver 2.00 (RF)
-    EMS_TxTelegram.data[6] = 0x01;
-    EMS_TxTelegram.length  = 8;
-    // finally calculate CRC and add it to the end
-    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
-    // send the telegram to the UART Tx
-    _EMS_TX_STATUS _txStatus = emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
-    if (EMS_TX_BRK_DETECT == _txStatus || EMS_TX_WTD_TIMEOUT == _txStatus) {
-            // Tx Error!
-    }
-}
+*/
 
 /**
  * send the contents of the Tx buffer to the UART
@@ -938,16 +946,18 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                     ems_tx_pollAck();
                 }
             }
-        } else if (EMS_Sys_Status.emsRemoteRC && EMS_TxQueue.isEmpty() && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE))  {
-            for (uint8_t hc = 1; hc <= 4; hc++) {
+//        } else if (EMS_Sys_Status.emsRemoteRC && EMS_TxQueue.isEmpty() && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE))  {
+        } else if (EMS_Sys_Status.emsRemoteRC) {
+            for (uint8_t hc = 1; hc <= EMS_THERMOSTAT_MAXHC; hc++) {
                 if ((EMS_Thermostat.hc[hc - 1].remotetemp != EMS_VALUE_SHORT_NOTSET) && ((value ^ 0x80 ^ EMS_Sys_Status.emsIDMask) == (0x17 + hc))) {
                     static  uint32_t timerRemote = millis();
-                    uint8_t add = 0x17 + hc;
-                    if((millis() - timerRemote) > 10000) {  // send every 10 sec
+                    if((millis() - timerRemote) > 60000UL) {  // send every min
                         _ems_sendRCTemp(hc, 0x00, EMS_Thermostat.hc[hc - 1].remotetemp);
                         timerRemote = millis();
-                    } else {
-                        emsuart_tx_buffer(&add, 1);
+                    // we get after some minutes a soft wdt reset when enabling poll-ack, why?
+                    //} else {
+                    //    uint8_t ack = 0x17 + hc;
+                    //    emsuart_tx_buffer(&ack, 1);
                     }
                 }
             }
@@ -1048,13 +1058,16 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     EMS_Sys_Status.emsRxTimestamp  = millis(); // timestamp of last read
     EMS_Sys_Status.emsBusConnected = true;
 
-    if (EMS_Sys_Status.emsRemoteRC && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE)) {
-        for (uint8_t hc = 0; hc <= 4; hc++) {
+//    if (EMS_Sys_Status.emsRemoteRC && (EMS_Sys_Status.emsTxStatus == EMS_TX_STATUS_IDLE)) {
+    if (EMS_Sys_Status.emsRemoteRC) {
+        for (uint8_t hc = 1; hc <= EMS_THERMOSTAT_MAXHC; hc++) {
             if ((EMS_Thermostat.hc[hc - 1].remotetemp != EMS_VALUE_SHORT_NOTSET) && EMS_RxTelegram.dest == (0x17 + hc)) {
-                if( EMS_RxTelegram.type == 0x02) {
+                if ((EMS_RxTelegram.type == EMS_TYPE_Version) && (EMS_RxTelegram.offset == 0)) {
                     _ems_sendRCVer((hc), EMS_RxTelegram.src);
-                } else if (EMS_RxTelegram.type == 0xAF) {
+                } else if (EMS_RxTelegram.type == EMS_TYPE_REMOTEStatusMessage) {
                     _ems_sendRCTemp(hc, EMS_RxTelegram.src, EMS_Thermostat.hc[1].remotetemp);
+                } else {
+                    _ems_sendRCReply(hc, EMS_RxTelegram.src, EMS_RxTelegram.type, EMS_RxTelegram.offset);
                 }
             }
         }
@@ -1154,7 +1167,7 @@ void ems_setWarmWaterOnetime(bool activated) {
     EMS_TxTelegram.action        = EMS_TX_TELEGRAM_WRITE;
     EMS_TxTelegram.dest          = EMS_Boiler.device_id;
     EMS_TxTelegram.type          = EMS_TYPE_UBAFlags;
-    EMS_TxTelegram.offset        = EMS_OFFSET_UBAParameterWW_wwOneTime; // use offset 0x01 for external storage on Junkers
+    EMS_TxTelegram.offset        = EMS_OFFSET_UBAFlags_wwOneTime; // use offset 0x01 for external storage on Junkers
     EMS_TxTelegram.length        = EMS_MIN_TELEGRAM_LENGTH;
     EMS_TxTelegram.type_validate = EMS_ID_NONE;               // don't validate
     EMS_TxTelegram.dataValue     = (activated ? 0x22 : 0x02); // 0x22 is on, 0x02 is off for RC20RF
@@ -1175,7 +1188,7 @@ void ems_setWarmWaterCirculation(bool activated) {
     EMS_TxTelegram.action        = EMS_TX_TELEGRAM_WRITE;
     EMS_TxTelegram.dest          = EMS_Boiler.device_id;
     EMS_TxTelegram.type          = EMS_TYPE_UBAFlags;
-    EMS_TxTelegram.offset        = EMS_OFFSET_UBAParameterWW_wwCirulation;
+    EMS_TxTelegram.offset        = EMS_OFFSET_UBAFlags_wwCirculation;
     EMS_TxTelegram.length        = EMS_MIN_TELEGRAM_LENGTH;
     EMS_TxTelegram.type_validate = EMS_ID_NONE; // don't validate
     EMS_TxTelegram.dataValue     = (activated ? 0x22 : 0x02);
@@ -2287,7 +2300,7 @@ void ems_getSolarModuleValues() {
 void ems_getMixingModuleValues(bool force) {
     if (ems_getMixingModuleEnabled()) {
         if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MMPLUS) {
-            for (uint8_t hc_num = 1; hc_num <= EMS_THERMOSTAT_MAXHC; hc_num++) {
+            for (uint8_t hc_num = 1; hc_num <= EMS_MIXING_MAXHC; hc_num++) {
                 if (EMS_Thermostat.hc[hc_num - 1].active || force) {
                     ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + hc_num - 1, EMS_MixingModule.device_id);
                 }
