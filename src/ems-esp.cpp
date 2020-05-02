@@ -105,7 +105,7 @@ static const command_t project_cmds[] PROGMEM = {
     {true, "shower_timer <on | off>", "send MQTT notification on all shower durations"},
     {true, "shower_alert <on | off>", "stop hot water to send 3 cold burst warnings after max shower time is exceeded"},
     {true, "publish_time <seconds>", "set frequency for publishing data to MQTT (-1=off, 0=automatic)"},
-    {true, "tx_mode <n>", "changes Tx logic. 1=EMS generic, 2=EMS+, 3=HT3"},
+    {true, "tx_mode <n>", "changes Tx logic. 1=EMS generic, 2=EMS+, 3=HT3, 4=Test"},
     {true, "bus_id <ID>", "EMS-ESP's deviceID. 0B=Service Key (default), 0D=Modem, 0A=Hand terminal, 0F=Time module, 12=Error module"},
     {true, "master_thermostat [product id]", "set default thermostat to use. No argument lists options"},
     {true, "set poll <on | off>", "set poll answer of ems"},
@@ -1688,12 +1688,12 @@ MYESP_FSACTION_t SetListCallback(MYESP_FSACTION_t action, uint8_t wc, const char
         // tx_mode
         if ((strcmp(setting, "tx_mode") == 0) && (wc == 2)) {
             uint8_t mode = atoi(value);
-            if ((mode >= 1) && (mode <= 3)) { // see ems.h for definitions
+            if ((mode >= 1) && (mode <= 4)) { // see ems.h for definitions
                 EMSESP_Settings.tx_mode = mode;
                 ems_setTxMode(mode);
                 ok = MYESP_FSACTION_RESTART;
             } else {
-                myDebug_P(PSTR("Error. Usage: set tx_mode <1 | 2 | 3>"));
+                myDebug_P(PSTR("Error. Usage: set tx_mode <1 | 2 | 3 | 4>"));
             }
         }
 
@@ -1806,8 +1806,8 @@ void _showCommands(uint8_t event) {
 // we set the logging here
 void TelnetCallback(uint8_t event) {
     if (event == TELNET_EVENT_CONNECT) {
-        ems_setLogging(EMS_SYS_LOGGING_DEFAULT, true);
-    } else if (event == TELNET_EVENT_DISCONNECT) {
+        //ems_setLogging(EMS_SYS_LOGGING_DEFAULT, true);
+    } else if (event == TELNET_EVENT_DISCONNECT && !myESP.get_log_events()) {
         ems_setLogging(EMS_SYS_LOGGING_NONE, true);
     } else if ((event == TELNET_EVENT_SHOWCMD) || (event == TELNET_EVENT_SHOWSET)) {
         _showCommands(event);
@@ -2402,9 +2402,9 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             if (f) {
                 ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_AUTO);
                 publishEMSValues(true); // publish back immediately
-                return;
             }
         }
+        return;
     }
 
     // thermostat mode changes
@@ -2412,8 +2412,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
     if (hc) {
         if (EMS_Thermostat.hc[hc - 1].active) {
             ems_setThermostatMode(message, hc);
-            return;
         }
+        return;
     }
 
     // check for generic thermostat commands
@@ -2438,9 +2438,9 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_AUTO);
                     publishEMSValues(true); // publish back immediately
-                    return;
                 }
             }
+            return;
         }
 
         // thermostat mode changes
@@ -2452,8 +2452,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                     return;
                 }
                 ems_setThermostatMode(data_cmd, hc);
-                return;
             }
+            return;
         }
 
         // set night temp value
@@ -2463,9 +2463,9 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 float f = doc["data"];
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NIGHT); // night
-                    return;
                 }
             }
+            return;
         }
 
         // set daytemp value
@@ -2476,8 +2476,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_DAY); // day
                 }
-                return;
             }
+            return;
         }
 
         // set holiday value
@@ -2488,8 +2488,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HOLIDAY); // holiday
                 }
-                return;
             }
+            return;
         }
 
         // set eco value
@@ -2500,8 +2500,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_ECO);
                 }
-                return;
             }
+            return;
         }
 
         // set heat value
@@ -2512,8 +2512,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HEAT);
                 }
-                return;
             }
+            return;
         }
 
         // set nofrost value
@@ -2524,8 +2524,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NOFROST);
                 }
-                return;
             }
+            return;
         }
 
         // set heatingcurve design temperature at MinExtTemp
@@ -2536,8 +2536,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f>10) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_DESIGN);
                 }
-                return;
             }
+            return;
         }
 
         // set heatingcurve offset temperature at room temp (20°C)
@@ -2548,8 +2548,8 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f<10) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_OFFSET);
                 }
-                return;
             }
+            return;
         }
 
         // set summer temperature
@@ -2560,11 +2560,11 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 if (f) {
                     ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_SUMMER);
                 }
-                return;
             }
+            return;
         }
         // set remote temperature
-        hc = _hasHCspecified("remotetemp", command);
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_REMOTETEMP, command);
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 float f = doc["data"];
@@ -2573,9 +2573,26 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
                 } else {
                     EMS_Thermostat.hc[hc - 1].remotetemp = EMS_VALUE_SHORT_NOTSET;
                 }
-                return;
             }
+            return;
         }
+        // switch remote temperature on, set RC35 to remote control RC20
+        if (strcmp(command, TOPIC_THERMOSTAT_CMD_REMOTE) == 0) {
+            int8_t set = doc["data"];
+            if(doc["data"] != nullptr) {
+                if (set == 1) {
+                    EMS_Sys_Status.emsRemoteRC = true;
+                    char cmd[] = "0B 10 47 1A 01";
+                    ems_sendRawTelegram(cmd);
+                } else if (set == 0) {
+                    EMS_Sys_Status.emsRemoteRC = false;
+                    char cmd[] = "0B 10 47 1A 02";
+                    ems_sendRawTelegram(cmd);
+                }
+            }
+            return;
+        }
+
     }
 }
 

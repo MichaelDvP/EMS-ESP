@@ -301,6 +301,7 @@ class MyESP {
 
     // syslog
     void writeLogEvent(const uint8_t type, const char * msg);
+    bool get_log_events();
 
     // FS
     void setSettings(fs_loadsave_callback_f loadsave, fs_setlist_callback_f setlist, bool useSerial = true);

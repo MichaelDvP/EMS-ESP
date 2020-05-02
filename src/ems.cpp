@@ -177,7 +177,7 @@ void ems_init() {
     EMS_Boiler.fanWork        = EMS_VALUE_BOOL_NOTSET;   // Fan on/off
     EMS_Boiler.ignWork        = EMS_VALUE_BOOL_NOTSET;   // Ignition on/off
     EMS_Boiler.heatPmp        = EMS_VALUE_BOOL_NOTSET;   // Boiler pump on/off
-    EMS_Boiler.wWHeat         = EMS_VALUE_UINT_NOTSET;   // 3-way valve on WW
+    EMS_Boiler.wWHeat         = EMS_VALUE_UINT_NOTSET;   // valve/pump on WW
     EMS_Boiler.wWCirc         = EMS_VALUE_BOOL_NOTSET;   // Circulation on/off
     EMS_Boiler.selBurnPow     = EMS_VALUE_UINT_NOTSET;   // Burner max power %
     EMS_Boiler.curBurnPow     = EMS_VALUE_UINT_NOTSET;   // Burner current power %
@@ -332,7 +332,7 @@ void ems_setLogging(_EMS_SYS_LOGGING loglevel, uint16_t id) {
 }
 
 void ems_setLogging(_EMS_SYS_LOGGING loglevel, bool quiet) {
-    EMS_Sys_Status.emsLogging = loglevel;
+    EMS_Sys_Status.emsLogging   = loglevel;
 
     if (quiet) {
         return; // no reporting to console
@@ -600,7 +600,6 @@ void _debugPrintTelegram(const char * prefix, _EMS_RxTelegram * EMS_RxTelegram, 
         // send it the SysLog
         myESP.writeLogEvent(MYESP_SYSLOG_INFO, output_str);
     }
-
     myDebug(output_str);
 }
 
@@ -617,6 +616,21 @@ void _ems_sendRCTemp(uint8_t hc, uint8_t dst, uint16_t temp) {
     EMS_TxTelegram.data[5] = (uint8_t)(temp & 0x00FF);
     EMS_TxTelegram.data[6] = 0x00;
     EMS_TxTelegram.length  = 8;
+    EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
+    emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
+}
+void _ems_sendRCSetTemp(uint8_t hc, uint8_t dst, uint8_t type, uint8_t offset) {
+    _EMS_TxTelegram EMS_TxTelegram;
+    EMS_TxTelegram.data[0] = 0x17 + hc;
+    EMS_TxTelegram.data[1] = dst;
+    EMS_TxTelegram.data[2] = type;
+    EMS_TxTelegram.data[3] = offset;
+    if (offset == EMS_OFFSET_RC35Set_temp_day) {
+        EMS_TxTelegram.data[4] = EMS_Thermostat.hc[hc - 1].daytemp;
+    } else if (offset == EMS_OFFSET_RC35Set_temp_night) {
+        EMS_TxTelegram.data[4] = EMS_Thermostat.hc[hc - 1].nighttemp;
+    }
+    EMS_TxTelegram.length  = 6;
     EMS_TxTelegram.data[EMS_TxTelegram.length - 1] = _crcCalculator(EMS_TxTelegram.data, EMS_TxTelegram.length);
     emsuart_tx_buffer(EMS_TxTelegram.data, EMS_TxTelegram.length); // send the telegram to the UART Tx
 }
@@ -714,7 +728,11 @@ void _ems_sendTelegram() {
             if (ems_getLogging() == EMS_SYS_LOGGING_VERBOSE) {
                 myDebug_P(PSTR("** error sending buffer: %s"), _txStatus == EMS_TX_BRK_DETECT ? "BRK" : "WDTO");
             }
-            // EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_IDLE;
+            EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_IDLE;
+        }
+        if (_txStatus == EMS_TX_STATUS_BUSY || _txStatus == EMS_TX_STATUS_TIMEOUT) { // try to send again next poll
+            EMS_Sys_Status.emsTxStatus = EMS_TX_STATUS_IDLE;
+            return;
         }
         EMS_TxQueue.shift(); // and remove from queue
         return;
@@ -858,11 +876,12 @@ void ems_dumpBuffer(const char * prefix, uint8_t * telegram, uint8_t length) {
     strlcat(output_str, COLOR_RESET, sizeof(output_str));
     strlcat(output_str, ") ", sizeof(output_str));
     if(prefix[0] == 't') strlcat(output_str, COLOR_WHITE, sizeof(output_str));
+    else if(prefix[3] == '-') strlcat(output_str, COLOR_RED, sizeof(output_str));
     else strlcat(output_str, COLOR_YELLOW, sizeof(output_str));
     strlcat(output_str, prefix, sizeof(output_str));
 
     // show some EMS_Sys_Status entries
-    if(prefix[1] != 'x') {
+    if(prefix[2] != ':') {
         strlcat(output_str, _hextoa(EMS_Sys_Status.emsRxStatus, buffer), sizeof(output_str));
         strlcat(output_str, " ", sizeof(output_str));
         strlcat(output_str, _hextoa(EMS_Sys_Status.emsTxStatus, buffer), sizeof(output_str));
@@ -888,9 +907,8 @@ void ems_dumpBuffer(const char * prefix, uint8_t * telegram, uint8_t length) {
  */
 void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     if (ems_getLogging() == EMS_SYS_LOGGING_JABBER) {
-        ems_dumpBuffer("ems_parseTelegram: ", telegram, length);
-    }
-    if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_ALL) && (length > 2)) {
+        ems_dumpBuffer("rx_buffer: ", telegram, length);
+    } else if ((EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_ALL) && (length > 2)) {
         ems_dumpBuffer("rx: ", telegram, length);
     }
 
@@ -955,9 +973,9 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                         _ems_sendRCTemp(hc, 0x00, EMS_Thermostat.hc[hc - 1].remotetemp);
                         timerRemote = millis();
                     // we get after some minutes a soft wdt reset when enabling poll-ack, why?
-                    //} else {
-                    //    uint8_t ack = 0x17 + hc;
-                    //    emsuart_tx_buffer(&ack, 1);
+                    } else {
+                        uint8_t ack = 0x17 + hc;
+                        emsuart_tx_buffer(&ack, 1);
                     }
                 }
             }
@@ -1065,7 +1083,9 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
                 if ((EMS_RxTelegram.type == EMS_TYPE_Version) && (EMS_RxTelegram.offset == 0)) {
                     _ems_sendRCVer((hc), EMS_RxTelegram.src);
                 } else if (EMS_RxTelegram.type == EMS_TYPE_REMOTEStatusMessage) {
-                    _ems_sendRCTemp(hc, EMS_RxTelegram.src, EMS_Thermostat.hc[1].remotetemp);
+                    _ems_sendRCTemp(hc, EMS_RxTelegram.src, EMS_Thermostat.hc[hc - 1].remotetemp);
+                } else if (EMS_RxTelegram.type == (EMS_TYPE_RC35Set_HC1 + (hc -1) * 10)) {
+                    _ems_sendRCSetTemp(hc, EMS_RxTelegram.src, EMS_RxTelegram.type, EMS_RxTelegram.offset);
                 } else {
                     _ems_sendRCReply(hc, EMS_RxTelegram.src, EMS_RxTelegram.type, EMS_RxTelegram.offset);
                 }
@@ -1939,7 +1959,7 @@ bool _addDevice(_EMS_DEVICE_TYPE device_type, uint8_t product_id, uint8_t device
 }
 
 /**
- * type 0x07 - shows us the co nnected EMS devices
+ * type 0x07 - shows us the connected EMS devices
  * e.g. 08 00 07 00 0B 80 00 00 00 00 00 00 00 00 00 00 00
  * Junkers has 15 bytes of data
  * each byte is a bitmask for which devices are active
@@ -2301,12 +2321,15 @@ void ems_getMixingModuleValues(bool force) {
     if (ems_getMixingModuleEnabled()) {
         if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MMPLUS) {
             for (uint8_t hc_num = 1; hc_num <= EMS_MIXING_MAXHC; hc_num++) {
-                if (EMS_Thermostat.hc[hc_num - 1].active || force) {
+                if (EMS_MixingModule.hc[hc_num - 1].active || force) {
                     ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + hc_num - 1, EMS_MixingModule.device_id);
                 }
             }
-            ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC1, EMS_MixingModule.device_id);
-            ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC2, EMS_MixingModule.device_id);
+            for (uint8_t wwc_num = 1; wwc_num <= EMS_MIXING_MAXWWC; wwc_num++) {
+                if (EMS_MixingModule.wwc[wwc_num - 1].active || force) {
+                    ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC1 + wwc_num - 1, EMS_MixingModule.device_id);
+                }
+            }
         } else if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MM10) {
             ems_doReadCommand(EMS_TYPE_MMStatusMessage, EMS_MixingModule.device_id);
         }
@@ -3709,7 +3732,7 @@ void _printMessage(_EMS_RxTelegram * EMS_RxTelegram, const int8_t show_type) {
     } else if (ems_getLogging() == EMS_SYS_LOGGING_DEVICE) {
         // only print ones to/from DeviceID
         if ((src == EMS_Sys_Status.emsLogging_ID) || (dest == EMS_Sys_Status.emsLogging_ID)) {
-            _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
+            _debugPrintTelegram(output_str, EMS_RxTelegram, color_s, true);
         }
     } else {
         // always print

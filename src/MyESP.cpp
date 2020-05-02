@@ -188,6 +188,10 @@ void MyESP::myDebug_P(PGM_P format_P, ...) {
     SerialAndTelnet.println(_debug_buffer);
 }
 
+// log
+bool MyESP::get_log_events() {
+    return (_general_log_events);
+}
 // use Serial?
 bool MyESP::getUseSerial() {
     return (_general_serial);
@@ -1128,8 +1132,10 @@ bool MyESP::_changeSetting(uint8_t wc, const char * setting, const char * value)
         save_config = fs_setSettingValue(&_ntp_timezone, value, NTP_TIMEZONE_DEFAULT);
     } else if (strcmp(setting, "log_events") == 0) {
         save_config = fs_setSettingValue(&_general_log_events, value, false);
+            _syslog_setup();       // SysLog
     } else if (strcmp(setting, "log_ip") == 0) {
         save_config = fs_setSettingValue(&_general_log_ip, value, "");
+            _syslog_setup();       // SysLog
     } else {
         // finally check for any custom commands
         if (_fs_setlist_callback_f) {
@@ -3027,11 +3033,13 @@ void MyESP::loop() {
     if ((unsigned long)(currentMillis - lastMqttPoll) >= MQTT_PUBLISH_WAIT) {
         _mqttPublishQueue();
         lastMqttPoll = currentMillis;
+        ESP.wdtFeed();   // feed the watchdog...
     }
 
     // SysLog
     uuid::loop();
     syslog.loop();
+    ESP.wdtFeed();   // feed the watchdog...
 
     if (_timerequest) {
         _timerequest = false;

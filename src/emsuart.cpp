@@ -13,6 +13,9 @@ _EMSRxBuf * pEMSRxBuf;
 _EMSRxBuf * paEMSRxBuf[EMS_MAXBUFFERS];
 uint8_t     emsRxBufIdx  = 0;
 uint8_t     phantomBreak = 0;
+uint32_t    emsRxTime    = 0;
+uint8_t     emsTxToSend  = 0;
+uint8_t     emsTxBuf[EMS_MAXBUFFERSIZE];
 
 os_event_t recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
 
@@ -40,9 +43,22 @@ static void emsuart_rx_intr_handler(void * para) {
         // clear Rx FIFO full and Rx FIFO timeout interrupts
         USIC(EMSUART_UART) = (1 << UIFF) | (1 << UITO);
     }
-
+    if(emsTxToSend > 0) {
+        if (emsTxToSend == 1) {
+            USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset <BRK> 
+        } else if (emsTxToSend == 2) {
+            USC0(EMSUART_UART) |= (1 << UCBRK); // set <BRK>
+        } else {
+            USF(EMSUART_UART) = emsTxBuf[emsTxToSend - 3];
+        }
+        emsTxToSend--;
+    }
     // BREAK detection = End of EMS data block
     if (USIS(EMSUART_UART) & ((1 << UIBD))) {
+        if (USC0(EMSUART_UART) & (1 << UCBRK)) { // break is set from TX
+            USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset <BRK>
+        }
+        emsTxToSend = 0;                  // stop sending if <BRK> detect
         ETS_UART_INTR_DISABLE();          // disable all interrupts and clear them
         USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
 
@@ -51,7 +67,7 @@ static void emsuart_rx_intr_handler(void * para) {
         length                     = 0;
         EMS_Sys_Status.emsRxStatus = EMS_RX_STATUS_IDLE; // set the status flag stating BRK has been received and we can start a new package
         ETS_UART_INTR_ENABLE();                          // re-enable UART interrupts
-
+        emsRxTime = millis();
         system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
     }
 }
@@ -129,8 +145,8 @@ void ICACHE_FLASH_ATTR emsuart_init() {
     USC1(EMSUART_UART) = (0x01 << UCFFT) | (0x01 << UCTOT) | (0 << UCTOE); // enable interupts
 
     // set interrupts for triggers
-    USIC(EMSUART_UART) = 0xFFFF; // clear all interupts
     USIE(EMSUART_UART) = 0;      // disable all interrupts
+    USIC(EMSUART_UART) = 0xFFFF; // clear all interupts
 
     // enable rx break, fifo full and timeout.
     // but not frame error UIFR (because they are too frequent) or overflow UIOF because our buffer is only max 32 bytes
@@ -170,19 +186,15 @@ void ICACHE_FLASH_ATTR emsuart_start() {
  * Which is a 11-bit set of zero's (11 cycles)
  */
 void ICACHE_FLASH_ATTR emsuart_tx_brk() {
-    uint32_t tmp;
-
     // must make sure Tx FIFO is empty
     while (((USS(EMSUART_UART) >> USTXC) & 0xFF))
         ;
 
-    tmp = ((1 << UCRXRST) | (1 << UCTXRST)); // bit mask
-    USC0(EMSUART_UART) |= (tmp);             // set bits
-    USC0(EMSUART_UART) &= ~(tmp);            // clear bits
+    emsuart_flush_fifos();
 
     // To create a 11-bit <BRK> we set TXD_BRK bit so the break signal will
     // automatically be sent when the tx fifo is empty
-    tmp = (1 << UCBRK);
+    uint32_t tmp = (1 << UCBRK);
     USC0(EMSUART_UART) |= (tmp); // set bit
 
     if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_EMSPLUS) { // EMS+ mode
@@ -200,6 +212,9 @@ void ICACHE_FLASH_ATTR emsuart_tx_brk() {
 _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
     _EMS_TX_STATUS result = EMS_TX_STATUS_OK;
 
+    if(millis() > (emsRxTime + EMS_RX_TO_TX_TIMEOUT)) { // reply 
+        return EMS_TX_STATUS_TIMEOUT;
+    }
     if (len) {
         if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_EMSPLUS) { // With extra tx delay for EMS+
             for (uint8_t i = 0; i < len; i++) {
@@ -219,6 +234,19 @@ _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
                 delayMicroseconds(EMSUART_TX_WAIT_BYTE - EMSUART_TX_LAG + EMSUART_TX_WAIT_GAP);
             }
             emsuart_tx_brk(); // send <BRK>
+        } else if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_TEST) { // Test sending in rx-irq
+            if (emsTxToSend > 0) {
+                return EMS_TX_STATUS_BUSY;
+            }
+            if (len > (EMS_MAXBUFFERSIZE - 2)) {
+                return EMS_TX_STATUS_TOLONG;
+            } 
+            emsuart_flush_fifos();
+            USF(EMSUART_UART) = buf[0];
+            for (uint8_t i = 1; i < len ; i++) {
+                emsTxBuf[len - i - 1] = buf[i];
+            }
+            emsTxToSend = len + 1;
         } else if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_DEFAULT) {
             /*
              * based on code from https://github.com/proddy/EMS-ESP/issues/103 by @susisstrolch
@@ -241,57 +269,49 @@ _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
              * We set EMS_Sys_Status.emsTxStatus to EMS_TX_BRK_DETECT and return
              * 
              */
-            uint16_t wdc = EMS_TX_TO_COUNT;
             ETS_UART_INTR_DISABLE(); // disable rx interrupt
-
-            // clear Rx status register
-            USC0(EMSUART_UART) |= (1 << UCRXRST); // reset uart rx fifo
             emsuart_flush_fifos();
 
             // throw out the telegram...
-            for (uint8_t i = 0; i < len && result == EMS_TX_STATUS_OK;) {
-                wdc                     = EMS_TX_TO_COUNT;
+            for (uint8_t i = 0; i < len && result == EMS_TX_STATUS_OK; i++) {
+                uint16_t wdc            = EMS_TX_TO_COUNT;
                 volatile uint8_t _usrxc = (USS(EMSUART_UART) >> USRXC) & 0xFF;
-                USF(EMSUART_UART)       = buf[i++]; // send each Tx byte
-                // wait for echo from busmaster
-                while (((USS(EMSUART_UART) >> USRXC) & 0xFF) == _usrxc) {
+                USF(EMSUART_UART)       = buf[i]; // send each Tx byte
+                while ((((USS(EMSUART_UART) >> USRXC) & 0xFF) == _usrxc) && (result == EMS_TX_STATUS_OK)) {
                     delayMicroseconds(EMSUART_BUSY_WAIT); // burn CPU cycles...
                     if (--wdc == 0) {
                         EMS_Sys_Status.emsTxStatus = result = EMS_TX_WTD_TIMEOUT;
-                        break;
                     }
                     if (USIR(EMSUART_UART) & (1 << UIBD)) {
                         USIC(EMSUART_UART)         = (1 << UIBD); // clear BRK detect IRQ
                         EMS_Sys_Status.emsTxStatus = result = EMS_TX_BRK_DETECT;
                     }
                 }
+                // after each byte wait extra time
+                // delayMicroseconds(EMSUART_BIT_TIME / 4); 
             }
 
             // we got the whole telegram in the Rx buffer
             // on Rx-BRK (bus collision), we simply enable Rx and leave it
             // otherwise we send the final Tx-BRK in the loopback and re=enable Rx-INT.
             // worst case, we'll see an additional Rx-BRK...
-            if (result == EMS_TX_STATUS_OK) {
-                // neither bus collision nor timeout - send terminating BRK signal
-                if (!(USIS(EMSUART_UART) & (1 << UIBD))) {
-                    // no bus collision - send terminating BRK signal
-                    USC0(EMSUART_UART) |= (1 << UCLBE) | (1 << UCBRK); // enable loopback & set <BRK>
-
-                    // wait until BRK detected...
-                    while (!(USIR(EMSUART_UART) & (1 << UIBD))) {
-                        delayMicroseconds(EMSUART_BIT_TIME);
-                    }
-
-                    USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCLBE)); // disable loopback & clear <BRK>
-                    USIC(EMSUART_UART) = (1 << UIBD);                     // clear BRK detect IRQ
-                    phantomBreak       = 1;
-                }
+            if (result != EMS_TX_BRK_DETECT) {
+                // no bus collision - send terminating BRK signal
+                uint16_t wdc            = EMS_TX_TO_COUNT;
+//                uint32_t tmp = (1 << UCLBE) | (1 << UCBRK);
+                uint32_t tmp = (1 << UCBRK);
+                USC0(EMSUART_UART) |= tmp;    //  set <BRK>
+                while ((!(USIR(EMSUART_UART) & (1 << UIBD))) && (--wdc > 0)) // wait until BRK detected...
+                    delayMicroseconds(EMSUART_BUSY_WAIT);
+                USC0(EMSUART_UART) &= ~(tmp); // disable flags
+//                USIC(EMSUART_UART) = (1 << UIBD); // clear BRK detect IRQ
+//                phantomBreak       = 1;
             }
             ETS_UART_INTR_ENABLE(); // receive anything from FIFO...
         }
     }
     if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_JABBER) {
-        ems_dumpBuffer("emsuart_tx_buffer: ", buf, len); 
+        ems_dumpBuffer("tx_buffer: ", buf, len); 
     }
     if (EMS_Sys_Status.emsLogging == EMS_SYS_LOGGING_ALL) {
         if (result == EMS_TX_STATUS_OK) ems_dumpBuffer("tx: ", buf, len);

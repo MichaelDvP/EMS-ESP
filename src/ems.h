@@ -19,6 +19,7 @@
 #define EMS_TXMODE_DEFAULT 1 // Default (was previously known as tx_mode 2 in v1.8.x)
 #define EMS_TXMODE_EMSPLUS 2 // EMS+
 #define EMS_TXMODE_HT3 3     // Junkers HT3
+#define EMS_TXMODE_TEST 4    // TEST
 
 #define EMS_ID_NONE 0x00 // used as a dest in broadcast messages and empty device IDs
 
@@ -99,7 +100,10 @@ typedef enum {
     EMS_TX_STATUS_WAIT, // waiting for response from last Tx
     EMS_TX_WTD_TIMEOUT, // watchdog timeout during send
     EMS_TX_BRK_DETECT,  // incoming BRK during Tx
-    EMS_TX_REV_DETECT   // waiting to detect reverse bit
+    EMS_TX_REV_DETECT,  // waiting to detect reverse bit
+    EMS_TX_STATUS_TIMEOUT,
+    EMS_TX_STATUS_BUSY,
+    EMS_TX_STATUS_TOLONG
 } _EMS_TX_STATUS;
 
 #define EMS_TX_SUCCESS 0x01 // EMS single byte after a Tx Write indicating a success
@@ -302,8 +306,8 @@ typedef struct {
     uint8_t  wWMode;             // warm water mode
     uint8_t  fanWork;            // Fan on/off
     uint8_t  ignWork;            // Ignition on/off
-    uint8_t  heatPmp;            // Circulating pump on/off
-    uint8_t  wWHeat;             // 3-way valve on WW
+    uint8_t  heatPmp;            // Boiler pump on/off
+    uint8_t  wWHeat;             // valve/pump for WW loading
     uint8_t  wWCirc;             // Circulation on/off
     uint8_t  selBurnPow;         // Burner max power
     uint8_t  curBurnPow;         // Burner current power
