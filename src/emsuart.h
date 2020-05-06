@@ -26,7 +26,7 @@
 
 #define EMSUART_BUSY_WAIT (EMSUART_BIT_TIME / 8)
 #define EMS_TX_TO_COUNT (22 * 8) // 
-#define EMS_RX_TO_TX_TIMEOUT 100 // reply to poll within 100 ms
+#define EMS_RX_TO_TX_TIMEOUT 20 // reply to poll within 20 ms, Master polls 30ms later if no reply
 
 #define EMSUART_recvTaskPrio 1
 #define EMSUART_recvTaskQueueLen 64

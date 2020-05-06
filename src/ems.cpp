@@ -1173,6 +1173,26 @@ void _process_UBAMonitorWWMessage(_EMS_RxTelegram * EMS_RxTelegram) {
 }
 
 /**
+ * HPMonitorWWMessage - type 0xE9 - warm water monitor of heatpumps. 24 bytes long
+ * received every 10 seconds
+ */
+void _process_HPMonitorWWMessage(_EMS_RxTelegram * EMS_RxTelegram) {
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWSetTmp, 0);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWCurTmp, 1);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWCurTmp2, 3);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWDesinfectTemp, 9);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWOneTime, 12, 2);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWDesinfecting, 12, 3);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWRecharging, 12, 4);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWCirc, 13, 2);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWStarts, 14);
+    _setValue(EMS_RxTelegram, &EMS_Boiler.wWWorkM, 17);
+//    _setValue(EMS_RxTelegram, &EMS_Boiler.wWCurFlow, 9);
+//    _setValue(EMS_RxTelegram, &EMS_Boiler.wWReadiness, 5, 3);
+//    _setValue(EMS_RxTelegram, &EMS_Boiler.wWTemperatureOK, 5, 5);
+}
+
+/**
  * Activate / De-activate One Time warm water 0x35
  * true = on, false = off
  * See also https://github.com/proddy/EMS-ESP/issues/341#issuecomment-596245458 for Junkers
@@ -1316,6 +1336,7 @@ void _process_UBAMonitorSlow2(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_Boiler.burnWorkMin, 13);
     _setValue(EMS_RxTelegram, &EMS_Boiler.heatWorkMin, 19);
     _setValue(EMS_RxTelegram, &EMS_Boiler.pumpMod, 25); // or is it switchTemp ?
+    EMS_HeatPump.HPSpeed = EMS_Boiler.pumpMod; // see _process_HPMonitor2 type 0xE5!
 }
 
 /**
@@ -3563,7 +3584,8 @@ const _EMS_Type EMS_Types[] = {
 
     // heat pumps
     {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor1, "HeatPumpMonitor1", _process_HPMonitor1},
-    {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor2, "HeatPumpMonitor2", _process_HPMonitor2},
+//    {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor2, "HeatPumpMonitor2", _process_HPMonitor2},
+    {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitorWW, "HeatPumpMonitorWW", _process_HPMonitorWWMessage},
 
     // Thermostats...
     {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_RCTime, "RCTime", _process_RCTime},

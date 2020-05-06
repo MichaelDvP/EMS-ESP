@@ -3033,13 +3033,12 @@ void MyESP::loop() {
     if ((unsigned long)(currentMillis - lastMqttPoll) >= MQTT_PUBLISH_WAIT) {
         _mqttPublishQueue();
         lastMqttPoll = currentMillis;
-        ESP.wdtFeed();   // feed the watchdog...
     }
 
     // SysLog
     uuid::loop();
     syslog.loop();
-    ESP.wdtFeed();   // feed the watchdog...
+    //ESP.wdtFeed();   // feed the watchdog...
 
     if (_timerequest) {
         _timerequest = false;

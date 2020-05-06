@@ -2999,14 +2999,9 @@ void setup() {
 void loop() {
     myESP.loop(); // handle telnet, mqtt, wifi etc
 
-    // get Dallas Sensor readings every 2 seconds
-    static uint32_t last_check = 0;
-    uint32_t        time_now   = millis();
-    if (time_now - last_check > 2000) {
-        last_check = time_now;
-        if (EMSESP_Settings.dallas_sensors) {
-            ds18.loop();
-        }
+    // get Dallas Sensor readings
+    if (EMSESP_Settings.dallas_sensors) {
+        ds18.loop();
     }
 
     // if we just have an EMS bus connection go and fetch the data and MQTT publish it to get started

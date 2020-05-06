@@ -164,8 +164,8 @@
 
 // Heat Pump
 #define EMS_TYPE_HPMonitor1 0xE3 // HeatPump Monitor 1
-#define EMS_TYPE_HPMonitor2 0xE5 // HeatPump Monitor 2
-
+#define EMS_TYPE_HPMonitor2 0xE5 // HeatPump Monitor 2 same as EMS_TYPE_UBAMonitorSlow2
+#define EMS_TYPE_HPMonitorWW 0xE9 // HeatPump WW
 /*
  * Thermostat Types
  */

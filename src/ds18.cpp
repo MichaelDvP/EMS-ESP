@@ -55,37 +55,51 @@ uint8_t DS18::scan() {
 void DS18::loop() {
     // we either start a conversion or read the scratchpad
     static bool conversion = true;
+    static unsigned char index = 0;
+    static uint32_t last_check = 0;
+    uint32_t        time_now   = millis();
+    static uint32_t next_scan  = 0;
+
+    if (time_now - last_check <= next_scan) {
+        return;
+    }
+    last_check = time_now;
     if (conversion) {
         _wire->reset();
         _wire->skip();
         _wire->write(DS18_CMD_START_CONVERSION, _parasite);
+        conversion = false;
+        next_scan  = 1000; // a 12 bit conversion takes 750 ms
     } else {
         // Read scratchpads
-        for (unsigned char index = 0; index < _devices.size(); index++) {
-            if (_wire->reset() == 0) {
-                _devices[index].data[0] = _devices[index].data[0] + 1; // Force a CRC check error
-                return;
-            }
+        if (_wire->reset() == 0) {
+            _devices[index].data[0] = _devices[index].data[0] + 1; // Force a CRC check error
+            return;
+        }
 
-            // Read each scratchpad
-            _wire->select(_devices[index].address);
-            _wire->write(DS18_CMD_READ_SCRATCHPAD);
+        // Read each scratchpad
+        _wire->select(_devices[index].address);
+        _wire->write(DS18_CMD_READ_SCRATCHPAD);
 
-            uint8_t data[DS18_DATA_SIZE];
-            for (unsigned char i = 0; i < DS18_DATA_SIZE; i++) {
-                data[i] = _wire->read();
-            }
+        uint8_t data[DS18_DATA_SIZE];
+        for (unsigned char i = 0; i < DS18_DATA_SIZE; i++) {
+            data[i] = _wire->read();
+        }
 
-            if (_wire->reset() != 1) {
-                _devices[index].data[0] = _devices[index].data[0] + 1; // Force a CRC check error
-                return;
-            }
+        if (_wire->reset() != 1) {
+            _devices[index].data[0] = _devices[index].data[0] + 1; // Force a CRC check error
+            return;
+        }
 
-            memcpy(_devices[index].data, data, DS18_DATA_SIZE);
+        memcpy(_devices[index].data, data, DS18_DATA_SIZE);
+        if (++index >= _devices.size()) { // all sensors read?
+            index = 0;
+            conversion = true; // start next conversion
+        }
+        if (_devices.size() > 0) {
+            next_scan = 1000 / _devices.size(); // read all sensors within one second
         }
     }
-
-    conversion = !conversion;
 }
 
 // return string of the device, with name and address

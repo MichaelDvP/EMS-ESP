@@ -12,7 +12,7 @@
 _EMSRxBuf * pEMSRxBuf;
 _EMSRxBuf * paEMSRxBuf[EMS_MAXBUFFERS];
 uint8_t     emsRxBufIdx  = 0;
-uint8_t     phantomBreak = 0;
+//uint8_t     phantomBreak = 0;
 uint32_t    emsRxTime    = 0;
 uint8_t     emsTxToSend  = 0;
 uint8_t     emsTxBuf[EMS_MAXBUFFERSIZE];
@@ -83,10 +83,10 @@ static void ICACHE_FLASH_ATTR emsuart_recvTask(os_event_t * events) {
     uint8_t length       = pCurrent->length;                           // number of bytes including the BRK at the end
     pCurrent->length     = 0;
 
-    if (phantomBreak) {
-        phantomBreak = 0;
-        length--; // remove phantom break from Rx buffer
-    }
+ //   if (phantomBreak) {
+ //       phantomBreak = 0;
+ //       length--; // remove phantom break from Rx buffer
+ //   }
 
     if (length == 2) {
         // it's a poll or status code, single byte and ok to send on
@@ -238,7 +238,7 @@ _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
             if (emsTxToSend > 0) {
                 return EMS_TX_STATUS_BUSY;
             }
-            if (len > (EMS_MAXBUFFERSIZE - 2)) {
+            if (len > (EMS_MAXBUFFERSIZE)) {
                 return EMS_TX_STATUS_TOLONG;
             } 
             emsuart_flush_fifos();
