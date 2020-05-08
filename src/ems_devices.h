@@ -237,8 +237,9 @@
 #define EMS_OFFSET_RC35Set_seltemp 37         // selected temp
 #define EMS_OFFSET_RC35Set_temp_offset 6      // position of thermostat heatingcurve offset temperature
 #define EMS_OFFSET_RC35Set_temp_design 17     // position of thermostat heatingcurve design temperature
-#define EMS_OFFSET_RC35Set_remote 26          // Fernbedienung 0-no, 1-RC20, 2-RC3x
+#define EMS_OFFSET_RC35Set_remote 26          // Remote control 0-no, 1-RC20, 2-RC3x
 #define EMS_OFFSET_RC35Set_optimize 19        // program optimizing off-0, on-255
+#define EMS_OFFSET_RC35Set_roominfluence 4    // 
 
 #define EMS_OFFSET_RC35Status_dtemp 0         // damped outdoor temp in Temperatures 0x35
 #define EMS_OFFSET_RC35Status_temp1 3         // sensor 1

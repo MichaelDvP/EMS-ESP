@@ -435,6 +435,7 @@ typedef struct {
     uint8_t designtemp;        // heatingcurve design temp at MinExtTemp
     int8_t  offsettemp;        // heatingcurve offest temp at roomtemp. Signed!
     int16_t remotetemp;        // room temperature from remote contoller
+    uint8_t roominfluence;     // romm influence in °C
 } _EMS_Thermostat_HC;
 
 // Thermostat data
@@ -515,6 +516,7 @@ void    ems_parseTelegram(uint8_t * telegram, uint8_t len);
 void    ems_init();
 void    ems_doReadCommand(uint16_t type, uint8_t dest, uint8_t offset = 0);
 void    ems_sendRawTelegram(char * telegram);
+void    ems_sendCommand(uint8_t dst, uint8_t cmd, uint8_t offset, uint8_t data);
 void    ems_printDevices();
 uint8_t ems_printDevices_s(char * buffer, uint16_t len);
 void    ems_printTxQueue();

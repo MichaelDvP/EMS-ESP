@@ -549,6 +549,7 @@ void showInfo() {
                 myDebug_P(PSTR("  Heating Circuit %d"), hc_num);
                 _renderShortValue(" Current room temperature", "C", EMS_Thermostat.hc[hc_num - 1].curr_roomTemp, _m_curr);
                 _renderShortValue(" Setpoint room temperature", "C", EMS_Thermostat.hc[hc_num - 1].setpoint_roomTemp, _m_setpoint);
+                _renderIntValue(" Room influence", "C", EMS_Thermostat.hc[hc_num - 1].roominfluence, 0);
 
                 // Render Day/Night/Holiday Temperature on RC35s
                 // there is no single setpoint temp, but one for day, night and vacation
@@ -2576,6 +2577,41 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             }
             return;
         }
+        // set remote temperature
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_REMOTE, command);
+        if (hc) {
+            if (EMS_Thermostat.hc[hc - 1].active) {
+                uint8_t set = doc["data"];
+                if(doc["data"] != nullptr && (set < 3)) {
+                    ems_sendCommand(0x10,0x3D + 10 * (hc - 1), 0x1A, set);
+                    EMS_Sys_Status.emsRemoteRC = (set == 1);
+                }
+            }
+            return;
+        }
+        // set room influence 
+        hc = _hasHCspecified("roominfluence", command);
+        if (hc) {
+            if (EMS_Thermostat.hc[hc - 1].active) {
+                uint8_t set = doc["data"];
+                if(doc["data"] != nullptr && (set < 10)) {
+                    ems_sendCommand(0x10,0x3D + 10 * (hc - 1), 0x04, set);
+                }
+            }
+            return;
+        }
+        // set optimization
+        hc = _hasHCspecified("optimize", command);
+        if (hc) {
+            if (EMS_Thermostat.hc[hc - 1].active) {
+                uint8_t set = doc["data"];
+                if(doc["data"] != nullptr && (set < 2)) {
+                    ems_sendCommand(0x10,0x3D + 10 * (hc - 1), 0x13, (set == 1) ? 0xFF : 0x00);
+                }
+            }
+            return;
+        }
+/*        
         // switch remote temperature on, set RC35 to remote control RC20
         if (strcmp(command, TOPIC_THERMOSTAT_CMD_REMOTE) == 0) {
             int8_t set = doc["data"];
@@ -2592,7 +2628,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             }
             return;
         }
-
+*/
     }
 }
 

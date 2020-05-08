@@ -3023,7 +3023,6 @@ void MyESP::loop() {
 
     ESP.wdtFeed();   // feed the watchdog...
     _telnetHandle(); // telnet
-    ESP.wdtFeed();   // feed the watchdog...
 
     _mqttConnect(); // MQTT
 
@@ -3038,7 +3037,6 @@ void MyESP::loop() {
     // SysLog
     uuid::loop();
     syslog.loop();
-    //ESP.wdtFeed();   // feed the watchdog...
 
     if (_timerequest) {
         _timerequest = false;

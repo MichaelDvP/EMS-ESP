@@ -136,6 +136,7 @@ void ems_init() {
         EMS_Thermostat.hc[i].designtemp        = EMS_VALUE_UINT_NOTSET;
         EMS_Thermostat.hc[i].offsettemp        = EMS_VALUE_INT_NOTSET;
         EMS_Thermostat.hc[i].remotetemp        = EMS_VALUE_SHORT_NOTSET;
+        EMS_Thermostat.hc[i].roominfluence     = EMS_VALUE_UINT_NOTSET;
     }
 
     EMS_MixingModule.device_id = EMS_ID_NONE;
@@ -1753,6 +1754,7 @@ void _process_RC35Set(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].designtemp, EMS_OFFSET_RC35Set_temp_design);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].offsettemp, EMS_OFFSET_RC35Set_temp_offset);
     _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].summertemp, EMS_OFFSET_RC35Set_temp_summer);
+    _setValue(EMS_RxTelegram, &EMS_Thermostat.hc[hc].roominfluence, EMS_OFFSET_RC35Set_roominfluence);
 }
 
 /**
@@ -2595,6 +2597,32 @@ void ems_sendRawTelegram(char * telegram) {
     // add to Tx queue. Assume it's not full.
     EMS_TxQueue.push(EMS_TxTelegram);
 }
+
+/**
+ * Send a command telegram to the bus
+ */
+void ems_sendCommand(uint8_t dst, uint8_t cmd, uint8_t offset, uint8_t data) {
+    if (EMS_Sys_Status.emsTxDisabled) {
+        if (ems_getLogging() != EMS_SYS_LOGGING_NONE) {
+            myDebug_P(PSTR("in Listen Mode. All Tx is disabled."));
+        }
+        return;
+    }
+    _EMS_TxTelegram EMS_TxTelegram = EMS_TX_TELEGRAM_NEW; // create new Tx
+    EMS_TxTelegram.timestamp       = millis();            // set timestamp
+    EMS_Sys_Status.txRetryCount    = 0;                   // reset retry counter
+
+    EMS_TxTelegram.data[0]       = EMS_Sys_Status.emsbusid;
+    EMS_TxTelegram.data[1]       = dst;
+    EMS_TxTelegram.data[2]       = cmd;
+    EMS_TxTelegram.data[3]       = offset;
+    EMS_TxTelegram.data[4]       = data;
+    EMS_TxTelegram.length        = 6;
+    EMS_TxTelegram.type_validate = EMS_ID_NONE;
+    EMS_TxTelegram.action        = EMS_TX_TELEGRAM_WRITE;
+    EMS_TxQueue.push(EMS_TxTelegram);
+}
+
 
 // wrapper for setting thermostat temp, taking mode as a string argument
 void ems_setThermostatTemp(float temperature, uint8_t hc, const char * mode_s) {
