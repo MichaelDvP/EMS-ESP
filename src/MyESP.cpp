@@ -2553,7 +2553,7 @@ void MyESP::_procMsg(AsyncWebSocketClient * client, size_t sz) {
 #endif
 
     // Check whatever the command is and act accordingly
-    if (strcmp(command, "configfile") == 0) {
+    if (strcmp(command, "configfile") == 0) { 
         (void)fs_saveConfig(root);
     } else if (strcmp(command, "custom_configfile") == 0) {
         (void)fs_saveCustomConfig(root);
@@ -2603,6 +2603,21 @@ bool MyESP::_fs_sendConfig() {
     myDebug("_fs_sendConfig() sending system (%d): %s\n", size, json);
 #endif
 
+    // mask out network_password
+    char * p = strstr(json,_network_password);
+    if(p != nullptr) {
+        for(uint8_t i = 0; i < strlen(_network_password); i++) {
+            p[i] = '*';
+        }
+    }
+    // mask out mqtt_password
+    p = strstr(json,_mqtt_password);
+    if(p != nullptr) {
+        for(uint8_t i = 0; i < strlen(_mqtt_password); i++) {
+            p[i] = '*';
+        }
+    }
+ 
     _ws->textAll(json, size);
 
     configFile = SPIFFS.open(MYESP_CUSTOMCONFIG_FILE, "r");

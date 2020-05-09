@@ -77,7 +77,7 @@ extern struct rst_info resetInfo;
 #define MYESP_WIFI_RECONNECT_INTERVAL 600000 // If could not connect to WIFI, retry after this time in ms. 10 minutes
 
 // set to value >0 if the ESP is overheating or there are timing issues. Recommend a value of 1.
-#define MYESP_DELAY 1
+#define MYESP_DELAY 2
 
 // MQTT
 #define MQTT_PORT 1883                  // MQTT port
