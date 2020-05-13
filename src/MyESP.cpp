@@ -456,7 +456,7 @@ bool MyESP::mqttPublish(const char * topic, JsonDocument & payload, bool retain)
 // can't have empty topic
 // returns false if can't add to queue
 bool MyESP::_mqttQueue(const char * topic, const char * payload, bool retain) {
-    if (!mqttClient.connected() || _mqtt_queue.size() >= MQTT_QUEUE_MAX_SIZE || !_hasValue(topic)) {
+    if (!mqttClient.connected() || _mqtt_queue.size() >= MQTT_QUEUE_MAX_SIZE || !_hasValue(topic) || !_hasValue(payload)) {
         return false;
     }
 
@@ -466,11 +466,9 @@ bool MyESP::_mqttQueue(const char * topic, const char * payload, bool retain) {
     element.retain      = retain;
     element.packetId    = 0;
     element.retry_count = 0;
-    if (payload != NULL) {
-        element.payload = strdup(payload);
-    }
+    element.payload = strdup(payload);
 #ifdef MYESP_DEBUG
-    myDebug_P(PSTR("[MQTT] Adding to queue: #%d [%s] %s"), _mqtt_queue.size(), element.topic, element.payload);
+        myDebug_P(PSTR("[MQTT] Adding to queue: #%d [%s] %s"), _mqtt_queue.size(), element.topic, element.payload);
 #endif
     _mqtt_queue.push_back(element);
 

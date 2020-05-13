@@ -435,6 +435,7 @@ typedef struct {
     uint8_t designtemp;        // heatingcurve design temp at MinExtTemp
     int8_t  offsettemp;        // heatingcurve offest temp at roomtemp. Signed!
     int16_t remotetemp;        // room temperature from remote contoller
+    uint8_t control;          // 0 - no, 1 - RC20, 2 - RC3x
     uint8_t roominfluence;     // romm influence in °C
 } _EMS_Thermostat_HC;
 

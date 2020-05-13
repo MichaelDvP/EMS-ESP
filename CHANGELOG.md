@@ -5,9 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.5 beta]
+## [1.9.6] beta (MyDev)
+
+#### some enhancements mainly for my system with Buderus GB125, RC35, MM10
+
+- add ntp-server to terminal settings
+- add exit-command to terminal
+- add heatcurve temperature parameters 'offset', 'design' and 'summer' to 'thermostat temp' telnet command
+- read EMS long messages with offset (UBAMonitorFast 0x18 and thermostat hc status 0x3D.., needed for RC35 auto-settemp)
+- set thermostat temperatures in advance to get new values by mqtt immediate publishback
+- RC35: if not in automode set night/day-temperature by mqtt thermostat_cmd_tempx as it also effects actual settemp
+- add logic for signed int8_t values
+- merged RC35 addition type 0xA5 from ypaindaveine, but add 'calinttemp' mqtt-command to mqtt 'settings_cmd' and skip clockoffset and language for RC35 as they are not present in this thermostat
+- add RC35 thermostat values for damped outdoor temp and internal sensors (sensors commented out, used for testing calibration).
+- cases for nested/unnested mixing_data
+- add thermostat time to mqtt
+- add heatpump E9 messages
+- do not send passwords to webinterface
+- add mqtt commands for gpio4 and gpio5 to 'generic_cmd'
+- add raw send to mqtt 'generic_cmd' '{"cmd":"send","data":"<hex string>"}'
+- telnet command set sensorNr for publishing sensordata without numbering
+- telnet command poll on/off to enable poll-ack of ems-esp (boiler permanently recognize the servicekey)
+- simulate remote control RC20 thermostat temp remote
+  new commands for thermostat_cmd for all hcs (example for hc 2):
+  - {"cmd":"remotetemp2","data":21.5} temperature of remote thermometer
+  - {"cmd":"control2","data":1} 0 - off, 1 - RC20, 2 - RC35 as controller
+  - {"cmd":"roominfluence2","data":2} temperature in degrees
+  - {"cmd":"optimize2","data":0}  0 -off, 1 - on
+  - {"cmd":"summertemp2","data":18}
+  - {"cmd":"holidaytemp2","data":18}
+  - {"cmd":"designtemp2","data":66}
+  - {"cmd":"offsettemp2","data":-1}
+- set remote on/off in terminal to enable remote feature
+- set poll on/off in terminal to enable poll ack of 0x0B
+- new tx_mode doesn't wait for transmition ending (avoid watchdog resets)
+- dallas sensors read one per cycle not all in one cycle (avoid watchdog resets)
+- show summer/holiday/party/pause-modes in mode_type
+
+## [1.9.5] 30-04-2020
 
 ### Added
+
 - Solar Module SM200 support
 - Support writing to Junkers FR100 thermostats
 - Support writing to RC100, Moduline 1000/1010 thermostats
@@ -16,32 +54,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Moduline 200 and Sieger ES72 thermostats
 - First implementation of writing to generic Junker Thermostats (thanks @Neonox31)
 - Added model type (Buderus, Sieger, Junkers, Nefit, Bosch, Worcester) to device names
-- `set master_thermostat <product id>` to choose with thermostat is master when there are multiple on the bus
-- `boiler wwonetime` command from Telnet
-- `set bus_id <ID>` to support multiple EMS-ESP circuits. Default is 0x0B to mimic a service key.
-- `mqtt_nestedjson` option to disable multiple data records being nested into a single JSON string
+- set master_thermostat <product id> to choose with thermostat is master when there are multiple on the bus
+- boiler wwonetime command from Telnet
+- set bus_id <ID> to support multiple EMS-ESP circuits. Default is 0x0B to mimic a service key.
+- mqtt_nestedjson option to disable multiple data records being nested into a single JSON string
 - MQTT publish messages are queued and gracefully published every second to avoid TCP blocks
 - Added features to WW messages (0x33, 0x34) to improve WW monitoring. (PR#338 by @ypaindaveine)
 - Added mixing log and stub for EMS type 0xAC (PR#338 by @ypaindaveine)
 - Added Thermostat retrieving settings (0xA5) (validated on RC30N) with MQTT support (thanks Yves @ypaindaveine. See #352)
+- Merged with PR https://github.com/proddy/EMS-ESP/pull/366 from @MichaelDvP fixing RC20 and MM50
 
 ### Fixed
+
 - set boiler warm water temp on Junkers/Bosch HT3
 - fixed detection of the Moduline 400 thermostat
 - RC35 setting temperature also forces the current select temp to change, irrespective of the mode
 
 ### Changed
-- improved MQTT publishing to stop network flooding. `publish_time` of -1 is no publish, 0 is automatic otherwise its a time interval
+
+- improved MQTT publishing to stop network flooding. publish_time of -1 is no publish, 0 is automatic otherwise its a time interval
 - External sensors (like Dallas DS18*) are sent as a nested MQTT topic including their unqiue identifier
-- `mqttlog` console command renamed to `mqttqueue` to only show the current publish queue
-- `status` payload on start-up shows the IP and Version of EMS-ESP
-- `thermostat mode` takes a string like manual,auto,heat,day,night,eco,comfort,holiday,nofrost
-- `thermostat temp` also takes a mode string, e.g. `thermostat temp 20 heat`
-- `queue` renamed to `txqueue`
+- mqttlog console command renamed to mqttqueue to only show the current publish queue
+- status payload on start-up shows the IP and Version of EMS-ESP
+- thermostat mode takes a string like manual,auto,heat,day,night,eco,comfort,holiday,nofrost
+- thermostat temp also takes a mode string, e.g. thermostat temp 20 heat
+- queue renamed to txqueue
 
 ### Removed
- - `autodetect scan`. Replaced with `devices scan` and `devices scan+` for deep scanning
- - `mqttlog all` and showing MQTT log in the web interface - no point showing history of previous mqtt publishes in ESP's precious memory. For debugging I recommend using MQTT Explorer or another external tool.
+
+- autodetect scan. Replaced with devices scan and devices scan+ for deep scanning
+- mqttlog all and showing MQTT log in the web interface - no point showing history of previous mqtt publishes in ESP's precious memory. For debugging I recommend using MQTT Explorer or another external tool.
 
 ## [1.9.4] 15-12-2019
 

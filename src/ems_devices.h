@@ -115,13 +115,15 @@
 #define EMS_TYPE_MMPLUSStatusMessage_HC2 0x01D8          // mixing status HC2
 #define EMS_TYPE_MMPLUSStatusMessage_HC3 0x01D9          // mixing status HC3
 #define EMS_TYPE_MMPLUSStatusMessage_HC4 0x01DA          // mixing status HC4
-#define EMS_TYPE_MMPLUSStatusMessage_WWC1 0x0231         // mixing status WWC1
-#define EMS_TYPE_MMPLUSStatusMessage_WWC2 0x0232         // mixing status WWC2
 #define EMS_OFFSET_MMPLUSStatusMessage_flow_temp 3       // flow temperature
 #define EMS_OFFSET_MMPLUSStatusMessage_pump_mod 5        // pump modulation
 #define EMS_OFFSET_MMPLUSStatusMessage_valve_status 2    // valve in percent
+#define EMS_OFFSET_MMPLUSStatusMessage_flow_set 5        // flow setpoint
+
+#define EMS_TYPE_MMPLUSStatusMessage_WWC1 0x0231         // mixing status WWC1
+#define EMS_TYPE_MMPLUSStatusMessage_WWC2 0x0232         // mixing status WWC2
 #define EMS_OFFSET_MMPLUSStatusMessage_WW_flow_temp 0    // flow temperature
-#define EMS_OFFSET_MMPLUSStatusMessage_WW_pump_mod 2     // pump on 6, off 0
+#define EMS_OFFSET_MMPLUSStatusMessage_WW_pump_mod 2     // bits: pump on+prio 6, off 0
 #define EMS_OFFSET_MMPLUSStatusMessage_WW_temp_status 11 // 0,1,2
 
 // MM10
@@ -237,7 +239,7 @@
 #define EMS_OFFSET_RC35Set_seltemp 37         // selected temp
 #define EMS_OFFSET_RC35Set_temp_offset 6      // position of thermostat heatingcurve offset temperature
 #define EMS_OFFSET_RC35Set_temp_design 17     // position of thermostat heatingcurve design temperature
-#define EMS_OFFSET_RC35Set_remote 26          // Remote control 0-no, 1-RC20, 2-RC3x
+#define EMS_OFFSET_RC35Set_control 26         // Remote control 0-no, 1-RC20, 2-RC3x
 #define EMS_OFFSET_RC35Set_optimize 19        // program optimizing off-0, on-255
 #define EMS_OFFSET_RC35Set_roominfluence 4    // 
 
@@ -266,6 +268,10 @@
 #define EMS_OFFSET_RCPLUSStatusMessage_currsetpoint 6 // target setpoint temp
 
 #define EMS_TYPE_RCPLUSSet 0x01B9               // setpoint temp message and mode
+#define EMS_TYPE_RCPLUSSet_HC1 0x01B9
+#define EMS_TYPE_RCPLUSSet_HC2 0x01BA
+#define EMS_TYPE_RCPLUSSet_HC3 0x01BB
+#define EMS_TYPE_RCPLUSSet_HC4 0x01BC
 #define EMS_OFFSET_RCPLUSSet_mode 0             // operation mode(Auto=0xFF, Manual=0x00)
 #define EMS_OFFSET_RCPLUSSet_temp_comfort3 1    // comfort3 level
 #define EMS_OFFSET_RCPLUSSet_temp_comfort2 2    // comfort2 level

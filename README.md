@@ -11,6 +11,11 @@
 [![gitter](https://img.shields.io/gitter/room/EMS-ESP/EMS-ESP.svg)](https://gitter.im/EMS-ESP/community)
 <br>
 
+# This is a experimental fork from https://github.com/proddy/EMS-ESP, go there for stable version and information
+
+---
+
+
 EMS-ESP is a open-source system built for the Espressif ESP8266 microcontroller to communicate with **EMS** (Energy Management System) based boilers, thermostats and other modules from manufacturers like Bosch, Buderus, Nefit, Junkers and Sieger.
 
 ## Features

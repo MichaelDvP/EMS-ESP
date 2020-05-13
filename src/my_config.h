@@ -34,7 +34,7 @@
 #define TOPIC_THERMOSTAT_CMD_DESIGNTEMP "designtemp"        // RC35 designtemp of heatingcurve at min temperature
 #define TOPIC_THERMOSTAT_CMD_OFFSETTEMP "offsettemp"        // RC35 offset of heating curve
 #define TOPIC_THERMOSTAT_CMD_REMOTETEMP "remotetemp"        // RC35 send remote controller room temperarature 
-#define TOPIC_THERMOSTAT_CMD_REMOTE "remote"                // RC35 switch remote on
+#define TOPIC_THERMOSTAT_CMD_CONTROL "control"              // RC35 controller for heating circuit 0 off, 1-RC20, 2-RC35
 
 #define THERMOSTAT_DATETIME "time"                          // current hermostat date, time setting
 #define THERMOSTAT_CURRTEMP "currtemp"                      // current temperature

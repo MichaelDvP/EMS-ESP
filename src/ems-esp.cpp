@@ -2578,13 +2578,19 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             return;
         }
         // set remote temperature
-        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_REMOTE, command);
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_CONTROL, command);
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 uint8_t set = doc["data"];
                 if(doc["data"] != nullptr && (set < 3)) {
-                    ems_sendCommand(0x10,0x3D + 10 * (hc - 1), 0x1A, set);
-                    EMS_Sys_Status.emsRemoteRC = (set == 1);
+                    ems_sendCommand(0x10,0x3D + 10 * (hc - 1), EMS_OFFSET_RC35Set_control, set);
+                    EMS_Thermostat.hc[hc - 1].control = set;
+                    if (set == 1) {
+                        EMS_Sys_Status.emsRemoteRC = true;
+                    } else if (EMS_Thermostat.hc[0].control != 1 && EMS_Thermostat.hc[1].control != 1 && 
+                               EMS_Thermostat.hc[2].control != 1 && EMS_Thermostat.hc[3].control != 1) {
+                        EMS_Sys_Status.emsRemoteRC = false;
+                    }
                 }
             }
             return;
@@ -2606,29 +2612,14 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 uint8_t set = doc["data"];
                 if(doc["data"] != nullptr && (set < 2)) {
+                    if (strcmp(doc["data"], "on") == 0) { 
+                        set = 1;
+                    }
                     ems_sendCommand(0x10,0x3D + 10 * (hc - 1), 0x13, (set == 1) ? 0xFF : 0x00);
                 }
             }
             return;
         }
-/*        
-        // switch remote temperature on, set RC35 to remote control RC20
-        if (strcmp(command, TOPIC_THERMOSTAT_CMD_REMOTE) == 0) {
-            int8_t set = doc["data"];
-            if(doc["data"] != nullptr) {
-                if (set == 1) {
-                    EMS_Sys_Status.emsRemoteRC = true;
-                    char cmd[] = "0B 10 47 1A 01";
-                    ems_sendRawTelegram(cmd);
-                } else if (set == 0) {
-                    EMS_Sys_Status.emsRemoteRC = false;
-                    char cmd[] = "0B 10 47 1A 02";
-                    ems_sendRawTelegram(cmd);
-                }
-            }
-            return;
-        }
-*/
     }
 }
 
