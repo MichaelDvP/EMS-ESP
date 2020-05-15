@@ -2151,6 +2151,33 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             myDebug_P(PSTR("[MQTT] Invalid command from topic %s, payload %s, error %s"), topic, message, error.c_str());
             return;
         }
+        const char * data = doc[TOPIC_GENERIC_SEND];
+        if (data != nullptr) {
+            ems_sendRawTelegram((char *)data);
+            myDebug_P(PSTR("[MQTT] Topic %s, Command  %s, data %s"), topic, TOPIC_GENERIC_SEND, data);
+        }
+        if(doc["gpio4"] != nullptr) {
+            int8_t set = doc["gpio4"];
+            pinMode(4, OUTPUT);
+            if (set == 1) digitalWrite(4, HIGH);
+            else if (set == 0) digitalWrite(4, LOW);
+    		myDebug_P(PSTR("[MQTT] gpio4 set to %d"), set);
+        }
+        if(doc["gpio5"] != nullptr) {
+            uint8_t set = doc["gpio5"];
+            pinMode(5, OUTPUT);
+            if (set == 1) digitalWrite(5, HIGH);
+            else if (set == 0) digitalWrite(5, LOW);
+    		myDebug_P(PSTR("[MQTT] gpio5 set to %d"), set);
+        }
+        if(doc["gpio12"] != nullptr) {
+            uint8_t set = doc["gpio12"];
+            pinMode(12, OUTPUT);
+            if (set == 1) digitalWrite(12, HIGH);
+            else if (set == 0) digitalWrite(12, LOW);
+    		myDebug_P(PSTR("[MQTT] gpio12 set to %d"), set);
+        }
+
         const char * command = doc["cmd"];
         if (command == nullptr) {
             return;
@@ -2237,6 +2264,26 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             myDebug_P(PSTR("[MQTT] Invalid command from topic %s, payload %s, error %s"), topic, message, error.c_str());
             return;
         }
+        const char * data = doc[TOPIC_BOILER_CMD_COMFORT];
+        uint8_t t = doc[TOPIC_BOILER_CMD_COMFORT];
+        if (data != nullptr) {
+            if (strcmp((char *)data, "hot") == 0 || t == 1) {
+                ems_setWarmWaterModeComfort(1);
+            } else if (strcmp((char *)data, "comfort") == 0 || t == 2) {
+                ems_setWarmWaterModeComfort(2);
+            } else if (strcmp((char *)data, "intelligent") == 0 || t == 3) {
+                ems_setWarmWaterModeComfort(3);
+            }
+        }
+        t = doc[TOPIC_BOILER_CMD_FLOWTEMP];
+        if (t) {
+            ems_setFlowTemp(t);
+        }
+        t = doc["desinfectiontemp"];
+        if (t) {
+            ems_sendCommand(0x08, 0x33, 0x07, 8);
+            EMS_Boiler.wWDesinfectTemp = t;
+        }
         const char * command = doc["cmd"];
         if (command == nullptr) {
             return;
@@ -2311,7 +2358,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
         }
         return;
     }
-
+    uint8_t model = ems_getThermostatFlags();
     // check for settings commands
     if (strcmp(topic, TOPIC_SETTINGS_CMD) == 0) {
         // convert JSON and get the command
@@ -2321,74 +2368,51 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             myDebug_P(PSTR("[MQTT] Invalid command from topic %s, payload %s, error %s"), topic, message, error.c_str());
             return;
         }
-        const char * command = doc["cmd"];
-        if (command == nullptr) {
-            return;
-        }
-
-        // language setting
-        if (strcmp(command, TOPIC_SETTINGS_CMD_LANGUAGE) == 0) {
-            const char * data = doc["data"];
-            if (data == nullptr) {
-                return;
-            }
-            if (strcasecmp((char *)data, "german") == 0 || strcmp(data, "0") == 0) {
+        // language setting only RC30
+        const char * data = doc[TOPIC_SETTINGS_CMD_LANGUAGE];
+        if (data != nullptr && model == EMS_DEVICE_FLAG_RC30N) {
+            uint8_t t = doc[TOPIC_SETTINGS_CMD_LANGUAGE];
+            if (strcasecmp((char *)data, "german") == 0 || t == 0) {
                 ems_setSettingsLanguage(EMS_VALUE_IBASettings_LANG_GERMAN);
-            } else if (strcasecmp((char *)data, "dutch") == 0 || strcmp(data, "1") == 0) {
+            } else if (strcasecmp((char *)data, "dutch") == 0 || t == 1) {
                 ems_setSettingsLanguage(EMS_VALUE_IBASettings_LANG_DUTCH);
-            } else if (strcasecmp((char *)data, "french") == 0 || strcmp(data, "2") == 0) {
+            } else if (strcasecmp((char *)data, "french") == 0 || t == 2) {
                 ems_setSettingsLanguage(EMS_VALUE_IBASettings_LANG_FRENCH);
-            } else if (strcasecmp((char *)data, "italian") == 0 || strcmp(data, "3") == 0) {
+            } else if (strcasecmp((char *)data, "italian") == 0 || t == 3) {
                 ems_setSettingsLanguage(EMS_VALUE_IBASettings_LANG_ITALIAN);
             }
-            return;
+        }
+        // clock offset setting only RC30
+        if (doc[TOPIC_SETTINGS_CMD_CKOFFSET] != nullptr && model == EMS_DEVICE_FLAG_RC30N) {
+            uint8_t t = doc[TOPIC_SETTINGS_CMD_CKOFFSET];
+                ems_setSettingsClockOffset(t);
         }
         // building setting
-        if (strcmp(command, TOPIC_SETTINGS_CMD_BUILDING) == 0) {
-            const char * data = doc["data"];
-            if (data == nullptr) {
-                return;
-            }
-            if (strcasecmp((char *)data, "light") == 0 || strcmp(data, "0") == 0) {
+        data = doc[TOPIC_SETTINGS_CMD_BUILDING];
+        if (data != nullptr && (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30N)) {
+            uint8_t t = doc[TOPIC_SETTINGS_CMD_BUILDING];
+            if (strcasecmp((char *)data, "light") == 0 || t == 0) {
                 ems_setSettingsBuilding(EMS_VALUE_IBASettings_BUILDING_LIGHT);
-            } else if (strcasecmp((char *)data, "medium") == 0 || strcmp(data, "1") == 0) {
+            } else if (strcasecmp((char *)data, "medium") == 0 || t == 1) {
                 ems_setSettingsBuilding(EMS_VALUE_IBASettings_BUILDING_MEDIUM);
-            } else if (strcasecmp((char *)data, "heavy") == 0 || strcmp(data, "2") == 0) {
+            } else if (strcasecmp((char *)data, "heavy") == 0 || t == 2) {
                 ems_setSettingsBuilding(EMS_VALUE_IBASettings_BUILDING_HEAVY);
             }
-            return;
         }
         // display setting
-        if (strcmp(command, TOPIC_SETTINGS_CMD_DISPLAY) == 0) {
-            uint8_t t = doc["data"];
-            if(doc["data"] != nullptr) {
-                ems_setSettingsDisplay(t);
-            }
-            return;
+        if (doc[TOPIC_SETTINGS_CMD_DISPLAY] != nullptr && (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30N)) {
+            uint8_t t = doc[TOPIC_SETTINGS_CMD_DISPLAY];
+            ems_setSettingsDisplay(t);
         }
         // min. ext. temperature setting
-        if (strcmp(command, TOPIC_SETTINGS_CMD_MINEXTTEMP) == 0) {
-            int8_t t = doc["data"];
-            if(doc["data"] != nullptr) {
-                ems_setSettingsMinExtTemperature(t);
-            }
-            return;
-        }
-        // clock offset setting
-        if (strcmp(command, TOPIC_SETTINGS_CMD_CKOFFSET) == 0) {
-            int8_t t = doc["data"];
-            if(doc["data"] != nullptr) {
-                ems_setSettingsClockOffset(t);
-            }
-            return;
+        if (doc[TOPIC_SETTINGS_CMD_MINEXTTEMP] != nullptr && (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30N)) {
+            uint8_t t = doc[TOPIC_SETTINGS_CMD_MINEXTTEMP];
+            ems_setSettingsMinExtTemperature(t);
         }
         // calibrate internal temperature sensor
-        if (strcmp(command, TOPIC_SETTINGS_CMD_CALINTTEMP) == 0) {
-            float f = doc["data"];
-            if(doc["data"] != nullptr) {
-                ems_setSettingsCalIntTemp(f);
-            }
-            return;
+        if (doc[TOPIC_SETTINGS_CMD_CALINTTEMP] != nullptr && (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30N)) {
+            float f = doc[TOPIC_SETTINGS_CMD_CALINTTEMP];
+            ems_setSettingsCalIntTemp(f);
         }
         return; // unknown settings command
     }
@@ -2426,6 +2450,88 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             myDebug_P(PSTR("[MQTT] Invalid command from topic %s, payload %s, error %s"), topic, message, error.c_str());
             return;
         }
+        const char HC[4][4] = {"hc1","hc2","hc3","hc4"};
+        for (uint8_t i = 0; i < 4; i++) {
+            if (EMS_Thermostat.hc[i].active) {
+                hc = i + 1;
+                const char * data = doc[HC[i]][TOPIC_THERMOSTAT_CMD_MODE]; // first check mode
+                if (data != nullptr) {
+                    ems_setThermostatMode(data, hc);
+                }
+                float f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_TEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_AUTO);
+                    publishEMSValues(true); // publish back immediately
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_DAYTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_DAY);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_NIGHTTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NIGHT);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_HOLIDAYTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HOLIDAY);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_SUMMERTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_SUMMER);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_OFFSETTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_OFFSET);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_DESIGNTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_DESIGN);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_ECOTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_ECO);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_HEATTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_HEAT);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_NOFROSTTEMP];
+                if (f) {
+                    ems_setThermostatTemp(f, hc, EMS_THERMOSTAT_MODE_NOFROST);
+                }
+                f = doc[HC[i]][TOPIC_THERMOSTAT_CMD_REMOTETEMP];
+                if ((f > 0) && (f < 100)) {
+                    EMS_Thermostat.hc[i].remotetemp = f*10;
+                } else if (f) {
+                    EMS_Thermostat.hc[i].remotetemp = EMS_VALUE_SHORT_NOTSET;
+                }
+                if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30N) {
+                    uint8_t set = doc[HC[i]][TOPIC_THERMOSTAT_CMD_CONTROL];
+                    if(doc[HC[i]][TOPIC_THERMOSTAT_CMD_CONTROL] != nullptr && (set < 3)) {
+                        ems_sendCommand(0x10, 0x3D + 10 * i, EMS_OFFSET_RC35Set_control, set);
+                        EMS_Thermostat.hc[i].control = set;
+                        if (set == 1) {
+                            EMS_Sys_Status.emsRemoteRC = true;
+                        } else if (EMS_Thermostat.hc[0].control != 1 && EMS_Thermostat.hc[1].control != 1 && 
+                                   EMS_Thermostat.hc[2].control != 1 && EMS_Thermostat.hc[3].control != 1) {
+                            EMS_Sys_Status.emsRemoteRC = false;
+                        }
+                    }
+                    set = doc[HC[i]][TOPIC_THERMOSTAT_CMD_ROOMINFLUENCE];
+                    if(doc[HC[i]][TOPIC_THERMOSTAT_CMD_ROOMINFLUENCE] != nullptr && (set < 10)) {
+                        ems_sendCommand(0x10, 0x3D + 10 * i, 0x04, set);
+                    }
+                    set = doc[HC[i]][TOPIC_THERMOSTAT_CMD_OPTIMIZE];
+                    if(doc[HC[i]][TOPIC_THERMOSTAT_CMD_OPTIMIZE] != nullptr && (set < 2)) {
+                        if (strcmp(doc[HC[i]][TOPIC_THERMOSTAT_CMD_OPTIMIZE], "on") == 0) { 
+                            set = 1;
+                        }
+                        ems_sendCommand(0x10, 0x3D + 10 * i, 0x13, (set == 1) ? 0xFF : 0x00);
+                    }
+                }
+            }
+        }
+
         const char * command = doc["cmd"];
         if (command == nullptr) {
             return;
@@ -2596,7 +2702,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             return;
         }
         // set room influence 
-        hc = _hasHCspecified("roominfluence", command);
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_ROOMINFLUENCE, command);
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 uint8_t set = doc["data"];
@@ -2607,7 +2713,7 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
             return;
         }
         // set optimization
-        hc = _hasHCspecified("optimize", command);
+        hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_OPTIMIZE, command);
         if (hc) {
             if (EMS_Thermostat.hc[hc - 1].active) {
                 uint8_t set = doc["data"];

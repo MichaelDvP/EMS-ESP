@@ -1263,7 +1263,6 @@ void _process_UBAMonitorFast(_EMS_RxTelegram * EMS_RxTelegram) {
 
     _setValue(EMS_RxTelegram, &EMS_Boiler.retTemp, 13);
     _setValue(EMS_RxTelegram, &EMS_Boiler.flameCurr, 15);
-    _setValue(EMS_RxTelegram, &EMS_Boiler.serviceCode, 20);
 
     // system pressure. FF means missing
     _setValue(EMS_RxTelegram, &EMS_Boiler.sysPress, 17); // is *10
@@ -1273,6 +1272,7 @@ void _process_UBAMonitorFast(_EMS_RxTelegram * EMS_RxTelegram) {
         EMS_Boiler.serviceCodeChar[0] = char(EMS_RxTelegram->data[18]); // ascii character 1
         EMS_Boiler.serviceCodeChar[1] = char(EMS_RxTelegram->data[19]); // ascii character 2
         EMS_Boiler.serviceCodeChar[2] = '\0';                           // null terminate string
+        _setValue(EMS_RxTelegram, &EMS_Boiler.serviceCode, 20);
     }
 
     // at this point do a quick check to see if the hot water or heating is active
@@ -1992,7 +1992,8 @@ void _process_UBADevices(_EMS_RxTelegram * EMS_RxTelegram) {
     // exit it length is incorrect (13 or 15 bytes long)
     // or it wasn't specifically for us
     // or we can't write to the EMS bus yet
-    if ((EMS_RxTelegram->data_length > EMS_SYS_DEVICEMAP_LENGTH) || (EMS_RxTelegram->dest != EMS_Sys_Status.emsbusid) || (ems_getTxDisabled())) {
+//    if ((EMS_RxTelegram->data_length > EMS_SYS_DEVICEMAP_LENGTH) || (EMS_RxTelegram->dest != EMS_Sys_Status.emsbusid) || (ems_getTxDisabled())) {
+    if ((EMS_RxTelegram->data_length > EMS_SYS_DEVICEMAP_LENGTH) || (ems_getTxDisabled())) {
         return;
     }
 
@@ -2619,7 +2620,7 @@ void ems_sendCommand(uint8_t dst, uint8_t cmd, uint8_t offset, uint8_t data) {
     EMS_TxTelegram.data[4]       = data;
     EMS_TxTelegram.length        = 6;
     EMS_TxTelegram.type_validate = EMS_ID_NONE;
-    EMS_TxTelegram.action        = EMS_TX_TELEGRAM_WRITE;
+    EMS_TxTelegram.action        = EMS_TX_TELEGRAM_RAW;
     EMS_TxQueue.push(EMS_TxTelegram);
 }
 

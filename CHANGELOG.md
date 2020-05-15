@@ -7,37 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.6] beta (MyDev)
 
-#### some enhancements mainly for my system with Buderus GB125, RC35, MM10
+#### with some enhancements mainly for my system with Buderus GB125, RC35, MM10
 
-- add ntp-server to terminal settings
+- add `set ntp-server` to terminal settings
 - add exit-command to terminal
-- add heatcurve temperature parameters 'offset', 'design' and 'summer' to 'thermostat temp' telnet command
+- add heatcurve temperature parameters `offset`, `design` and `summer` to `thermostat temp` telnet command
 - read EMS long messages with offset (UBAMonitorFast 0x18 and thermostat hc status 0x3D.., needed for RC35 auto-settemp)
 - set thermostat temperatures in advance to get new values by mqtt immediate publishback
 - RC35: if not in automode set night/day-temperature by mqtt thermostat_cmd_tempx as it also effects actual settemp
 - add logic for signed int8_t values
-- merged RC35 addition type 0xA5 from ypaindaveine, but add 'calinttemp' mqtt-command to mqtt 'settings_cmd' and skip clockoffset and language for RC35 as they are not present in this thermostat
+- merged RC35 addition type 0xA5 from ypaindaveine, add `calinttemp` mqtt-command to mqtt `settings_cmd` and skip clockoffset and language for RC35 as they are not present in this thermostat
 - add RC35 thermostat values for damped outdoor temp and internal sensors (sensors commented out, used for testing calibration).
 - cases for nested/unnested mixing_data
 - add thermostat time to mqtt
 - add heatpump E9 messages
 - do not send passwords to webinterface
-- add mqtt commands for gpio4 and gpio5 to 'generic_cmd'
-- add raw send to mqtt 'generic_cmd' '{"cmd":"send","data":"<hex string>"}'
-- telnet command set sensorNr for publishing sensordata without numbering
-- telnet command poll on/off to enable poll-ack of ems-esp (boiler permanently recognize the servicekey)
+- add mqtt commands for gpio4 and gpio5 to `generic_cmd`
+- add raw send to mqtt `generic_cmd` `{"cmd":"send","data":"<hex string>"}`
+- telnet command `set sensorNr` for publishing sensordata without numbering
 - simulate remote control RC20 thermostat temp remote
   new commands for thermostat_cmd for all hcs (example for hc 2):
-  - {"cmd":"remotetemp2","data":21.5} temperature of remote thermometer
-  - {"cmd":"control2","data":1} 0 - off, 1 - RC20, 2 - RC35 as controller
-  - {"cmd":"roominfluence2","data":2} temperature in degrees
-  - {"cmd":"optimize2","data":0}  0 -off, 1 - on
-  - {"cmd":"summertemp2","data":18}
-  - {"cmd":"holidaytemp2","data":18}
-  - {"cmd":"designtemp2","data":66}
-  - {"cmd":"offsettemp2","data":-1}
-- set remote on/off in terminal to enable remote feature
-- set poll on/off in terminal to enable poll ack of 0x0B
+  - `{"cmd":"remotetemp2","data":21.5}` temperature of remote thermometer
+  - `{"cmd":"control2","data":1}` 0 - off, 1 - RC20, 2 - RC35 as controller
+  - `{"cmd":"roominfluence2","data":2}` temperature in degrees
+  - `{"cmd":"optimize2","data":0}`  0 -off, 1 - on
+  - `{"cmd":"summertemp2","data":18}`
+  - `{"cmd":"holidaytemp2","data":18}`
+  - `{"cmd":"designtemp2","data":66}`
+  - `{"cmd":"offsettemp2","data":-1}`
+- change mqtt-command format without "cmd"/"data", you can set many parameters in one command:
+  - `thermostat_cmd`  `{"hc2":{"mode":"auto","daytemp":21,"nighttemp":17}}`
+  - `settings_cmd`  `{"building":"medium", "minexttemp":-12}`
+  - `generic_cmd`  `{"send":"0B 90 47 00 20","gpio4":1,gpio5":0}`
+- `set remote` on/off in terminal to enable remote feature
+- `set poll` on/off in terminal to enable poll ack of 0x0B
 - new tx_mode doesn't wait for transmition ending (avoid watchdog resets)
 - dallas sensors read one per cycle not all in one cycle (avoid watchdog resets)
 - show summer/holiday/party/pause-modes in mode_type

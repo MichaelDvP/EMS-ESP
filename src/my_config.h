@@ -33,8 +33,10 @@
 #define TOPIC_THERMOSTAT_CMD_HEATTEMP "heattemp"            // heat temp (Junkers specific)
 #define TOPIC_THERMOSTAT_CMD_DESIGNTEMP "designtemp"        // RC35 designtemp of heatingcurve at min temperature
 #define TOPIC_THERMOSTAT_CMD_OFFSETTEMP "offsettemp"        // RC35 offset of heating curve
-#define TOPIC_THERMOSTAT_CMD_REMOTETEMP "remotetemp"        // RC35 send remote controller room temperarature 
+#define TOPIC_THERMOSTAT_CMD_REMOTETEMP "remotetemp"        // RC35 send remote controller room temperature
 #define TOPIC_THERMOSTAT_CMD_CONTROL "control"              // RC35 controller for heating circuit 0 off, 1-RC20, 2-RC35
+#define TOPIC_THERMOSTAT_CMD_ROOMINFLUENCE "roominfluence"  // RC35 controller for weather control with roominfluence °C
+#define TOPIC_THERMOSTAT_CMD_OPTIMIZE "optimize"            // RC35 controller optimize program?
 
 #define THERMOSTAT_DATETIME "time"                          // current hermostat date, time setting
 #define THERMOSTAT_CURRTEMP "currtemp"                      // current temperature
