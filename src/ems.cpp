@@ -143,6 +143,7 @@ void ems_init() {
     EMS_MixingModule.device_id = EMS_ID_NONE;
     // init all mixing modules
     for (uint8_t i = 0; i < EMS_MIXING_MAXHC; i++) {
+        EMS_MixingModule.hc[i].device_id   = EMS_ID_NONE;
         EMS_MixingModule.hc[i].hc          = i + 1;
         EMS_MixingModule.hc[i].active      = false;
         EMS_MixingModule.hc[i].flowTemp    = EMS_VALUE_USHORT_NOTSET;
@@ -153,6 +154,7 @@ void ems_init() {
 
     // init ww circuits
     for (uint8_t i = 0; i < EMS_MIXING_MAXWWC; i++) {
+        EMS_MixingModule.wwc[i].device_id  = EMS_ID_NONE;
         EMS_MixingModule.wwc[i].wwc        = i + 1;
         EMS_MixingModule.wwc[i].active     = false;
         EMS_MixingModule.wwc[i].flowTemp   = EMS_VALUE_USHORT_NOTSET;
@@ -1516,11 +1518,9 @@ void _process_MMPLUSStatusMessageWW(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_MixingModule.wwc[wwc].tempStatus, EMS_OFFSET_MMPLUSStatusMessage_WW_temp_status);
 }
 
-// Mixing - 0xAB
-// https://github.com/proddy/EMS-ESP/issues/270
-// We assume MM10 is on HC2 and WM10 is using HC1
+// Mixing MM10 - 0xAB for als hc 
 void _process_MMStatusMessage(_EMS_RxTelegram * EMS_RxTelegram) {
-    uint8_t hc                     = 1; // fixed to HC2
+    uint8_t hc                     = EMS_RxTelegram->src - 0x20;
     EMS_MixingModule.hc[hc].active = true;
 
     _setValue(EMS_RxTelegram, &EMS_MixingModule.hc[hc].flowTemp, EMS_OFFSET_MMStatusMessage_flow_temp);
@@ -2156,11 +2156,29 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
         EMS_HeatPump.device_desc_p = device_desc_p;
         strlcpy(EMS_HeatPump.version, version, sizeof(EMS_HeatPump.version));
     } else if (type == EMS_DEVICE_TYPE_MIXING) {
-        EMS_MixingModule.device_id     = device_id;
-        EMS_MixingModule.product_id    = product_id;
-        EMS_MixingModule.device_desc_p = device_desc_p;
-        EMS_MixingModule.device_flags  = flags;
-        strlcpy(EMS_MixingModule.version, version, sizeof(EMS_MixingModule.version));
+//        EMS_MixingModule.device_id     = device_id;
+//        EMS_MixingModule.product_id    = product_id;
+//        EMS_MixingModule.device_desc_p = device_desc_p;
+//        EMS_MixingModule.device_flags  = flags;
+//        strlcpy(EMS_MixingModule.version, version, sizeof(EMS_MixingModule.version));
+
+        uint8_t hc = device_id - 0x20;
+        if (hc < 4) {
+            EMS_MixingModule.hc[hc].device_id     = device_id;
+            EMS_MixingModule.hc[hc].product_id    = product_id;
+            EMS_MixingModule.hc[hc].device_desc_p = device_desc_p;
+            EMS_MixingModule.hc[hc].device_flags  = flags;
+            EMS_MixingModule.hc[hc].active        = true;
+            strlcpy(EMS_MixingModule.hc[hc].version, version, sizeof(EMS_MixingModule.version));
+
+        } else if (hc == 8 || hc == 9) {
+            EMS_MixingModule.wwc[hc - 8].device_id     = device_id;
+            EMS_MixingModule.wwc[hc - 8].product_id    = product_id;
+            EMS_MixingModule.wwc[hc - 8].device_desc_p = device_desc_p;
+            EMS_MixingModule.wwc[hc - 8].device_flags  = flags;
+            EMS_MixingModule.wwc[hc - 8].active        = true;
+            strlcpy(EMS_MixingModule.wwc[hc - 8].version, version, sizeof(EMS_MixingModule.version));
+        }
         ems_getMixingModuleValues(true); // fetch Mixing Module values
     }
 }
@@ -2342,22 +2360,29 @@ void ems_getSolarModuleValues() {
  * Get mixing module values from EMS devices
  */
 void ems_getMixingModuleValues(bool force) {
-    if (ems_getMixingModuleEnabled()) {
-        if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MMPLUS) {
-            for (uint8_t hc_num = 1; hc_num <= EMS_MIXING_MAXHC; hc_num++) {
-                if (EMS_MixingModule.hc[hc_num - 1].active || force) {
-                    ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + hc_num - 1, EMS_MixingModule.device_id);
-                }
+//    if (ems_getMixingModuleEnabled()) {
+    for (uint8_t hc = 0; hc < EMS_MIXING_MAXHC; hc++) {
+        if (EMS_MixingModule.hc[hc].device_flags == EMS_DEVICE_FLAG_MMPLUS) {
+            if (EMS_MixingModule.hc[hc].active || force) {
+                ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + hc, 0x20 + hc);
             }
-            for (uint8_t wwc_num = 1; wwc_num <= EMS_MIXING_MAXWWC; wwc_num++) {
-                if (EMS_MixingModule.wwc[wwc_num - 1].active || force) {
-                    ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC1 + wwc_num - 1, EMS_MixingModule.device_id);
-                }
-            }
-        } else if (EMS_MixingModule.device_flags == EMS_DEVICE_FLAG_MM10) {
-            ems_doReadCommand(EMS_TYPE_MMStatusMessage, EMS_MixingModule.device_id);
         }
     }
+    for (uint8_t wwc = 0; wwc < EMS_MIXING_MAXWWC; wwc++) {
+        if (EMS_MixingModule.wwc[wwc].device_flags == EMS_DEVICE_FLAG_MMPLUS) {
+            if (EMS_MixingModule.wwc[wwc].active || force) {
+                ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC1 + wwc, 0x28 + wwc);
+            }
+        }
+    }
+    for (uint8_t hc = 1; hc < EMS_MIXING_MAXHC; hc++) {
+        if (EMS_MixingModule.hc[hc].device_flags == EMS_DEVICE_FLAG_MM10) {
+            if (EMS_MixingModule.hc[hc].active || force) {
+                ems_doReadCommand(EMS_TYPE_MMStatusMessage, 0x20 + hc);
+            }
+        }
+    }
+//    }
 }
 
 // takes a device type (e.g. EMS_DEVICE_TYPE_MIXING) and stores the english name in the given buffer
@@ -2425,7 +2450,7 @@ bool ems_getDeviceTypeDescription(uint8_t device_id, char * buffer) {
 /**
  * returns current device details as a string for known thermostat,boiler,solar and heatpump
  */
-char * ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, bool name_only) {
+char * ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, bool name_only, uint8_t id) {
     const uint8_t size    = 200;
     bool          enabled = false;
     uint8_t       device_id;
@@ -2458,11 +2483,26 @@ char * ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, boo
         device_desc_p = EMS_HeatPump.device_desc_p;
         version       = EMS_HeatPump.version;
     } else if (device_type == EMS_DEVICE_TYPE_MIXING) {
-        enabled       = ems_getMixingModuleEnabled();
-        device_id     = EMS_MixingModule.device_id;
-        product_id    = EMS_MixingModule.product_id;
-        device_desc_p = EMS_MixingModule.device_desc_p;
-        version       = EMS_MixingModule.version;
+        uint8_t hc = id - 0x20; 
+        if (hc < 4) {
+            enabled       = EMS_MixingModule.hc[hc].active;
+            device_id     = EMS_MixingModule.hc[hc].device_id;
+            product_id    = EMS_MixingModule.hc[hc].product_id;
+            device_desc_p = EMS_MixingModule.hc[hc].device_desc_p;
+            version       = EMS_MixingModule.hc[hc].version;
+        } else if (hc == 8 || hc == 9) {
+            hc = hc - 8;
+            enabled       = EMS_MixingModule.wwc[hc].active;
+            device_id     = EMS_MixingModule.wwc[hc].device_id;
+            product_id    = EMS_MixingModule.wwc[hc].product_id;
+            device_desc_p = EMS_MixingModule.wwc[hc].device_desc_p;
+            version       = EMS_MixingModule.wwc[hc].version;
+        }
+//        enabled       = ems_getMixingModuleEnabled();
+//        device_id     = EMS_MixingModule.device_id;
+//        product_id    = EMS_MixingModule.product_id;
+//        device_desc_p = EMS_MixingModule.device_desc_p;
+//        version       = EMS_MixingModule.version;
     }
 
     if (!enabled) {

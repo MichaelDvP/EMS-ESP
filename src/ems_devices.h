@@ -133,6 +133,13 @@
 #define EMS_OFFSET_MMStatusMessage_pump_mod 3     // pump modulation in percent
 #define EMS_OFFSET_MMStatusMessage_valve_status 4 // valve 0..255
 #define EMS_TYPE_MM10ParameterMessage 0xAC        // mixing parameters
+#define EMS_OFFSET_MM10ParameterMessage_set 0     // setpoint
+#define EMS_OFFSET_MM10ParameterMessage_pump 1    // on 0x64, off 0x00
+
+#define EMS_TYPE_MM10ParameterMessage2 0xAA       // mixing parameters
+#define EMS_OFFEST_MM10ParameterMessage2_ON 0     // on 0xFF, off  0x00
+#define EMS_OFFEST_MM10ParameterMessage2_RUNTIME 1 // in 10 sec => 0C = 120 sec
+
 
 // Switch module WM10 id 0x11
 // Switching Module -> UBAMaster, type 0x1E, telegram: 11 08 1E 00 01 13 (CRC=73) #data=2

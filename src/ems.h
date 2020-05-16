@@ -367,21 +367,31 @@ typedef struct {
 
 // Mixing Module per HC
 typedef struct {
-    uint8_t  hc;     // heating circuit 1, 2, 3 or 4
-    bool     active; // true if there is data for this HC
-    uint16_t flowTemp;
-    uint8_t  pumpMod;
-    uint8_t  valveStatus;
-    uint8_t  flowSetTemp;
+    uint8_t      device_id;
+    uint8_t      device_flags;
+    const char * device_desc_p;
+    uint8_t      product_id;
+    char         version[10];
+    uint8_t      hc;     // heating circuit 1, 2, 3 or 4
+    bool         active; // true if there is data for this HC
+    uint16_t     flowTemp;
+    uint8_t      pumpMod;
+    uint8_t      valveStatus;
+    uint8_t      flowSetTemp;
 } _EMS_MixingModule_HC;
 
 // Mixing Module per WWC
 typedef struct {
-    uint8_t  wwc;    // warm water circuit 1, 2
-    bool     active; // true if there is data for this WWC
-    uint16_t flowTemp;
-    uint8_t  pumpMod;
-    uint8_t  tempStatus;
+    uint8_t      device_id;
+    uint8_t      device_flags;
+    const char * device_desc_p;
+    uint8_t      product_id;
+    char         version[10];
+    uint8_t      wwc;    // warm water circuit 1, 2
+    bool         active; // true if there is data for this WWC
+    uint16_t     flowTemp;
+    uint8_t      pumpMod;
+    uint8_t      tempStatus;
 } _EMS_MixingModule_WWC;
 
 // Mixing data
@@ -553,7 +563,7 @@ void ems_setTxMode(uint8_t mode);
 void ems_setEMSbusid(uint8_t id);
 void ems_setMasterThermostat(uint8_t product_id);
 
-char *               ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, bool name_only = false);
+char *               ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, bool name_only = false, uint8_t id = 0);
 bool                 ems_getDeviceTypeDescription(uint8_t device_id, char * buffer);
 char *               ems_getDeviceTypeName(_EMS_DEVICE_TYPE device_type, char * buffer);
 _EMS_THERMOSTAT_MODE ems_getThermostatMode(const char * mode_s);

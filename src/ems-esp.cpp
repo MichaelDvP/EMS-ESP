@@ -618,13 +618,13 @@ void showInfo() {
     if (ems_getMixingModuleEnabled()) {
         myDebug_P(PSTR("")); // newline
         myDebug_P(PSTR("%sMixing module data:%s"), COLOR_BOLD_ON, COLOR_BOLD_OFF);
-        myDebug_P(PSTR("  Mixing Module: %s"), ems_getDeviceDescription(EMS_DEVICE_TYPE_MIXING, buffer_type, false));
         if ((EMS_Boiler.switchTemp != EMS_VALUE_USHORT_NOTSET) && (EMS_Boiler.switchTemp != 0)) {
             _renderUShortValue("Switch temperature", "C", EMS_Boiler.switchTemp);
         }
 
         for (uint8_t hc_num = 1; hc_num <= EMS_MIXING_MAXHC; hc_num++) {
             if (EMS_MixingModule.hc[hc_num - 1].active) {
+                myDebug_P(PSTR("  Mixing Module: %s"), ems_getDeviceDescription(EMS_DEVICE_TYPE_MIXING, buffer_type, false, EMS_MixingModule.hc[hc_num - 1].device_id ));
                 myDebug_P(PSTR("  Mixing Circuit %d"), hc_num);
                 if (EMS_MixingModule.hc[hc_num - 1].flowTemp != EMS_VALUE_USHORT_NOTSET)
                     _renderUShortValue(" Current flow temperature", "C", EMS_MixingModule.hc[hc_num - 1].flowTemp);
@@ -639,6 +639,7 @@ void showInfo() {
 
         for (uint8_t wwc_num = 1; wwc_num <= EMS_MIXING_MAXWWC; wwc_num++) {
             if (EMS_MixingModule.wwc[wwc_num - 1].active) {
+                myDebug_P(PSTR("  Mixing Module: %s"), ems_getDeviceDescription(EMS_DEVICE_TYPE_MIXING, buffer_type, false, EMS_MixingModule.hc[hc_num - 1].device_id ));
                 myDebug_P(PSTR("  Warm Water Circuit %d"), wwc_num);
                 if (EMS_MixingModule.wwc[wwc_num - 1].flowTemp != EMS_VALUE_USHORT_NOTSET)
                     _renderUShortValue(" Current warm water temperature", "C", EMS_MixingModule.wwc[wwc_num - 1].flowTemp);
