@@ -396,11 +396,12 @@ typedef struct {
 
 // Mixing data
 typedef struct {
-    uint8_t               device_id;
-    uint8_t               device_flags;
-    const char *          device_desc_p;
-    uint8_t               product_id;
-    char                  version[10];
+    bool enabled;
+//    uint8_t               device_id;
+//    uint8_t               device_flags;
+//    const char *          device_desc_p;
+//    uint8_t               product_id;
+//    char                  version[10];
     _EMS_MixingModule_HC  hc[EMS_MIXING_MAXHC];   // array for the 4 heating circuits
     _EMS_MixingModule_WWC wwc[EMS_MIXING_MAXWWC]; // array for the 2 ww circuits
 } _EMS_MixingModule;
@@ -562,6 +563,7 @@ void ems_setTxDisabled(bool b);
 void ems_setTxMode(uint8_t mode);
 void ems_setEMSbusid(uint8_t id);
 void ems_setMasterThermostat(uint8_t product_id);
+void ems_setRCTime();
 
 char *               ems_getDeviceDescription(_EMS_DEVICE_TYPE device_type, char * buffer, bool name_only = false, uint8_t id = 0);
 bool                 ems_getDeviceTypeDescription(uint8_t device_id, char * buffer);
@@ -571,7 +573,8 @@ void                 ems_getThermostatValues(bool force = false);
 void                 ems_getBoilerValues();
 void                 ems_getSettingsValues();
 void                 ems_getSolarModuleValues();
-void                 ems_getMixingModuleValues(bool force = false);
+//void                 ems_getMixingModuleValues(bool force = false);
+void                 ems_getMixingModuleValues(uint8_t id, uint8_t flags);
 char *               ems_getThermostatModeString(_EMS_THERMOSTAT_MODE mode, char * mode_str);
 
 bool ems_getPoll();

@@ -19,12 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - merged RC35 addition type 0xA5 from ypaindaveine, add `calinttemp` mqtt-command to mqtt `settings_cmd` and skip clockoffset and language for RC35 as they are not present in this thermostat
 - add RC35 thermostat values for damped outdoor temp and internal sensors (sensors commented out, used for testing calibration).
 - cases for nested/unnested mixing_data
-- add thermostat time to mqtt
+- add thermostat time to mqtt thermostat_data
 - add heatpump E9 messages
 - do not send passwords to webinterface
-- add mqtt commands for gpio4 and gpio5 to `generic_cmd`
+- add mqtt commands for gpio4 and gpio5 to `generic_cmd` `{"cmd":"gpio4","data":0}`
 - add raw send to mqtt `generic_cmd` `{"cmd":"send","data":"<hex string>"}`
-- telnet command `set sensorNr` for publishing sensordata without numbering
+- telnet command `set mqtt_sensornr off` for publishing sensordata without numbering
 - simulate remote control RC20 thermostat temp remote
   new commands for thermostat_cmd for all hcs (example for hc 2):
   - `{"cmd":"remotetemp2","data":21.5}` temperature of remote thermometer
@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new tx_mode doesn't wait for transmition ending (avoid watchdog resets)
 - dallas sensors read one per cycle not all in one cycle (avoid watchdog resets)
 - show summer/holiday/party/pause-modes in mode_type
+- `thermostat settime` / mqtt `thermostat_cmd` `{"cmd":"settime"}` sets thermostat to NTP time, set automatically if thermostat time is not valid (after power cut)
 
 ## [1.9.5] 30-04-2020
 

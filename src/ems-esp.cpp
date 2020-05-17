@@ -105,11 +105,11 @@ static const command_t project_cmds[] PROGMEM = {
     {true, "shower_timer <on | off>", "send MQTT notification on all shower durations"},
     {true, "shower_alert <on | off>", "stop hot water to send 3 cold burst warnings after max shower time is exceeded"},
     {true, "publish_time <seconds>", "set frequency for publishing data to MQTT (-1=off, 0=automatic)"},
-    {true, "tx_mode <n>", "changes Tx logic. 1=EMS generic, 2=EMS+, 3=HT3, 4=Test"},
+    {true, "tx_mode <n>", "changes Tx logic. 1=EMS generic, 2=EMS+, 3=HT3, 4=Fast"},
     {true, "bus_id <ID>", "EMS-ESP's deviceID. 0B=Service Key (default), 0D=Modem, 0A=Hand terminal, 0F=Time module, 12=Error module"},
     {true, "master_thermostat [product id]", "set default thermostat to use. No argument lists options"},
-    {true, "set poll <on | off>", "set poll answer of ems"},
-    {true, "set remote <on | off>", "set remote RC at 0x19"},
+    {true, "set poll <on | off>", "set poll ack answer to busmaster"},
+    {true, "set remote <on | off>", "set remote RC simulation"},
     {false, "info", "show current values deciphered from the EMS messages"},
     {false, "log <n | b | t | s | m | r | j | v | w [ID] | d [ID]>", "logging: none, basic, thermo, solar, mixing, raw, jabber, verbose, watch a type or device"},
     {false, "publish", "publish all values to MQTT"},
@@ -118,7 +118,7 @@ static const command_t project_cmds[] PROGMEM = {
     {false, "txqueue", "show current Tx queue"},
     {false, "send XX ...", "send raw telegram data to EMS bus (XX are hex values)"},
     {false, "thermostat read <type ID>", "send read request to the thermostat for heating circuit hc 1-4"},
-    {false, "thermostat temp <degrees> [mode] [hc]", "set thermostat temp. mode is manual,auto,heat,day,night,eco,comfort,holiday,nofrost,summer,offset,design,remote"},
+    {false, "thermostat temp <degrees> [mode] [hc]", "set temperature, mode is manual,auto,heat,day,night,eco,comfort,holiday,nofrost,summer,offset,design,remote"},
     {false, "thermostat mode <mode> [hc]", "set mode (manual,auto,heat,day,night,eco,comfort,nofrost)"},
     {false, "boiler read <type ID>", "send read request to boiler"},
     {false, "boiler wwtemp <degrees>", "set boiler warm water temperature"},
@@ -639,7 +639,7 @@ void showInfo() {
 
         for (uint8_t wwc_num = 1; wwc_num <= EMS_MIXING_MAXWWC; wwc_num++) {
             if (EMS_MixingModule.wwc[wwc_num - 1].active) {
-                myDebug_P(PSTR("  Mixing Module: %s"), ems_getDeviceDescription(EMS_DEVICE_TYPE_MIXING, buffer_type, false, EMS_MixingModule.hc[hc_num - 1].device_id ));
+                myDebug_P(PSTR("  Mixing Module: %s"), ems_getDeviceDescription(EMS_DEVICE_TYPE_MIXING, buffer_type, false, EMS_MixingModule.hc[wwc_num - 1].device_id ));
                 myDebug_P(PSTR("  Warm Water Circuit %d"), wwc_num);
                 if (EMS_MixingModule.wwc[wwc_num - 1].flowTemp != EMS_VALUE_USHORT_NOTSET)
                     _renderUShortValue(" Current warm water temperature", "C", EMS_MixingModule.wwc[wwc_num - 1].flowTemp);
@@ -1941,7 +1941,7 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
 
     // thermostat commands
     // thermostat temp <tempvalue> <modevalue> <heatingcircuit>
-    if ((strcmp(first_cmd, "thermostat") == 0) && (wc >= 3)) {
+    if ((strcmp(first_cmd, "thermostat") == 0) && (wc >= 2)) {
         char * second_cmd = _readWord();
 
         if (strcmp(second_cmd, "temp") == 0) {
@@ -1951,7 +1951,7 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
                 // no more params
                 ems_setThermostatTemp(temp, EMS_THERMOSTAT_DEFAULTHC, EMS_THERMOSTAT_MODE_AUTO);
                 ok = true;
-            } else {
+            } else if (wc > 3) {
                 // get modevalue and heatingcircuit
                 char *  mode_s = _readWord(); // get mode string next
                 uint8_t hc     = (wc == 4) ? EMS_THERMOSTAT_DEFAULTHC : _readIntNumber();
@@ -1972,8 +1972,11 @@ void TelnetCommandCallback(uint8_t wc, const char * commandLine) {
             uint8_t hc     = (wc == 3) ? EMS_THERMOSTAT_DEFAULTHC : _readIntNumber();
             ems_setThermostatMode(mode_s, hc);
             ok = true;
-        } else if (strcmp(second_cmd, "read") == 0) {
+        } else if (strcmp(second_cmd, "read") == 0 && wc == 3) {
             ems_doReadCommand(_readHexNumber(), EMS_Thermostat.device_id);
+            ok = true;
+        } else if (strcmp(second_cmd, "settime") == 0) {
+            ems_setRCTime();
             ok = true;
         }
     }
@@ -2537,7 +2540,10 @@ void MQTTCallback(unsigned int type, const char * topic, const char * message) {
         if (command == nullptr) {
             return;
         }
-
+        if (strcasecmp(command,"settime") == 0) {
+            ems_setRCTime();
+            return;
+        }
         // thermostat temp changes
         hc = _hasHCspecified(TOPIC_THERMOSTAT_CMD_TEMP, command);
         if (hc) {

@@ -12,6 +12,7 @@ static uint32_t     sysTime      = 0;
 static uint32_t     prevMillis   = 0;
 static uint32_t     nextSyncTime = 0;
 static timeStatus_t Status       = timeNotSet;
+static bool         sysTimeDST   = false;
 getExternalTime     getTimePtr; // pointer to external sync function
 
 #define LEAP_YEAR(Y) (((1970 + (Y)) > 0) && !((1970 + (Y)) % 4) && (((1970 + (Y)) % 100) || !((1970 + (Y)) % 400)))
@@ -28,7 +29,7 @@ time_t now() {
         if (getTimePtr != 0) {
             time_t t = getTimePtr();
             if (t != 0) {
-                setTime(t);
+                setTime(t, sysTimeDST);
             } else {
                 nextSyncTime = sysTime + syncInterval;
                 Status       = (Status == timeNotSet) ? timeNotSet : timeNeedsSync;
@@ -171,9 +172,20 @@ uint16_t to_year(time_t t) { // the year for the given time
     return tm.Year + 1970;
 }
 
-void setTime(time_t t) {
+uint8_t to_dst(time_t t) {
+    refreshCache(t);
+//    if ((tm.Month > 3 && tm.Month < 10) || (tm.Month == 3 && tm.Day > 24 + tm.Wday) || 
+//       (tm.Month == 10 && tm.Day > 24 + tm.Wday)) {
+//           return 1;
+//    }
+//    return 0;
+    return sysTimeDST ? 0x01 : 0x00;
+}
+
+void setTime(time_t t, bool dst) {
     sysTime      = (uint32_t)t;
     nextSyncTime = (uint32_t)t + syncInterval;
     Status       = timeSet;
     prevMillis   = millis(); // restart counting from now (thanks to Korman for this fix)
+    sysTimeDST   = dst;
 }

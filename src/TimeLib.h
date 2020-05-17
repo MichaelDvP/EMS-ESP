@@ -37,7 +37,7 @@ typedef struct {
 typedef time_t (*getExternalTime)();
 
 time_t       now(); // return the current time as seconds since Jan 1 1970
-void         setTime(time_t t);
+void         setTime(time_t t, bool dst);
 timeStatus_t timeStatus();                                     // indicates if time has been set and recently synchronized
 void         setSyncProvider(getExternalTime getTimeFunction); // identify the external time provider
 void         setSyncInterval(time_t interval);                 // set the number of seconds between re-sync
@@ -50,6 +50,7 @@ uint8_t  to_day(time_t t);     // the day for the given time (0-6)
 uint8_t  to_month(time_t t);   // the month for the given time
 uint8_t  to_weekday(time_t t); // weekday, sunday is day 1
 uint16_t to_year(time_t t);    // the year for the given time
+uint8_t  to_dst(time_t t);     // dst
 
 }
 #endif

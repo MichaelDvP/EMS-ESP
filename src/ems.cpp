@@ -140,7 +140,7 @@ void ems_init() {
         EMS_Thermostat.hc[i].roominfluence     = EMS_VALUE_UINT_NOTSET;
     }
 
-    EMS_MixingModule.device_id = EMS_ID_NONE;
+     EMS_MixingModule.enabled = false;
     // init all mixing modules
     for (uint8_t i = 0; i < EMS_MIXING_MAXHC; i++) {
         EMS_MixingModule.hc[i].device_id   = EMS_ID_NONE;
@@ -278,7 +278,7 @@ bool ems_getThermostatEnabled() {
 }
 
 bool ems_getMixingModuleEnabled() {
-    return EMS_MixingModule.device_id != EMS_ID_NONE;
+    return EMS_MixingModule.enabled;
 }
 
 bool ems_getSolarModuleEnabled() {
@@ -1886,6 +1886,32 @@ void _process_SetPoints(_EMS_RxTelegram * EMS_RxTelegram) {
     }
 }
 
+void ems_setRCTime() {
+    time_t uhr = now();
+    _EMS_TxTelegram EMS_TxTelegram;
+    if (uhr < 1572307205) {
+        return;
+    }
+
+    EMS_TxTelegram.data[0] = 0x0B;
+    EMS_TxTelegram.data[1] = 0x10;
+    EMS_TxTelegram.data[2] = 0x06;
+    EMS_TxTelegram.data[3] = 0x00;
+
+    EMS_TxTelegram.data[4] = to_year(uhr) - 2000; 
+    EMS_TxTelegram.data[5] = to_month(uhr);
+    EMS_TxTelegram.data[6] = to_hour(uhr);
+    EMS_TxTelegram.data[7] = to_day(uhr);
+    EMS_TxTelegram.data[8] = to_minute(uhr);
+    EMS_TxTelegram.data[9] = to_second(uhr);
+    EMS_TxTelegram.data[10] = (5 + to_weekday(uhr)) % 7;
+    EMS_TxTelegram.data[11] = to_dst(uhr);
+    EMS_TxTelegram.length  = 13;
+    EMS_TxTelegram.type_validate = EMS_ID_NONE;
+    EMS_TxTelegram.action        = EMS_TX_TELEGRAM_RAW;
+    EMS_TxQueue.push(EMS_TxTelegram);
+}
+
 /**
  * process_RCTime - type 0x06 - date and time from a thermostat - 14 bytes long
  * common for all thermostats
@@ -1910,8 +1936,14 @@ void _process_RCTime(_EMS_RxTelegram * EMS_RxTelegram) {
     strlcat(time_sp, _smallitoa(EMS_RxTelegram->data[1], buffer), sizeof(time_sp)); // month
     strlcat(time_sp, "/", sizeof(time_sp));
     strlcat(time_sp, itoa(EMS_RxTelegram->data[0] + 2000, buffer, 10), sizeof(time_sp)); // year
-
+    uint8_t err = EMS_RxTelegram->data[7] & 0x0C;
+    if ( err != 0) {
+        strlcat(time_sp, "!", sizeof(time_sp));
+    } else {
+        strlcat(time_sp, " ", sizeof(time_sp));
+    }
     strlcpy(EMS_Thermostat.datetime, time_sp, sizeof(time_sp)); // store
+    if (err != 0) ems_setRCTime();
 }
 
 /*
@@ -2156,12 +2188,7 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
         EMS_HeatPump.device_desc_p = device_desc_p;
         strlcpy(EMS_HeatPump.version, version, sizeof(EMS_HeatPump.version));
     } else if (type == EMS_DEVICE_TYPE_MIXING) {
-//        EMS_MixingModule.device_id     = device_id;
-//        EMS_MixingModule.product_id    = product_id;
-//        EMS_MixingModule.device_desc_p = device_desc_p;
-//        EMS_MixingModule.device_flags  = flags;
-//        strlcpy(EMS_MixingModule.version, version, sizeof(EMS_MixingModule.version));
-
+        EMS_MixingModule.enabled = true;;
         uint8_t hc = device_id - 0x20;
         if (hc < 4) {
             EMS_MixingModule.hc[hc].device_id     = device_id;
@@ -2169,7 +2196,8 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
             EMS_MixingModule.hc[hc].device_desc_p = device_desc_p;
             EMS_MixingModule.hc[hc].device_flags  = flags;
             EMS_MixingModule.hc[hc].active        = true;
-            strlcpy(EMS_MixingModule.hc[hc].version, version, sizeof(EMS_MixingModule.version));
+            strlcpy(EMS_MixingModule.hc[hc].version, version, sizeof(EMS_MixingModule.hc[hc].version));
+            ems_getMixingModuleValues(device_id, flags); // fetch Mixing Module values
 
         } else if (hc == 8 || hc == 9) {
             EMS_MixingModule.wwc[hc - 8].device_id     = device_id;
@@ -2177,9 +2205,10 @@ void _process_Version(_EMS_RxTelegram * EMS_RxTelegram) {
             EMS_MixingModule.wwc[hc - 8].device_desc_p = device_desc_p;
             EMS_MixingModule.wwc[hc - 8].device_flags  = flags;
             EMS_MixingModule.wwc[hc - 8].active        = true;
-            strlcpy(EMS_MixingModule.wwc[hc - 8].version, version, sizeof(EMS_MixingModule.version));
+            strlcpy(EMS_MixingModule.wwc[hc - 8].version, version, sizeof(EMS_MixingModule.hc[hc].version));
+            ems_getMixingModuleValues(device_id, flags); // fetch Mixing Module values
         }
-        ems_getMixingModuleValues(true); // fetch Mixing Module values
+        //ems_getMixingModuleValues(true); // fetch Mixing Module values
     }
 }
 
@@ -2359,6 +2388,20 @@ void ems_getSolarModuleValues() {
 /*
  * Get mixing module values from EMS devices
  */
+void ems_getMixingModuleValues(uint8_t id, uint8_t flags) {
+    if (id < 0x24) {
+        if (flags == EMS_DEVICE_FLAG_MMPLUS) {
+           ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + id - 0x20, id);
+        } else {
+           ems_doReadCommand(EMS_TYPE_MMStatusMessage, id);
+        }
+    } else {
+        if (flags == EMS_DEVICE_FLAG_MMPLUS) {
+            ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_WWC1 + id - 0x28, id);
+        }
+    }
+}
+/*
 void ems_getMixingModuleValues(bool force) {
 //    if (ems_getMixingModuleEnabled()) {
     for (uint8_t hc = 0; hc < EMS_MIXING_MAXHC; hc++) {
@@ -2384,7 +2427,7 @@ void ems_getMixingModuleValues(bool force) {
     }
 //    }
 }
-
+*/
 // takes a device type (e.g. EMS_DEVICE_TYPE_MIXING) and stores the english name in the given buffer
 // returns buffer or "unknown"
 char * ems_getDeviceTypeName(_EMS_DEVICE_TYPE device_type, char * buffer) {
@@ -3623,6 +3666,7 @@ const _EMS_Type EMS_Types[] = {
     {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_UBAFlags, "UBAFlags", nullptr},
     {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_UBAMaintenanceStatusMessage, "UBAMaintenanceStatusMessage", nullptr},
     {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_MC10Status, "MC10Status", nullptr},
+    {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_REMOTEStatusMessage, "RemoteTemperatur", nullptr},
 
     // common
     {EMS_DEVICE_UPDATE_FLAG_NONE, EMS_TYPE_Version, "Version", _process_Version},
@@ -3653,7 +3697,7 @@ const _EMS_Type EMS_Types[] = {
 
     // heat pumps
     {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor1, "HeatPumpMonitor1", _process_HPMonitor1},
-//    {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor2, "HeatPumpMonitor2", _process_HPMonitor2},
+//    {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitor2, "HeatPumpMonitor2", _process_HPMonitor2}, // 0xE5 is UBAMonitorSlow2
     {EMS_DEVICE_UPDATE_FLAG_HEATPUMP, EMS_TYPE_HPMonitorWW, "HeatPumpMonitorWW", _process_HPMonitorWWMessage},
 
     // Thermostats...
@@ -3816,12 +3860,7 @@ void _printMessage(_EMS_RxTelegram * EMS_RxTelegram, const int8_t show_type) {
         }
     } else if (ems_getLogging() == EMS_SYS_LOGGING_MIXINGMODULE) {
         // only print ones to/from mixing module if logging is set to mixing module only
-        if ((src == EMS_MixingModule.device_id) || (dest == EMS_MixingModule.device_id)) {
-            _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
-            // also analyse the sequence of instructions prior to instructions to/from mixing module
-            // typically: EMS_TYPE_MM10ParameterMessage(0xAC) - EMS_TYPE_UBASetPoints(0x1A) - EMS_TYPE_UBAFlags(0x35)
-        } else if ((type == EMS_TYPE_MMStatusMessage) || (type == EMS_TYPE_MM10ParameterMessage) || (type == EMS_TYPE_UBASetPoints)
-                   || (type == EMS_TYPE_UBAFlags)) {
+        if ((src >= 0x20 && src <= 0x29)  || (dest >= 0x20 && dest <= 0x29)) {
             _debugPrintTelegram(output_str, EMS_RxTelegram, color_s);
         }
     } else if (ems_getLogging() == EMS_SYS_LOGGING_DEVICE) {
@@ -3859,7 +3898,7 @@ void _ems_processTelegram(_EMS_RxTelegram * EMS_RxTelegram) {
 
     // we have a matching type ID, print the detailed telegram to the console
     if (ems_getLogging() == EMS_SYS_LOGGING_BASIC) {
-        if (type == -1) {
+        if (type_index == -1) {
             myDebug_P(PSTR("<--- Type(0x%02X)"), type);
         } else {
             myDebug_P(PSTR("<--- %s(0x%02X)"), EMS_Types[type_index].typeString, type);

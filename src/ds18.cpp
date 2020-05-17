@@ -87,8 +87,7 @@ void DS18::loop() {
         }
 
         if (_wire->reset() != 1) {
-            _devices[index].data[0] = _devices[index].data[0] + 1; // Force a CRC check error
-            return;
+            data[0]++; // Force a CRC check error
         }
 
         memcpy(_devices[index].data, data, DS18_DATA_SIZE);

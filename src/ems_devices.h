@@ -62,12 +62,14 @@
 #define EMS_TYPE_UBAMonitorFast2 0xE4 // Monitor fast for newer EMS+
 #define EMS_TYPE_UBAMonitorSlow2 0xE5 // Monitor slow for newer EMS+
 
+// Offsets for Type 0x33
 #define EMS_OFFSET_UBAParameterWW_wwactivated 1             // WW Activated
 #define EMS_OFFSET_UBAParameterWW_wwtemp 2                  // WW Temperature
 #define EMS_OFFSET_UBAParameterWW_wwcircPump 6              // WW circulation pump 00-No, FF-yes
-
+// Offsets for Type 0x35
 #define EMS_OFFSET_UBAFlags_wwOneTime 0x00                  // WW OneTime loading
 #define EMS_OFFSET_UBAFlags_wwCirculation 1                 // WW circulation in 0x35 
+// Offsets for Type 0x33?
 #define EMS_OFFSET_UBAParameterWW_wwComfort 9               // WW is in comfort or eco mode
 #define EMS_VALUE_UBAParameterWW_wwComfort_Hot 0x00         // the value for hot
 #define EMS_VALUE_UBAParameterWW_wwComfort_Eco 0xD8         // the value for eco
@@ -75,7 +77,7 @@
 
 #define EMS_OFFSET_UBASetPoints_flowtemp 0 // flow temp
 
-// Installation settings
+// Installation settings 0xA5
 #define EMS_TYPE_IBASettingsMessage 0xA5      // installation settings
 #define EMS_OFFSET_IBASettings_Display 0      // display
 #define EMS_OFFSET_IBASettingsRC35_Display 22 // display line on RC35
@@ -132,19 +134,20 @@
 #define EMS_OFFSET_MMStatusMessage_flow_temp 1    // flow temperature
 #define EMS_OFFSET_MMStatusMessage_pump_mod 3     // pump modulation in percent
 #define EMS_OFFSET_MMStatusMessage_valve_status 4 // valve 0..255
-#define EMS_TYPE_MM10ParameterMessage 0xAC        // mixing parameters
-#define EMS_OFFSET_MM10ParameterMessage_set 0     // setpoint
-#define EMS_OFFSET_MM10ParameterMessage_pump 1    // on 0x64, off 0x00
 
-#define EMS_TYPE_MM10ParameterMessage2 0xAA       // mixing parameters
-#define EMS_OFFEST_MM10ParameterMessage2_ON 0     // on 0xFF, off  0x00
-#define EMS_OFFEST_MM10ParameterMessage2_RUNTIME 1 // in 10 sec => 0C = 120 sec
+#define EMS_TYPE_MMParameterMessage 0xAC          // mixing parameters
+#define EMS_OFFSET_MMParameterMessage_set 0       // setpoint
+#define EMS_OFFSET_MMParameterMessage_pump 1      // on 0x64, off 0x00
+
+#define EMS_TYPE_MMParameterMessage2 0xAA         // mixing parameters
+#define EMS_OFFEST_MMParameterMessage2_on 0       // on 0xFF, off  0x00
+#define EMS_OFFEST_MMParameterMessage2_runtime 1  // in 10 sec => 0C = 120 sec
 
 
 // Switch module WM10 id 0x11
 // Switching Module -> UBAMaster, type 0x1E, telegram: 11 08 1E 00 01 13 (CRC=73) #data=2
 #define EMS_TYPE_WMStatusMessage 0x1E         // switch status HC1
-#define EMS_OFFSET_WMStatusMessage_temp 0     // flow temperature
+#define EMS_OFFSET_WMStatusMessage_temp 0     // flow temperature 2 btes
 #define EMS_TYPE_WMStatusMessage2 0x9C        // switch status 2
 #define EMS_OFFSET_WMStatusMessage2_temp 0    // flow temperature
 #define EMS_OFFSET_WMStatusMessage2_switch 3  // switch on/off (1/0)
@@ -329,7 +332,7 @@ static const _EMS_Device EMS_Devices[] = {
     //
     // UBA Masters - must have device_id of 0x08
     //
-    {72, EMS_DEVICE_TYPE_BOILER, "MC10 Module", EMS_DEVICE_FLAG_NONE},
+    {72, EMS_DEVICE_TYPE_BOILER, "MC10 Module, Buderus GB125", EMS_DEVICE_FLAG_NONE},
     {123, EMS_DEVICE_TYPE_BOILER, "Buderus GBx72/Nefit Trendline/Junkers Cerapur/Worcester Greenstar Si/27i", EMS_DEVICE_FLAG_NONE},
     {133, EMS_DEVICE_TYPE_BOILER, "Buderus GB125/Logamatic MC110", EMS_DEVICE_FLAG_NONE},
     {115, EMS_DEVICE_TYPE_BOILER, "Nefit Topline/Buderus GB162", EMS_DEVICE_FLAG_NONE},
@@ -347,18 +350,18 @@ static const _EMS_Device EMS_Devices[] = {
     // Solar Modules - type 0x30
     //
     {73, EMS_DEVICE_TYPE_SOLAR, "SM10 Solar Module", EMS_DEVICE_FLAG_SM10},
+    {162, EMS_DEVICE_TYPE_SOLAR, "SM50 Solar Module", EMS_DEVICE_FLAG_SM100},
     {163, EMS_DEVICE_TYPE_SOLAR, "SM100 Solar Module", EMS_DEVICE_FLAG_SM100},
     {164, EMS_DEVICE_TYPE_SOLAR, "SM200 Solar Module", EMS_DEVICE_FLAG_SM100},
     {101, EMS_DEVICE_TYPE_SOLAR, "Junkers ISM1 Solar Module", EMS_DEVICE_FLAG_SM100},
-    {162, EMS_DEVICE_TYPE_SOLAR, "SM50 Solar Module", EMS_DEVICE_FLAG_SM100},
 
     //
     // Mixing Devices - type 0x20 or 0x21
     //
-    {160, EMS_DEVICE_TYPE_MIXING, "MM100 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
-    {161, EMS_DEVICE_TYPE_MIXING, "MM200 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
     {69, EMS_DEVICE_TYPE_MIXING, "MM10 Mixing Module", EMS_DEVICE_FLAG_MM10},
     {159, EMS_DEVICE_TYPE_MIXING, "MM50 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
+    {160, EMS_DEVICE_TYPE_MIXING, "MM100 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
+    {161, EMS_DEVICE_TYPE_MIXING, "MM200 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
 
     //
     // HeatPump - type 0x38
@@ -372,7 +375,8 @@ static const _EMS_Device EMS_Devices[] = {
     //
     {71, EMS_DEVICE_TYPE_SWITCH, "WM10 Switch Module", EMS_DEVICE_FLAG_NONE},                                   // 0x11
     {82, EMS_DEVICE_TYPE_SWITCH, "Switch Module", EMS_DEVICE_FLAG_NONE},                                        // 0x13
-    {68, EMS_DEVICE_TYPE_CONTROLLER, "BC10/RFM20 Receiver", EMS_DEVICE_FLAG_NONE},                              // 0x09
+    {68, EMS_DEVICE_TYPE_CONTROLLER, "BC10/RFM20 Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
+    {89, EMS_DEVICE_TYPE_CONTROLLER, "BC10 GB142 Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     {218, EMS_DEVICE_TYPE_CONTROLLER, "Junkers M200/Buderus RFM200 Receiver", EMS_DEVICE_FLAG_NONE},            // 0x50
     {190, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     {114, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
@@ -386,7 +390,7 @@ static const _EMS_Device EMS_Devices[] = {
     {206, EMS_DEVICE_TYPE_CONNECT, "Bosch Easy Connect", EMS_DEVICE_FLAG_NONE},                                 // 0x02
     {171, EMS_DEVICE_TYPE_CONNECT, "EMS-OT OpenTherm converter", EMS_DEVICE_FLAG_NONE},                         // 0x02
     {189, EMS_DEVICE_TYPE_GATEWAY, "Web Gateway KM200", EMS_DEVICE_FLAG_NONE},                                  // 0x48
-    {94, EMS_DEVICE_TYPE_GATEWAY, "RC Remote Device", EMS_DEVICE_FLAG_NONE},                                    // 0x18
+    {94, EMS_DEVICE_TYPE_GATEWAY, "RFM20 Remote Base for RC20RF", EMS_DEVICE_FLAG_NONE},                        // 0x18
     {207, EMS_DEVICE_TYPE_CONTROLLER, "Worcester Sense II/Bosch CS200 Solar Controller", EMS_DEVICE_FLAG_NONE}, // 0x10
 
     //

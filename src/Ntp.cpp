@@ -109,6 +109,7 @@ time_t ICACHE_FLASH_ATTR NtpClient::getNtpTime() {
             unsigned long lowWord      = word(packet.data()[42], packet.data()[43]);
             time_t        UnixUTCtime  = (highWord << 16 | lowWord) - 2208988800UL;
             time_t        adjustedtime = (*tz).toLocal(UnixUTCtime, &tcr);
+            bool          dst          = (*tz).locIsDST(adjustedtime);
 
             myESP.myDebug_P(PSTR("[NTP] Internet time: %02d:%02d:%02d UTC on %d/%d. Local time: %02d:%02d:%02d %s"),
                             to_hour(UnixUTCtime),
@@ -121,7 +122,7 @@ time_t ICACHE_FLASH_ATTR NtpClient::getNtpTime() {
                             to_second(adjustedtime),
                             tcr->abbrev);
 
-            setTime(adjustedtime);
+            setTime(adjustedtime, dst);
         });
     }
     udpListener.write(NTPpacket, sizeof(NTPpacket));
