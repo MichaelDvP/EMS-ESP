@@ -356,9 +356,9 @@ bool MyESP::isAPmode() {
 // received MQTT message
 // we send this to the call back function. Important to parse are the event strings such as MQTT_MESSAGE_EVENT and MQTT_CONNECT_EVENT
 void MyESP::_mqttOnMessage(char * topic, char * payload, size_t len) {
-    if (len == 0)
+    if (len == 0 || topic == nullptr || payload == nullptr) {
         return;
-
+    }
     char message[len + 1];
     strlcpy(message, (char *)payload, len + 1);
 
