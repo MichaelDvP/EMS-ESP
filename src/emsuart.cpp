@@ -12,10 +12,7 @@
 _EMSRxBuf * pEMSRxBuf;
 _EMSRxBuf * paEMSRxBuf[EMS_MAXBUFFERS];
 uint8_t     emsRxBufIdx  = 0;
-//uint8_t     phantomBreak = 0;
 uint32_t    emsRxTime    = 0;
-uint8_t     emsTxToSend  = 0;
-uint8_t     emsTxBuf[EMS_MAXBUFFERSIZE];
 
 os_event_t recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
 
@@ -25,7 +22,7 @@ os_event_t recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
 //
 static void emsuart_rx_intr_handler(void * para) {
     static uint8_t length;
-    static uint8_t uart_buffer[EMS_MAXBUFFERSIZE + 2];
+    static uint8_t uart_buffer[EMS_MAXBUFFERSIZE];
 
     // is a new buffer? if so init the thing for a new telegram
     if (EMS_Sys_Status.emsRxStatus == EMS_RX_STATUS_IDLE) {
@@ -39,26 +36,12 @@ static void emsuart_rx_intr_handler(void * para) {
             if (length < EMS_MAXBUFFERSIZE)
                 uart_buffer[length++] = rx;
         }
-
         // clear Rx FIFO full and Rx FIFO timeout interrupts
         USIC(EMSUART_UART) = (1 << UIFF) | (1 << UITO);
     }
-    if(emsTxToSend > 0) {
-        if (emsTxToSend == 1) {
-            USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset <BRK> 
-        } else if (emsTxToSend == 2) {
-            USC0(EMSUART_UART) |= (1 << UCBRK); // set <BRK>
-        } else {
-            USF(EMSUART_UART) = emsTxBuf[emsTxToSend - 3];
-        }
-        emsTxToSend--;
-    }
     // BREAK detection = End of EMS data block
     if (USIS(EMSUART_UART) & ((1 << UIBD))) {
-        if (USC0(EMSUART_UART) & (1 << UCBRK)) { // break is set from TX
-            USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset <BRK>
-        }
-        emsTxToSend = 0;                  // stop sending if <BRK> detect
+        USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset <BRK>
         ETS_UART_INTR_DISABLE();          // disable all interrupts and clear them
         USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
 
@@ -141,17 +124,20 @@ void ICACHE_FLASH_ATTR emsuart_init() {
     //
     // change: we set UCFFT to 1 to get an immediate indicator about incoming traffic.
     //         Otherwise, we're only noticed by UCTOT or RxBRK!
-    USC1(EMSUART_UART) = 0;                                                // reset config first
-    USC1(EMSUART_UART) = (0x01 << UCFFT) | (0x01 << UCTOT) | (0 << UCTOE); // enable interupts
-
+    USC1(EMSUART_UART) = 0;                   // reset config first
+    if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_TEST) {
+        USC1(EMSUART_UART) = (0x7F << UCFFT); // set rxbuffer 127
+        USIC(EMSUART_UART) = 0xFFFF;          // clear all interupt flags
+        USIE(EMSUART_UART) = (1 << UIBD);     // enable break; 
+    } else {
+        USC1(EMSUART_UART) = (0x01 << UCFFT) | (0x01 << UCTOT) | (0 << UCTOE); // enable interupts
+        USIC(EMSUART_UART) = 0xFFFF; // clear all interupts
+        USIE(EMSUART_UART) = (1 << UIBD) | (1 << UIFF) | (0 << UITO); // enable break and fifo-full
+    } 
     // set interrupts for triggers
-    USIE(EMSUART_UART) = 0;      // disable all interrupts
-    USIC(EMSUART_UART) = 0xFFFF; // clear all interupts
-
     // enable rx break, fifo full and timeout.
     // but not frame error UIFR (because they are too frequent) or overflow UIOF because our buffer is only max 32 bytes
     // change: we don't care about Rx Timeout - it may lead to wrong readouts
-    USIE(EMSUART_UART) = (1 << UIBD) | (1 << UIFF) | (0 << UITO);
 
     // set up interrupt callbacks for Rx
     system_os_task(emsuart_recvTask, EMSUART_recvTaskPrio, recvTaskQueue, EMSUART_recvTaskQueueLen);
@@ -234,19 +220,12 @@ _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
                 delayMicroseconds(EMSUART_TX_WAIT_BYTE - EMSUART_TX_LAG + EMSUART_TX_WAIT_GAP);
             }
             emsuart_tx_brk(); // send <BRK>
-        } else if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_TEST) { // Test sending in rx-irq
-            if (emsTxToSend > 0) {
-                return EMS_TX_STATUS_BUSY;
+        } else if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_TEST) { 
+            USC0(EMSUART_UART) &= ~(1 << UCBRK); // just to make sure brk-bit is clear
+            for (uint8_t i = 0; i < len ; i++) {
+                USF(EMSUART_UART) = buf[i];
             }
-            if (len > (EMS_MAXBUFFERSIZE)) {
-                return EMS_TX_STATUS_TOLONG;
-            } 
-            emsuart_flush_fifos();
-            USF(EMSUART_UART) = buf[0];
-            for (uint8_t i = 1; i < len ; i++) {
-                emsTxBuf[len - i - 1] = buf[i];
-            }
-            emsTxToSend = len + 1;
+            USC0(EMSUART_UART) |= (1 << UCBRK); 
         } else if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_DEFAULT) {
             /*
              * based on code from https://github.com/proddy/EMS-ESP/issues/103 by @susisstrolch
