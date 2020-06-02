@@ -130,7 +130,7 @@ char * DS18::getDeviceID(char * buffer, unsigned char index) {
     if (index < _count) {
         uint8_t * address = _devices[index].address;
         char      a[30]   = {0};
-        snprintf(a, sizeof(a), "%02X%02X%02X%02X%02X%02X%02X%02X", address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7]);
+        snprintf(a, sizeof(a), "%02X-%02X%02X-%02X%02X-%02X%02X-%02X", address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7]);
 
         strlcpy(buffer, a, size);
     } else {

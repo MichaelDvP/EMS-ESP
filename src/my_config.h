@@ -52,7 +52,7 @@
 #define THERMOSTAT_CIRCUITCALCTEMP "circuitcalctemp"        // RC35 specific for mixers
 #define THERMOSTAT_OFFSETTEMP "offsettemp"                  // RC35 specific heatingcurve offset
 #define THERMOSTAT_DESIGNTEMP "designtemp"                  // RC35 specific heatingcurve design at min temp
-#define THERMOSTAT_DAMPEDTEMP "dampedouttemp"               // RC35 specific damped outdoor temp depends on building
+#define THERMOSTAT_DAMPEDTEMP "dampedtemp"                  // RC35 specific damped outdoor temp depends on building
 #define THERMOSTAT_TEMPSENSOR1 "inttemp1"                   // RC35 specific
 #define THERMOSTAT_TEMPSENSOR2 "inttemp2"                   // RC35 specific
 

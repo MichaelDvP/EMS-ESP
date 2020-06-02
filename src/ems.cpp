@@ -1020,7 +1020,7 @@ void ems_parseTelegram(uint8_t * telegram, uint8_t length) {
     EMS_RxTelegram.offset = telegram[3];        // offset is always 4th byte
 
     // determing if its normal ems or ems plus, check for marker
-    if (telegram[2] >= 0xF0) {
+    if (telegram[2] >= 0xF0 && length > 5) {
         // its EMS plus / EMS 2.0
         EMS_RxTelegram.emsplus      = true;
         EMS_RxTelegram.emsplus_type = telegram[2]; // 0xFF, 0xF7 or 0xF9

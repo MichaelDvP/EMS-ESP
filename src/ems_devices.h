@@ -332,28 +332,29 @@ static const _EMS_Device EMS_Devices[] = {
     //
     // UBA Masters - must have device_id of 0x08
     //
-    { 72, EMS_DEVICE_TYPE_BOILER, "Buderus GB125/MC10", EMS_DEVICE_FLAG_NONE},
-    {123, EMS_DEVICE_TYPE_BOILER, "Buderus GBx72/Nefit Trendline/Junkers Cerapur/Worcester Greenstar Si/27i", EMS_DEVICE_FLAG_NONE},
-    {133, EMS_DEVICE_TYPE_BOILER, "Buderus GB125/Logamatic MC110", EMS_DEVICE_FLAG_NONE},
-    {115, EMS_DEVICE_TYPE_BOILER, "Nefit Topline/Buderus GB162", EMS_DEVICE_FLAG_NONE},
-    {203, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax U122/Junkers Cerapur", EMS_DEVICE_FLAG_NONE},
-    {208, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax plus/GB192/Bosch Condens GC9000", EMS_DEVICE_FLAG_NONE},
     { 64, EMS_DEVICE_TYPE_BOILER, "Sieger BK13,BK15/Nefit Smartline/Buderus GB1x2", EMS_DEVICE_FLAG_NONE},
-    {234, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax Plus GB122", EMS_DEVICE_FLAG_NONE},
+    { 72, EMS_DEVICE_TYPE_BOILER, "Buderus GB125/MC10", EMS_DEVICE_FLAG_NONE},
     { 84, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax Plus GB022", EMS_DEVICE_FLAG_NONE},
     { 95, EMS_DEVICE_TYPE_BOILER, "Bosch Condens 2500/Buderus Logamax,Logomatic/Junkers Cerapur Top/Worcester Greenstar i/Generic HT3", EMS_DEVICE_FLAG_NONE},
+    {115, EMS_DEVICE_TYPE_BOILER, "Nefit Topline/Buderus GB162", EMS_DEVICE_FLAG_NONE},
     {122, EMS_DEVICE_TYPE_BOILER, "Nefit Proline", EMS_DEVICE_FLAG_NONE},
+    {123, EMS_DEVICE_TYPE_BOILER, "Buderus GBx72/Nefit Trendline/Junkers Cerapur/Worcester Greenstar Si/27i", EMS_DEVICE_FLAG_NONE},
+    {133, EMS_DEVICE_TYPE_BOILER, "Buderus GB125/Logamatic MC110", EMS_DEVICE_FLAG_NONE},
     {170, EMS_DEVICE_TYPE_BOILER, "Buderus Logano GB212", EMS_DEVICE_FLAG_NONE},
     {172, EMS_DEVICE_TYPE_BOILER, "Nefit Enviline", EMS_DEVICE_FLAG_NONE},
+    {195, EMS_DEVICE_TYPE_BOILER, "Condens 5000i", EMS_DEVICE_FLAG_NONE},
+    {203, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax U122/Junkers Cerapur", EMS_DEVICE_FLAG_NONE},
+    {208, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax plus/GB192/Bosch Condens GC9000", EMS_DEVICE_FLAG_NONE},
+    {234, EMS_DEVICE_TYPE_BOILER, "Buderus Logamax Plus GB122", EMS_DEVICE_FLAG_NONE},
 
     //
     // Solar Modules - type 0x30
     //
     { 73, EMS_DEVICE_TYPE_SOLAR, "SM10 Solar Module", EMS_DEVICE_FLAG_SM10},
+    {101, EMS_DEVICE_TYPE_SOLAR, "Junkers ISM1 Solar Module", EMS_DEVICE_FLAG_SM100},
     {162, EMS_DEVICE_TYPE_SOLAR, "SM50 Solar Module", EMS_DEVICE_FLAG_SM100},
     {163, EMS_DEVICE_TYPE_SOLAR, "SM100 Solar Module", EMS_DEVICE_FLAG_SM100},
     {164, EMS_DEVICE_TYPE_SOLAR, "SM200 Solar Module", EMS_DEVICE_FLAG_SM100},
-    {101, EMS_DEVICE_TYPE_SOLAR, "Junkers ISM1 Solar Module", EMS_DEVICE_FLAG_SM100},
 
     //
     // Mixing Devices - type 0x20 or 0x21
@@ -377,21 +378,22 @@ static const _EMS_Device EMS_Devices[] = {
     { 82, EMS_DEVICE_TYPE_SWITCH, "Switch Module", EMS_DEVICE_FLAG_NONE},                                        // 0x13
     { 68, EMS_DEVICE_TYPE_CONTROLLER, "BC10/RFM20 Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     { 89, EMS_DEVICE_TYPE_CONTROLLER, "BC10 GB142 Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
-    {218, EMS_DEVICE_TYPE_CONTROLLER, "Junkers M200/Buderus RFM200 Receiver", EMS_DEVICE_FLAG_NONE},            // 0x50
-    {190, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
+    { 94, EMS_DEVICE_TYPE_GATEWAY, "RFM20 Remote Base for RC20RF", EMS_DEVICE_FLAG_NONE},                        // 0x18
+    { 95, EMS_DEVICE_TYPE_CONTROLLER, "HT3 Controller", EMS_DEVICE_FLAG_NONE},                                   // 0x09
     {114, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     {125, EMS_DEVICE_TYPE_CONTROLLER, "BC25 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
-    {169, EMS_DEVICE_TYPE_CONTROLLER, "BC40 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     {152, EMS_DEVICE_TYPE_CONTROLLER, "Controller", EMS_DEVICE_FLAG_NONE},                                      // 0x09
-    {95, EMS_DEVICE_TYPE_CONTROLLER, "HT3 Controller", EMS_DEVICE_FLAG_NONE},                                   // 0x09
-    {209, EMS_DEVICE_TYPE_CONTROLLER, "W-B ErP Boiler Control Panel", EMS_DEVICE_FLAG_NONE},                    // 0x09
-    {230, EMS_DEVICE_TYPE_CONTROLLER, "BC Base Controller", EMS_DEVICE_FLAG_NONE},                              // 0x09
-    {205, EMS_DEVICE_TYPE_CONNECT, "Nefit Moduline Easy Connect", EMS_DEVICE_FLAG_NONE},                        // 0x02
-    {206, EMS_DEVICE_TYPE_CONNECT, "Bosch Easy Connect", EMS_DEVICE_FLAG_NONE},                                 // 0x02
+    {169, EMS_DEVICE_TYPE_CONTROLLER, "BC40 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
     {171, EMS_DEVICE_TYPE_CONNECT, "EMS-OT OpenTherm converter", EMS_DEVICE_FLAG_NONE},                         // 0x02
     {189, EMS_DEVICE_TYPE_GATEWAY, "Web Gateway KM200", EMS_DEVICE_FLAG_NONE},                                  // 0x48
-    { 94, EMS_DEVICE_TYPE_GATEWAY, "RFM20 Remote Base for RC20RF", EMS_DEVICE_FLAG_NONE},                        // 0x18
+    {190, EMS_DEVICE_TYPE_CONTROLLER, "BC10 Base Controller", EMS_DEVICE_FLAG_NONE},                            // 0x09
+    {205, EMS_DEVICE_TYPE_CONNECT, "Nefit Moduline Easy Connect", EMS_DEVICE_FLAG_NONE},                        // 0x02
+    {206, EMS_DEVICE_TYPE_CONNECT, "Bosch Easy Connect", EMS_DEVICE_FLAG_NONE},                                 // 0x02
     {207, EMS_DEVICE_TYPE_CONTROLLER, "Worcester Sense II/Bosch CS200 Solar Controller", EMS_DEVICE_FLAG_NONE}, // 0x10
+    {209, EMS_DEVICE_TYPE_CONTROLLER, "W-B ErP Boiler Control Panel", EMS_DEVICE_FLAG_NONE},                    // 0x09
+    {218, EMS_DEVICE_TYPE_CONTROLLER, "Junkers M200/Buderus RFM200 Receiver", EMS_DEVICE_FLAG_NONE},            // 0x50
+    {230, EMS_DEVICE_TYPE_CONTROLLER, "BC Base Controller", EMS_DEVICE_FLAG_NONE},                              // 0x09
+    {241, EMS_DEVICE_TYPE_CONTROLLER, "5000i Controller", EMS_DEVICE_FLAG_NONE},                                // 0x09
 
     //
     // Thermostats, typically device id of 0x10, 0x17, 0x18, 0x38 (RC100), 0x39 (Easy)
