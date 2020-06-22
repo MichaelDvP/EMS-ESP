@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include <ems.h>
+#include "ems.h"
 
 #define EMSUART_UART 0      // UART 0
 #define EMSUART_CONFIG 0x1C // 8N1 (8 bits, no stop bits, 1 parity)
@@ -25,11 +25,11 @@
 #define EMSUART_TX_LAG 8
 
 #define EMSUART_BUSY_WAIT (EMSUART_BIT_TIME / 8)
-#define EMS_TX_TO_COUNT (22 * 8) // 
-#define EMS_RX_TO_TX_TIMEOUT 20 // reply to poll within 20 ms, Master polls 30ms later if no reply
+#define EMS_TX_TO_COUNT (32 * 8) // 
+// #define EMS_RX_TO_TX_TIMEOUT 20 // reply to poll within 20 ms, Master polls 30ms later if no reply
 
-#define EMSUART_recvTaskPrio 1
-#define EMSUART_recvTaskQueueLen 64
+#define EMSUART_recvTaskPrio 2
+#define EMSUART_recvTaskQueueLen 10
 
 typedef struct {
     uint8_t length;

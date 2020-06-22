@@ -21,3 +21,4 @@ firmware
 
 # firmware
 *.bin
+/pio_local.ini

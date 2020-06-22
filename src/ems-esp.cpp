@@ -1135,27 +1135,28 @@ bool publishEMSValues_settings() {
 
 // publish mixing data
 // only sending if we have an active hc
+// new unnested publish, compatible with v2
 bool publishEMSValues_mixing() {
     char                                          s[20]; // for formatting strings
     StaticJsonDocument<MYESP_JSON_MAXSIZE_MEDIUM> doc;
     JsonObject                                    rootMixing = doc.to<JsonObject>();
     JsonObject                                    dataMixing;
-    bool                                          has_data   = false;
+    // bool                                          has_data   = false;
 
     for (uint8_t hc_v = 1; hc_v <= EMS_MIXING_MAXHC; hc_v++) {
         _EMS_MixingModule_HC * mixingHC = &EMS_MixingModule.hc[hc_v - 1];
 
         if (mixingHC->active) {
-            //if (myESP.mqttUseNestedJson()) {
+            // if (myESP.mqttUseNestedJson()) {
             //    char hc[10]; // hc{1-4}
             //    strlcpy(hc, MIXING_HC, sizeof(hc));
             //    strlcat(hc, _uint_to_char(s, mixingHC->hc), sizeof(hc));
             //    dataMixing = rootMixing.createNestedObject(hc);
-            //} else {
+            // } else {
                 rootMixing = doc.to<JsonObject>();
                 dataMixing = rootMixing;
-            //}
-            has_data = true;
+            // }
+            // has_data = true;
             dataMixing["type"] = "hc";
             if (mixingHC->flowTemp != EMS_VALUE_USHORT_NOTSET) {
                 dataMixing["flowTemp"] = (float)mixingHC->flowTemp / 10;
@@ -1170,7 +1171,7 @@ bool publishEMSValues_mixing() {
                 dataMixing["valveStatus"] = mixingHC->valveStatus;
             }
 
-            //if (!myESP.mqttUseNestedJson()) {
+            // if (!myESP.mqttUseNestedJson()) {
                 char topic[30];
                 strlcpy(topic, TOPIC_MIXING_DATA, sizeof(topic));
                 //strlcat(topic,"_hc", sizeof(topic));
@@ -1178,7 +1179,7 @@ bool publishEMSValues_mixing() {
                 char data[MYESP_JSON_MAXSIZE_SMALL];
                 serializeJson(doc, data);
                 myESP.mqttPublish(topic, data);
-            //}
+            // }
         }
     }
 
@@ -1186,16 +1187,16 @@ bool publishEMSValues_mixing() {
         _EMS_MixingModule_WWC * mixingWWC = &EMS_MixingModule.wwc[wwc_v - 1];
 
         if (mixingWWC->active) {
-            //if (myESP.mqttUseNestedJson()) {
+            // if (myESP.mqttUseNestedJson()) {
             //    char wwc[10]; // wwc{1-2}
             //    strlcpy(wwc, MIXING_WWC, sizeof(wwc));
             //    strlcat(wwc, _uint_to_char(s, mixingWWC->wwc), sizeof(wwc));
             //    dataMixing = rootMixing.createNestedObject(wwc);
-            //} else {
+            // } else {
                 rootMixing = doc.to<JsonObject>();
                 dataMixing = rootMixing;
-            //}
-           has_data = true;
+            // }
+            // has_data = true;
             dataMixing["type"] = "wwc";
             if (mixingWWC->flowTemp != EMS_VALUE_USHORT_NOTSET) {
                 dataMixing["wwTemp"] = (float)mixingWWC->flowTemp / 10;
@@ -1206,7 +1207,7 @@ bool publishEMSValues_mixing() {
             if (mixingWWC->tempStatus != EMS_VALUE_UINT_NOTSET) {
                 dataMixing["tempStatus"] = mixingWWC->tempStatus;
             }
-            //if (!myESP.mqttUseNestedJson()) {
+            // if (!myESP.mqttUseNestedJson()) {
                 char topic[30];
                 strlcpy(topic, TOPIC_MIXING_DATA, sizeof(topic));
                 //strlcat(topic,"_wwc", sizeof(topic));
@@ -1214,14 +1215,14 @@ bool publishEMSValues_mixing() {
                 char data[MYESP_JSON_MAXSIZE_SMALL];
                 serializeJson(doc, data);
                 myESP.mqttPublish(topic, data);
-            //}
+            // }
         }
     }
 
-    //if (myESP.mqttUseNestedJson() && has_data) {
-    //    myESP.mqttPublish(TOPIC_MIXING_DATA, doc);
+    // if (myESP.mqttUseNestedJson() && has_data) {
+    //     myESP.mqttPublish(TOPIC_MIXING_DATA, doc);
         return true;
-    //}
+    // }
 
     return false;
 }

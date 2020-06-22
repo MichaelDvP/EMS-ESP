@@ -12,7 +12,7 @@
 _EMSRxBuf * pEMSRxBuf;
 _EMSRxBuf * paEMSRxBuf[EMS_MAXBUFFERS];
 uint8_t     emsRxBufIdx  = 0;
-uint32_t    emsRxTime    = 0;
+// uint32_t    emsRxTime    = 0;
 bool        drop_next_rx = true;
 
 os_event_t recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
@@ -42,7 +42,7 @@ static void emsuart_rx_intr_handler(void * para) {
             pEMSRxBuf->length = length;
             os_memcpy((void *)pEMSRxBuf->buffer, (void *)&uart_buffer, pEMSRxBuf->length); // copy data into transfer buffer, including the BRK 0x00 at the end
             ETS_UART_INTR_ENABLE();                          // re-enable UART interrupts
-            emsRxTime = millis();
+            // emsRxTime = millis();
             system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
         }
         drop_next_rx = false;
@@ -187,9 +187,9 @@ void ICACHE_FLASH_ATTR emsuart_tx_brk() {
 _EMS_TX_STATUS ICACHE_FLASH_ATTR emsuart_tx_buffer(uint8_t * buf, uint8_t len) {
     _EMS_TX_STATUS result = EMS_TX_STATUS_OK;
 
-    if(millis() > (emsRxTime + EMS_RX_TO_TX_TIMEOUT)) { // reply 
-        return EMS_TX_STATUS_TIMEOUT;
-    }
+    // if(millis() > (emsRxTime + EMS_RX_TO_TX_TIMEOUT)) { // reply 
+    //     return EMS_TX_STATUS_TIMEOUT;
+    // }
     if (len) {
         if (EMS_Sys_Status.emsTxMode == EMS_TXMODE_TEST) { 
             USC0(EMSUART_UART) &= ~(1 << UCBRK); // just to make sure brk-bit is clear

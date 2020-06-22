@@ -66,6 +66,7 @@ void DS18::loop() {
     last_check = time_now;
     if (conversion) {
         _wire->reset();
+        yield();
         _wire->skip();
         _wire->write(DS18_CMD_START_CONVERSION, _parasite);
         conversion = false;
@@ -80,12 +81,13 @@ void DS18::loop() {
         // Read each scratchpad
         _wire->select(_devices[index].address);
         _wire->write(DS18_CMD_READ_SCRATCHPAD);
+        yield();
 
         uint8_t data[DS18_DATA_SIZE];
         for (unsigned char i = 0; i < DS18_DATA_SIZE; i++) {
             data[i] = _wire->read();
         }
-
+        yield();
         if (_wire->reset() != 1) {
             data[0]++; // Force a CRC check error
         }
