@@ -641,9 +641,9 @@ void MyESP::_mqttOnConnect() {
     mqttSubscribe(MQTT_TOPIC_START);
 
     // send start topic now unless NTP is enabled, otherwise wait for the time
-    if (!_ntp_enabled) {
+    // if (!_ntp_enabled) {
         _sendStartTopic();
-    }
+    // }
 
     // send heartbeat if enabled
     heartbeatCheck(true);
