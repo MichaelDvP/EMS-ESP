@@ -54,6 +54,7 @@ enum EMS_DEVICE_FLAG_TYPES : uint8_t {
     EMS_DEVICE_FLAG_NONE     = 0,
     EMS_DEVICE_FLAG_MMPLUS   = 20, // mixing EMS+
     EMS_DEVICE_FLAG_MM10     = 21, // mixing MM10
+    EMS_DEVICE_FLAG_IPM      = 22, // mixing IPM
     EMS_DEVICE_FLAG_SM10     = 10,
     EMS_DEVICE_FLAG_SM100    = 11, // for SM100 and SM200
     EMS_DEVICE_FLAG_EASY     = 1,

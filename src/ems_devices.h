@@ -128,6 +128,8 @@
 #define EMS_OFFSET_MMPLUSStatusMessage_WW_pump_mod 2     // bits: pump on+prio 6, off 0
 #define EMS_OFFSET_MMPLUSStatusMessage_WW_temp_status 11 // 0,1,2
 
+#define EMS_TYPE_IPMStatusMessage 0x000C // mixer IPM 
+
 // MM10
 #define EMS_TYPE_MMStatusMessage 0xAB             // mixing status
 #define EMS_OFFSET_MMStatusMessage_flow_set 0     // flow setpoint
@@ -360,6 +362,7 @@ static const _EMS_Device EMS_Devices[] = {
     // Mixing Devices - type 0x20 or 0x21
     //
     { 69, EMS_DEVICE_TYPE_MIXING, "MM10 Mixing Module", EMS_DEVICE_FLAG_MM10},
+    {102, EMS_DEVICE_TYPE_MIXING, "IPM Mixing Module", EMS_DEVICE_FLAG_IPM},
     {159, EMS_DEVICE_TYPE_MIXING, "MM50 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
     {160, EMS_DEVICE_TYPE_MIXING, "MM100 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},
     {161, EMS_DEVICE_TYPE_MIXING, "MM200 Mixing Module", EMS_DEVICE_FLAG_MMPLUS},

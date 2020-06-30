@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - dallas sensors read one per cycle not all in one cycle (avoid watchdog resets)
 - show summer/holiday/party/pause-modes in mode_type
 - `thermostat settime` / mqtt `thermostat_cmd` `{"cmd":"settime"}` sets thermostat to NTP time, set automatically if thermostat time is not valid (after power cut)
+- add IPM mixing module, fix ISM power value
 
 ## [1.9.5] 30-04-2020
 

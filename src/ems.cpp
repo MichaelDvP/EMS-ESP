@@ -1517,8 +1517,22 @@ void _process_MMPLUSStatusMessageWW(_EMS_RxTelegram * EMS_RxTelegram) {
     _setValue(EMS_RxTelegram, &EMS_MixingModule.wwc[wwc].pumpMod, EMS_OFFSET_MMPLUSStatusMessage_WW_pump_mod);
     _setValue(EMS_RxTelegram, &EMS_MixingModule.wwc[wwc].tempStatus, EMS_OFFSET_MMPLUSStatusMessage_WW_temp_status);
 }
+// Mixing IPM - 0x0C for all hc 
+void _process_IPMStatusMessage(_EMS_RxTelegram * EMS_RxTelegram) {
+    uint8_t hc                     = EMS_RxTelegram->src - 0x20;
+    uint8_t pump                   = EMS_VALUE_UINT_NOTSET;
+    EMS_MixingModule.hc[hc].active = true;
 
-// Mixing MM10 - 0xAB for als hc 
+    _setValue(EMS_RxTelegram, &EMS_MixingModule.hc[hc].flowTemp, 3);
+    _setValue(EMS_RxTelegram, &EMS_MixingModule.hc[hc].flowSetTemp, 5);
+    _setValue(EMS_RxTelegram, &EMS_MixingModule.hc[hc].valveStatus, 2);
+    _setValue(EMS_RxTelegram, &pump, 1, 0);
+    if(pump != EMS_VALUE_UINT_NOTSET) {
+        EMS_MixingModule.hc[hc].pumpMod = pump * 100;
+    }
+}
+
+// Mixing MM10 - 0xAB for all hc 
 void _process_MMStatusMessage(_EMS_RxTelegram * EMS_RxTelegram) {
     uint8_t hc                     = EMS_RxTelegram->src - 0x20;
     EMS_MixingModule.hc[hc].active = true;
@@ -1843,9 +1857,11 @@ void _process_HPMonitor2(_EMS_RxTelegram * EMS_RxTelegram) {
  *  e.g. B0 00 FF 00 00 03 32 00 00 00 00 13 00 D6 00 00 00 FB D0 F0
  */
 void _process_ISM1StatusMessage(_EMS_RxTelegram * EMS_RxTelegram) {
+    uint16_t Wh;
     _setValue(EMS_RxTelegram, &EMS_SolarModule.collectorTemp, 4);  // Collector Temperature
     _setValue(EMS_RxTelegram, &EMS_SolarModule.bottomTemp, 6);     // Temperature Bottom of Solar Boiler
-    _setValue(EMS_RxTelegram, &EMS_SolarModule.EnergyLastHour, 2); // Solar Energy produced in last hour - is * 10 and handled in ems-esp.cpp
+    _setValue(EMS_RxTelegram, &Wh, 2);                             // Solar Energy produced in last hour - is * 1 and handled in ems-esp.cpp
+    EMS_SolarModule.EnergyLastHour = (uint32_t)Wh *10;             // set to * 10 for compatibility.
     _setValue(EMS_RxTelegram, &EMS_SolarModule.pump, 8, 0);        // Solar pump on (1) or off (0)
     _setValue(EMS_RxTelegram, &EMS_SolarModule.pumpWorkMin, 10);
 }
@@ -2392,8 +2408,10 @@ void ems_getMixingModuleValues(uint8_t id, uint8_t flags) {
     if (id < 0x24) {
         if (flags == EMS_DEVICE_FLAG_MMPLUS) {
            ems_doReadCommand(EMS_TYPE_MMPLUSStatusMessage_HC1 + id - 0x20, id);
-        } else {
+        } else if (flags == EMS_DEVICE_FLAG_MM10) {
            ems_doReadCommand(EMS_TYPE_MMStatusMessage, id);
+        } else if (flags == EMS_DEVICE_FLAG_IPM) {
+           ems_doReadCommand(EMS_TYPE_IPMStatusMessage, id);
         }
     } else {
         if (flags == EMS_DEVICE_FLAG_MMPLUS) {
@@ -3761,6 +3779,7 @@ const _EMS_Type EMS_Types[] = {
     {EMS_DEVICE_UPDATE_FLAG_MIXING, EMS_TYPE_MMPLUSStatusMessage_HC4, "MMPLUSStatusMessage_HC4", _process_MMPLUSStatusMessage},
     {EMS_DEVICE_UPDATE_FLAG_MIXING, EMS_TYPE_MMPLUSStatusMessage_WWC1, "MMPLUSStatusMessage_WWC1", _process_MMPLUSStatusMessageWW},
     {EMS_DEVICE_UPDATE_FLAG_MIXING, EMS_TYPE_MMPLUSStatusMessage_WWC2, "MMPLUSStatusMessage_WWC2", _process_MMPLUSStatusMessageWW},
+    {EMS_DEVICE_UPDATE_FLAG_MIXING, EMS_TYPE_IPMStatusMessage, "IPMStatusMessage", _process_IPMStatusMessage},
     {EMS_DEVICE_UPDATE_FLAG_MIXING, EMS_TYPE_MMStatusMessage, "MMStatusMessage", _process_MMStatusMessage}};
 
 // calculate sizes of arrays at compile time
