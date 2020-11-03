@@ -315,7 +315,7 @@ bool AsyncWebServerRequest::_parseReqHeader(){
   if(index){
     String name = _temp.substring(0, index);
     String value = _temp.substring(index + 2);
-    if(name.equalsIgnoreCase("Host")){
+    if(name.equalsIgnoreCase(F("Host"))){
       _host = value;
     } else if(name.equalsIgnoreCase(F("Content-Type"))){
 	    _contentType = value.substring(0, value.indexOf(';'));
@@ -356,11 +356,16 @@ void AsyncWebServerRequest::_parsePlainPostChar(uint8_t data){
   if(data && (char)data != '&')
     _temp += (char)data;
   if(!data || (char)data == '&' || _parsedLength == _contentLength){
-    String name = F("body");
-    String value = _temp;
-    if(!_temp.startsWith(String('{')) && !_temp.startsWith(String('[')) && _temp.indexOf('=') > 0){
-      name = _temp.substring(0, _temp.indexOf('='));
-      value = _temp.substring(_temp.indexOf('=') + 1);
+    String name;
+    String value;
+    int pos;
+    if(_temp.charAt(0) != '{' && _temp.charAt(0) != '[' && ((pos = _temp.indexOf('=')) > 0)){
+      name = _temp.substring(0, pos);
+      value = _temp.substring(pos + 1);
+    }
+    else {
+      name = F("body");
+      value = _temp;
     }
     _addParam(new AsyncWebParameter(urlDecode(name), urlDecode(value), true));
     _temp = String();
@@ -722,6 +727,12 @@ AsyncWebServerResponse * AsyncWebServerRequest::beginResponse_P(int code, const 
 }
 
 void AsyncWebServerRequest::send(int code, const String& contentType, const String& content){
+    if (chunked) {
+        ((AsyncResponseStream*)_response)->setCode(code);
+        ((AsyncResponseStream*)_response)->setContentType(contentType);
+        ((AsyncResponseStream*)_response)->print(content);
+        return;
+    }
   send(beginResponse(code, contentType, content));
 }
 
@@ -754,6 +765,12 @@ void AsyncWebServerRequest::send_P(int code, const String& contentType, const ui
 }
 
 void AsyncWebServerRequest::send_P(int code, const String& contentType, PGM_P content, AwsTemplateProcessor callback){
+    if (chunked) {
+        ((AsyncResponseStream*)_response)->setCode(code);
+        ((AsyncResponseStream*)_response)->setContentType(contentType);
+        ((AsyncResponseStream*)_response)->print(content);
+        return;
+    }
   send(beginResponse_P(code, contentType, content, callback));
 }
 
@@ -927,4 +944,26 @@ bool AsyncWebServerRequest::isExpectedRequestedConnType(RequestedConnectionType 
     if ((erct2 != RCT_NOT_USED) && (erct2 == _reqconntype)) res = true;
     if ((erct3 != RCT_NOT_USED) && (erct3 == _reqconntype)) res = true;
     return res;
+}
+
+
+void AsyncWebServerRequest::setContentLength(const size_t contentLength) {
+    chunked = true;
+    _response = this->beginResponseStream("text/html");
+}
+
+void AsyncWebServerRequest::sendContent_P(PGM_P content) {
+    ((AsyncResponseStream*)_response)->print(content);
+}
+
+void AsyncWebServerRequest::sendContent(const String& content) {
+    ((AsyncResponseStream*)_response)->print(content.c_str());
+}
+
+void AsyncWebServerRequest::sendContent() {
+    this->send(_response);
+}
+
+void AsyncWebServerRequest::sendHeader(const String& name, const String& value, bool first) {
+    _response->addHeader(name, value);
 }

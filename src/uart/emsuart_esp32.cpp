@@ -28,15 +28,15 @@
 
 namespace emsesp {
 
-static RingbufHandle_t buf_handle   = NULL;
-portMUX_TYPE           mux          = portMUX_INITIALIZER_UNLOCKED;
-static hw_timer_t *    timer        = NULL;
-bool                   drop_next_rx = true;
-uint8_t                tx_mode_     = 0xFF;
-uint8_t                emsTxBuf[EMS_MAXBUFFERSIZE];
-uint8_t                emsTxBufIdx = 0;
-uint8_t                emsTxBufLen = 0;
-uint32_t               emsTxWait;
+RingbufHandle_t EMSuart::buf_handle   = NULL;
+portMUX_TYPE    EMSuart::mux          = portMUX_INITIALIZER_UNLOCKED;
+hw_timer_t *    EMSuart::timer        = NULL;
+bool            EMSuart::drop_next_rx = true;
+uint8_t         EMSuart::tx_mode_     = 0xFF;
+uint8_t         EMSuart::emsTxBuf[EMS_MAXBUFFERSIZE];
+uint8_t         EMSuart::emsTxBufIdx = 0;
+uint8_t         EMSuart::emsTxBufLen = 0;
+uint32_t        EMSuart::emsTxWait;
 
 /*
 * Task to handle the incoming data
@@ -112,7 +112,7 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
         return;
     }
     tx_mode_ = tx_mode;
-
+    portENTER_CRITICAL(&mux);
     uart_config_t uart_config = {
         .baud_rate = EMSUART_BAUD,
         .data_bits = UART_DATA_8_BITS,
@@ -127,13 +127,16 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
     EMS_UART.int_clr.val             = 0xFFFFFFFF; // clear all intr. flags
     EMS_UART.idle_conf.tx_brk_num    = 10;         // breaklength 10 bit
     EMS_UART.idle_conf.rx_idle_thrhd = 256;
+    EMS_UART.auto_baud.glitch_filt   = 192;
     drop_next_rx                     = true;
+#if (EMSUART_UART != UART_NUM_2)
+    EMS_UART.conf0.rxfifo_rst        = 1; // flush fifos, remove for UART2
+    EMS_UART.conf0.txfifo_rst        = 1;
+#endif
     buf_handle                       = xRingbufferCreate(128, RINGBUF_TYPE_NOSPLIT);
     uart_isr_register(EMSUART_UART, emsuart_rx_intr_handler, NULL, ESP_INTR_FLAG_IRAM, NULL);
     xTaskCreate(emsuart_recvTask, "emsuart_recvTask", 2048, NULL, configMAX_PRIORITIES - 1, NULL);
-
-    timer = timerBegin(0, 80, true);                                   // timer prescale to 1 us, countup
-    timerAttachInterrupt(timer, &emsuart_tx_timer_intr_handler, true); // Timer with edge interrupt
+    portEXIT_CRITICAL(&mux);
     restart();
 }
 
@@ -141,17 +144,24 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
  * Stop, disable interrupt
  */
 void EMSuart::stop() {
+    portENTER_CRITICAL(&mux);
     EMS_UART.int_ena.val   = 0; // disable all intr.
     EMS_UART.conf0.txd_inv = 0; // stop break
-    if (emsTxBufLen > 0) {
-        timerAlarmDisable(timer);
+    if (timer) {
+        if (emsTxBufLen > 0) {
+            timerAlarmDisable(timer);
+        }
+        timerEnd(timer);
+        timer = NULL;
     }
+    portEXIT_CRITICAL(&mux);
 };
 
 /*
  * Restart uart and make mode dependent configs.
  */
 void EMSuart::restart() {
+    portENTER_CRITICAL(&mux);
     if (EMS_UART.int_raw.brk_det) {      // we received a break in the meantime
         EMS_UART.int_clr.brk_det = 1;    // clear flag
         drop_next_rx             = true; // and drop first frame
@@ -169,6 +179,12 @@ void EMSuart::restart() {
     } else {
         EMS_UART.conf0.txd_brk = 0;
     }
+    if (tx_mode_ >= 5) {
+        timer = timerBegin(2, 80, true);                                    // timer prescale to 1 us, countup
+        timerAttachInterrupt(timer, &emsuart_tx_timer_intr_handler, true); // Timer with edge interrupt
+    }
+    portEXIT_CRITICAL(&mux);
+
 }
 
 /*

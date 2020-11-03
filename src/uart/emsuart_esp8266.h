@@ -29,7 +29,7 @@
 #define EMSUART_BAUD 9600   // uart baud rate for the EMS circuit
 
 #define EMS_MAXBUFFERS 3     // buffers for circular filling to avoid collisions
-#define EMS_MAXBUFFERSIZE 33 // max size of the buffer. EMS packets are max 32 bytes, plus extra 2 for BRKs
+#define EMS_MAXBUFFERSIZE 33 // max size of the buffer. EMS packets are max 32 bytes, plus extra for BRK
 
 #define EMSUART_recvTaskPrio 2      // 0, 1 or 2. 0 being the lowest
 #define EMSUART_recvTaskQueueLen 10 // number of queued Rx triggers
@@ -80,17 +80,26 @@ class EMSuart {
         return sending_;
     }
 
-    typedef struct {
-        uint8_t length;
-        uint8_t buffer[EMS_MAXBUFFERSIZE];
-    } EMSRxBuf_t;
 
   private:
     static void ICACHE_RAM_ATTR   emsuart_rx_intr_handler(void * para);
     static void ICACHE_FLASH_ATTR emsuart_recvTask(os_event_t * events);
-    static void ICACHE_FLASH_ATTR emsuart_flush_fifos();
     static void ICACHE_RAM_ATTR   emsuart_tx_timer_intr_handler();
-    static bool                   sending_;
+    typedef struct {
+        uint8_t length;
+        uint8_t buffer[EMS_MAXBUFFERSIZE];
+    } EMSRxBuf_t;
+    static bool         sending_;
+    static os_event_t   recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
+    static EMSRxBuf_t * pEMSRxBuf;
+    static EMSRxBuf_t * paEMSRxBuf[EMS_MAXBUFFERS];
+    static uint8_t      emsRxBufIdx;
+    static uint8_t      tx_mode_;
+    static bool         drop_next_rx;
+    static uint8_t      emsTxBuf[EMS_MAXBUFFERSIZE];
+    static uint8_t      emsTxBufIdx;
+    static uint8_t      emsTxBufLen;
+    static uint32_t     emsTxWait;
 };
 
 } // namespace emsesp

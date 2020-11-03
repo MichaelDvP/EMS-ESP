@@ -298,6 +298,16 @@ class AsyncWebServerRequest {
     const String& header(size_t i) const;        // get request header value by number
     const String& headerName(size_t i) const;    // get request header name by number
     String urlDecode(const String& text) const;
+
+    bool chunked = false;
+    void sendHeader(const String& name, const String& value, bool first = false);
+    void setContentLength(const size_t contentLength);
+    void sendContent_P(PGM_P content);
+    void sendContent(const String& content);
+    void sendContent();
+    String uri() { return url(); }
+    String hostHeader() { return host(); }
+
 };
 
 /*
@@ -347,10 +357,11 @@ class AsyncWebHandler {
     String _username;
     String _password;
   public:
-    AsyncWebHandler():_username(""), _password(""){}
+    AsyncWebHandler() {}
     AsyncWebHandler& setFilter(ArRequestFilterFunction fn) { _filter = fn; return *this; }
-    AsyncWebHandler& setAuthentication(const char *username, const char *password){  _username = String(username);_password = String(password); return *this; };
-    bool filter(AsyncWebServerRequest *request){ return _filter == NULL || _filter(request); }
+    AsyncWebHandler& setAuthentication(const char *username, const char *password){  _username = username; _password = password; return *this; };
+    AsyncWebHandler& setAuthentication(const String &username, const String &password){  _username = username; _password = password; return *this; };
+    bool filter(AsyncWebServerRequest *request){ return !_filter || _filter(request); }
     virtual ~AsyncWebHandler(){}
     virtual bool canHandle(AsyncWebServerRequest *request __attribute__((unused))){
       return false;
@@ -452,6 +463,11 @@ class AsyncWebServer {
     void _handleDisconnect(AsyncWebServerRequest *request);
     void _attachHandler(AsyncWebServerRequest *request);
     void _rewriteRequest(AsyncWebServerRequest *request);
+
+    AsyncCallbackWebHandler& on(String uri, ArRequestHandlerFunction onRequest);
+    AsyncCallbackWebHandler& on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest);
+    AsyncCallbackWebHandler& on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload);
+    AsyncCallbackWebHandler& on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload, ArBodyHandlerFunction onBody);
 };
 
 class DefaultHeaders {
