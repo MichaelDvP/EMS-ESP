@@ -506,31 +506,38 @@ void Shell::maximum_command_line_length(size_t length) {
 }
 
 void Shell::process_command() {
-    CommandLine command_line{line_buffer_};
-
-    println();
-    prompt_displayed_ = false;
-
-    if (!command_line->empty()) {
-        if (commands_) {
-            auto execution = commands_->execute_command(*this, std::move(command_line));
-
-            if (execution.error != nullptr) {
-                println(execution.error);
-            }
+    while (!line_buffer_.empty()) {
+        size_t      pos = line_buffer_.find(';');
+        std::string line1;
+        if (pos <  line_buffer_.length()) {
+            line1 = line_buffer_.substr(0, pos);
+            line_buffer_.erase(0, pos + 1);
         } else {
-            println(F("No commands configured"));
+            line1 = line_buffer_;
+            line_old_ = line_buffer_;
+            line_buffer_.clear();
+            cursor_ = 0;
         }
-        line_old_ = line_buffer_;
+        CommandLine command_line{line1};
+
+        println();
+        prompt_displayed_ = false;
+
+        if (!command_line->empty()) {
+            if (commands_) {
+                auto execution = commands_->execute_command(*this, std::move(command_line));
+                if (execution.error != nullptr) {
+                    println(execution.error);
+                }
+            } else {
+                println(F("No commands configured"));
+            }
+        }
+        ::yield();
     }
-
-    cursor_ = 0;
-    line_buffer_.clear();
-
     if (running()) {
         display_prompt();
     }
-    ::yield();
 }
 
 void Shell::process_completion() {
