@@ -258,9 +258,9 @@ void Shell::loop_normal() {
                 } else if (esc_ == 18) { // F7
                     set_command_str(F("watch on"));
                 } else if (esc_ == 19) { // F8
-                    set_command_str(F("call system info"));
+                    set_command_str(F("watch raw"));
                 } else if (esc_ == 20) { // F9
-                    set_command_str(F("call dallassensor info"));
+                    set_command_str(F("call system info"));
                 } else if (esc_ == 21) { // F10
                     set_command_str(F("call system report"));
                 } else if (esc_ == 23) { // F11
