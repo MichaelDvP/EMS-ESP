@@ -85,7 +85,7 @@ void Command::add_with_json(const uint8_t device_type, const __FlashStringHelper
 // see if a command exists for that device type
 bool Command::find_command(const uint8_t device_type, const char * cmd) {
     if ((cmd == nullptr) || (strlen(cmd) == 0)) {
-        return true;
+        return false;
     }
 
     for (const auto & cf : cmdfunctions_) {
