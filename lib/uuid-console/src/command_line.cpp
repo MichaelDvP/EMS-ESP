@@ -85,6 +85,12 @@ CommandLine::CommandLine(const std::string & line) {
                 char_escape = true;
             }
             break;
+        case '<':
+        case '>':
+        case '[':
+        case ']':
+            char_escape = false;
+            break;
 
         default:
             if (char_escape) {

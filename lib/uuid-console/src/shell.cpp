@@ -495,6 +495,7 @@ void Shell::maximum_command_line_length(size_t length) {
 
 void Shell::process_command() {
     if (line_buffer_.empty()) {
+        println();
         return;
     }
     line_old_ = line_buffer_;
