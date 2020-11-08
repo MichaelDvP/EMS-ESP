@@ -229,9 +229,9 @@ private:
  */
 class TelnetService {
 public:
-	static constexpr size_t MAX_CONNECTIONS = 1; /*!< Maximum number of concurrent open connections. @since 0.1.0 */
+	static constexpr size_t MAX_CONNECTIONS = 3; /*!< Maximum number of concurrent open connections. @since 0.1.0 */
 	static constexpr uint16_t DEFAULT_PORT = 23; /*!< Default TCP port to listen on. @since 0.1.0 */
-	static constexpr unsigned long DEFAULT_IDLE_TIMEOUT = 3600; /*!< Default initial idle timeout (in seconds). @since 0.1.0 */
+	static constexpr unsigned long DEFAULT_IDLE_TIMEOUT = 600; /*!< Default initial idle timeout (in seconds). @since 0.1.0 */
 	static constexpr unsigned long DEFAULT_WRITE_TIMEOUT = 0; /*!< Default write timeout (in milliseconds). @ since 0.1.0 */
 
 	/**

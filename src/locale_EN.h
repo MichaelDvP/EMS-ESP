@@ -66,6 +66,7 @@ MAKE_PSTR_WORD(publish)
 MAKE_PSTR_WORD(bar)
 MAKE_PSTR_WORD(min)
 MAKE_PSTR_WORD(uA)
+MAKE_PSTR_WORD(timeout)
 
 #if defined(EMSESP_DEBUG)
 MAKE_PSTR_WORD(test)
