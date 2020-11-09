@@ -68,10 +68,6 @@ MAKE_PSTR_WORD(min)
 MAKE_PSTR_WORD(uA)
 MAKE_PSTR_WORD(timeout)
 
-#if defined(EMSESP_DEBUG)
-MAKE_PSTR_WORD(test)
-#endif
-
 // for commands
 MAKE_PSTR_WORD(call)
 MAKE_PSTR_WORD(cmd)
@@ -117,7 +113,7 @@ MAKE_PSTR(bus_id_fmt, "Bus ID = %02X")
 MAKE_PSTR(watchid_optional, "[ID]")
 MAKE_PSTR(watch_format_optional, "[off | on | raw]")
 MAKE_PSTR(invalid_watch, "Invalid watch type")
-MAKE_PSTR(data_mandatory, "<\"XX XX ...\">")
+MAKE_PSTR(data_mandatory, "\"XX XX ...\"")
 MAKE_PSTR(percent, "%")
 MAKE_PSTR(degrees, "°C")
 MAKE_PSTR(asterisks, "********")
