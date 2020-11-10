@@ -300,6 +300,7 @@ void EMSESPShell::add_console_commands() {
                                   "local");
                           });
 
+#ifndef EMSESP_STANDALONE
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(set), F_(timeout)},
@@ -309,6 +310,7 @@ void EMSESPShell::add_console_commands() {
                               telnet_.initial_idle_timeout(value * 60);
                               shell.printfln(F("Telnet timout is %d minutes"), value);
                           });
+#endif
 
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::ADMIN,
@@ -708,7 +710,7 @@ void Console::start() {
 // note, this must be started after the network/wifi for ESP32 otherwise it'll crash
 #ifndef EMSESP_STANDALONE
     telnet_.start();
-    // telnet_.initial_idle_timeout(3600);  // in sec, 1h
+    telnet_.initial_idle_timeout(3600);  // in sec, 1h
     telnet_.default_write_timeout(1000); // in ms, socket timeout 1 second
 #endif
 
