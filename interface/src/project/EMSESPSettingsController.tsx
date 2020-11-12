@@ -242,6 +242,7 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 <MenuItem value={5}>NOTICE</MenuItem>
                 <MenuItem value={6}>INFO</MenuItem>
                 <MenuItem value={7}>DEBUG</MenuItem>
+                <MenuItem value={8}>TRACE</MenuItem>
             </SelectValidator>
             <TextValidator
                 validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:65535']}

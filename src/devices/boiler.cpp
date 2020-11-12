@@ -84,7 +84,7 @@ void Boiler::register_mqtt_ha_config(bool force) {
     }
 
     // Create the Master device
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     doc["name"]    = F("Service Code");
     doc["uniq_id"] = F("boiler");
     doc["ic"]      = F("mdi:home-thermometer-outline");
@@ -176,8 +176,9 @@ void Boiler::register_mqtt_ha_config(bool force) {
 // send stuff to the Web UI
 void Boiler::device_info_web(JsonArray & root) {
     // fetch the values into a JSON document
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
-    JsonObject          json = doc.to<JsonObject>();
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json = doc.to<JsonObject>();
     if (!export_values_main(json)) {
         return; // empty
     }
@@ -621,16 +622,15 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         register_mqtt_ha_config(force);
     }
 
-    DynamicJsonDocument doc_main(EMSESP_MAX_JSON_SIZE_LARGE);
-    JsonObject          json_main = doc_main.to<JsonObject>();
-    if (export_values_main(json_main)) {
-        Mqtt::publish(F("boiler_data"), doc_main.as<JsonObject>());
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json_data = doc.to<JsonObject>();
+    if (export_values_main(json_data)) {
+        Mqtt::publish(F("boiler_data"), json_data);
     }
+    json_data.clear();
 
-    DynamicJsonDocument doc_ww(EMSESP_MAX_JSON_SIZE_LARGE);
-    JsonObject          json_ww = doc_ww.to<JsonObject>();
-    if (export_values_ww(json_ww)) {
-        Mqtt::publish(F("boiler_data_ww"), doc_ww.as<JsonObject>());
+    if (export_values_ww(json_data)) {
+        Mqtt::publish(F("boiler_data_ww"), json_data);
     }
 
     // send out heating and tapwater status
@@ -651,13 +651,14 @@ void Boiler::show_values(uuid::console::Shell & shell) {
     EMSdevice::show_values(shell); // for showing the header
 
     // fetch the values into a JSON document
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
-    JsonObject          json = doc.to<JsonObject>();
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json = doc.to<JsonObject>();
     if (!export_values_main(json)) {
         return; // empty
     }
     export_values_ww(json); // append ww values
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
 
     print_value_json(shell, F("heatingActive"), nullptr, F_(heatingActive), nullptr, json);
     print_value_json(shell, F("tapwaterActive"), nullptr, F_(tapwaterActive), nullptr, json);

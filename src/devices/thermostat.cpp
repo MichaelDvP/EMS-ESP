@@ -354,11 +354,12 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
 
     // if we're in HA or CUSTOM, send out the complete topic with all the data
     if (Mqtt::mqtt_format() != Mqtt::Format::SINGLE && has_data) {
+        Mqtt::publish(F("thermostat_data"), json_data);
+        json_data.clear();
         // see if we have already registered this with HA MQTT Discovery, if not send the config
         if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
             ha_config(force);
         }
-        Mqtt::publish(F("thermostat_data"), json_data);
     }
 }
 
@@ -697,7 +698,7 @@ void Thermostat::ha_config(bool force) {
 
     // check to see which heating circuits need publishing
     for (const auto & hc : heating_circuits_) {
-        if (force || (hc->is_active() && !hc->ha_registered())) {
+        if (hc->is_active() && (force || !hc->ha_registered())) {
             register_mqtt_ha_config(hc->hc_num());
             hc->ha_registered(true);
         }
@@ -809,7 +810,7 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
 // publish config topic for HA MQTT Discovery
 // homeassistant/climate/ems-esp/thermostat/config
 void Thermostat::register_mqtt_ha_config() {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     doc["uniq_id"] = F("thermostat");
     doc["ic"]      = F("mdi:home-thermometer-outline");
 
@@ -863,15 +864,15 @@ void Thermostat::register_mqtt_ha_config() {
 // publish config topic for HA MQTT Discovery
 // e.g. homeassistant/climate/ems-esp/thermostat_hc1/config
 void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
-    char str1[40];
+    char str1[20];
     snprintf_P(str1, sizeof(str1), PSTR("Thermostat hc%d"), hc_num);
 
-    char str2[40];
+    char str2[20];
     snprintf_P(str2, sizeof(str2), PSTR("thermostat_hc%d"), hc_num);
 
-    char str3[40];
+    char str3[25];
     snprintf_P(str3, sizeof(str3), PSTR("~/%s"), str2);
     doc["mode_cmd_t"]  = str3;
     doc["temp_cmd_t"]  = str3;

@@ -133,8 +133,8 @@ void Mixer::publish_values(JsonObject & json, bool force) {
 
     if (Mqtt::mqtt_format() == Mqtt::Format::SINGLE) {
         StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
-        JsonObject                                     json = doc.to<JsonObject>();
-        if (export_values_format(Mqtt::mqtt_format(), json)) {
+        JsonObject                                     json_data = doc.to<JsonObject>();
+        if (export_values_format(Mqtt::mqtt_format(), json_data)) {
             char topic[30];
             if (type() == Type::HC) {
                 snprintf_P(topic, 30, PSTR("mixer_data_hc%d"), hc_);
@@ -160,13 +160,12 @@ void Mixer::register_mqtt_ha_config(bool force) {
     }
 
     // if we don't have valid values for this HC don't add it ever again
-    if (!Helpers::hasValue(status_)) {
-        mqtt_ha_config_ = true;
+    if (!Helpers::hasValue(pumpStatus_)) {
         return;
     }
 
     // Create the Master device
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
     char name[20];
     snprintf_P(name, sizeof(name), PSTR("Mixer %02X"), device_id() - 0x20 + 1);
