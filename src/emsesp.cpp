@@ -300,7 +300,7 @@ void EMSESP::publish_all(bool force) {
         publish_device_values(EMSdevice::DeviceType::SOLAR, force);
         publish_device_values(EMSdevice::DeviceType::MIXER, force);
         publish_other_values();
-        publish_sensor_values(true);
+        publish_sensor_values(true, force);
         system_.send_heartbeat();
     }
 }
@@ -333,7 +333,7 @@ void EMSESP::publish_all_loop() {
         publish_other_values();
         break;
     case 6:
-        publish_sensor_values(true);
+        publish_sensor_values(true, true);
         break;
     case 7:
         system_.send_heartbeat();
@@ -349,14 +349,15 @@ void EMSESP::publish_all_loop() {
 // special case for Mixer units, since we want to bundle all devices together into one payload
 void EMSESP::publish_device_values(uint8_t device_type, bool force) {
     if (device_type == EMSdevice::DeviceType::MIXER && Mqtt::mqtt_format() != Mqtt::Format::SINGLE) {
-        DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
-        JsonObject          json = doc.to<JsonObject>();
+        // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
+        StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+        JsonObject                                     json = doc.to<JsonObject>();
         for (const auto & emsdevice : emsdevices) {
             if (emsdevice && (emsdevice->device_type() == device_type)) {
                 emsdevice->publish_values(json, force);
             }
         }
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         Mqtt::publish("mixer_data", doc.as<JsonObject>());
         return;
     }
@@ -379,9 +380,9 @@ void EMSESP::publish_other_values() {
     }
 }
 
-void EMSESP::publish_sensor_values(const bool force) {
-    if (dallassensor_.updated_values() || force) {
-        dallassensor_.publish_values();
+void EMSESP::publish_sensor_values(const bool time, const bool force) {
+    if (dallassensor_.updated_values() || time || force) {
+        dallassensor_.publish_values(force);
     }
 }
 

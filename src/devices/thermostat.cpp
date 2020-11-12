@@ -180,7 +180,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
 
 // prepare data for Web UI
 void Thermostat::device_info_web(JsonArray & root) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc_main;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_main;
     JsonObject                                     json_main = doc_main.to<JsonObject>();
     if (export_values_main(json_main)) {
         print_value_json(root, F("time"), nullptr, F_(time), nullptr, json_main);
@@ -864,7 +864,7 @@ void Thermostat::register_mqtt_ha_config() {
 // publish config topic for HA MQTT Discovery
 // e.g. homeassistant/climate/ems-esp/thermostat_hc1/config
 void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
 
     char str1[20];
     snprintf_P(str1, sizeof(str1), PSTR("Thermostat hc%d"), hc_num);

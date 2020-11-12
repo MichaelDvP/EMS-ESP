@@ -49,8 +49,8 @@ bool Heatpump::export_values(JsonObject & json) {
 
 void Heatpump::device_info_web(JsonArray & root) {
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json = doc.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    JsonObject                                     json = doc.to<JsonObject>();
     if (!export_values(json)) {
         return; // empty
     }
@@ -64,8 +64,8 @@ void Heatpump::show_values(uuid::console::Shell & shell) {
     EMSdevice::show_values(shell); // always call this to show header
 
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json = doc.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    JsonObject                                     json = doc.to<JsonObject>();
     if (!export_values(json)) {
         return; // empty
     }
@@ -81,8 +81,8 @@ void Heatpump::publish_values(JsonObject & json, bool force) {
         register_mqtt_ha_config(force);
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json_data = doc.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    JsonObject                                     json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
         Mqtt::publish(F("heatpump_data"), doc.as<JsonObject>());
     }
@@ -98,7 +98,7 @@ void Heatpump::register_mqtt_ha_config(bool force) {
     }
 
     // Create the Master device
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     doc["name"]    = F_(EMSESP);
     doc["uniq_id"] = F_(heatpump);
     doc["ic"]      = F_(iconheatpump);

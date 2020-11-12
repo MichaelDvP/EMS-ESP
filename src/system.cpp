@@ -67,11 +67,7 @@ bool System::command_send(const char * value, const int8_t id) {
 
 // publish
 bool System::command_publish(const char * value, const int8_t id) {
-    if (strcmp(value, "HA") == 0) {
-        EMSESP::publish_all(true); // ignore id
-        return true;
-    }
-    EMSESP::publish_all(false); // ignore id
+    EMSESP::publish_all(); // ignore value and id
     return true;
 }
 

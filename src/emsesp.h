@@ -63,7 +63,7 @@ class EMSESP {
 
     static void publish_device_values(uint8_t device_type, bool force = false);
     static void publish_other_values();
-    static void publish_sensor_values(const bool force = false);
+    static void publish_sensor_values(const bool time, const bool force = false);
     static void publish_all(bool force = false);
 
 #ifdef EMSESP_STANDALONE

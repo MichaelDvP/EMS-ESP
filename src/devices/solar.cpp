@@ -152,7 +152,7 @@ void Solar::register_mqtt_ha_config(bool force) {
     }
 
     // Create the Master device
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     doc["name"]    = F_(EMSESP);
     doc["uniq_id"] = F_(solar);
     doc["ic"]      = F_(iconthermostat);

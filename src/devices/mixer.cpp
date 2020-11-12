@@ -62,7 +62,7 @@ void Mixer::device_info_web(JsonArray & root) {
     }
 
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     JsonObject                                      json = doc.to<JsonObject>();
     if (!export_values_format(Mqtt::Format::SINGLE, json)) {
         return; // empty
@@ -101,7 +101,7 @@ void Mixer::show_values(uuid::console::Shell & shell) {
     }
 
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     JsonObject                                      json = doc.to<JsonObject>();
     if (!export_values_format(Mqtt::Format::SINGLE, json)) {
         return; // empty
