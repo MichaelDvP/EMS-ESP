@@ -128,7 +128,10 @@ void Mixer::show_values(uuid::console::Shell & shell) {
 void Mixer::publish_values(JsonObject & json, bool force) {
     // handle HA first
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
-        register_mqtt_ha_config(force);
+        if (!mqtt_ha_config_ || force) {
+            register_mqtt_ha_config();
+            return;
+        }
     }
 
     if (Mqtt::mqtt_format() == Mqtt::Format::SINGLE) {
@@ -150,11 +153,7 @@ void Mixer::publish_values(JsonObject & json, bool force) {
 }
 
 // publish config topic for HA MQTT Discovery
-void Mixer::register_mqtt_ha_config(bool force) {
-    if ((mqtt_ha_config_ && !force)) {
-        return;
-    }
-
+void Mixer::register_mqtt_ha_config() {
     if (!Mqtt::connected()) {
         return;
     }

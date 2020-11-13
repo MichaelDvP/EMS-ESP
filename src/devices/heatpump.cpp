@@ -78,7 +78,10 @@ void Heatpump::show_values(uuid::console::Shell & shell) {
 void Heatpump::publish_values(JsonObject & json, bool force) {
     // handle HA first
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
-        register_mqtt_ha_config(force);
+        if (!mqtt_ha_config_ || force) {
+            register_mqtt_ha_config();
+            return;
+        }
     }
 
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
@@ -88,11 +91,7 @@ void Heatpump::publish_values(JsonObject & json, bool force) {
     }
 }
 
-void Heatpump::register_mqtt_ha_config(bool force) {
-    if ((mqtt_ha_config_ && !force)) {
-        return;
-    }
-
+void Heatpump::register_mqtt_ha_config() {
     if (!Mqtt::connected()) {
         return;
     }

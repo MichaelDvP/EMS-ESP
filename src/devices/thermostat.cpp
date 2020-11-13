@@ -336,10 +336,16 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
     if (EMSESP::actual_master_thermostat() != this->device_id()) {
         return;
     }
+    // see if we have already registered this with HA MQTT Discovery, if not send the config
+    if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
+        if (!ha_config(force)) {
+            return;
+        }
+    }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json_data = doc.to<JsonObject>();
-    bool                                            has_data  = false;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json_data = doc.to<JsonObject>();
+    bool                                           has_data  = false;
 
     // if MQTT is in single mode send out the main data to the thermostat_data topic
     has_data |= export_values_main(json_data);
@@ -355,11 +361,6 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
     // if we're in HA or CUSTOM, send out the complete topic with all the data
     if (Mqtt::mqtt_format() != Mqtt::Format::SINGLE && has_data) {
         Mqtt::publish(F("thermostat_data"), json_data);
-        json_data.clear();
-        // see if we have already registered this with HA MQTT Discovery, if not send the config
-        if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
-            ha_config(force);
-        }
     }
 }
 
@@ -686,23 +687,32 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
 }
 
 // set up HA MQTT Discovery
-void Thermostat::ha_config(bool force) {
+bool Thermostat::ha_config(bool force) {
     if (!Mqtt::connected()) {
-        return;
+        return false;
+    }
+    if (force) {
+        for (const auto & hc : heating_circuits_) {
+            hc->ha_registered(false);
+        }
+        ha_registered(false);
     }
 
-    if (force || !ha_registered()) {
+    if (!ha_registered()) {
         register_mqtt_ha_config();
         ha_registered(true);
+        return false;
     }
 
     // check to see which heating circuits need publishing
     for (const auto & hc : heating_circuits_) {
-        if (hc->is_active() && (force || !hc->ha_registered())) {
+        if (hc->is_active() && !hc->ha_registered()) {
             register_mqtt_ha_config(hc->hc_num());
             hc->ha_registered(true);
+            return false;
         }
     }
+    return true;
 }
 
 // returns the heating circuit object based on the hc number

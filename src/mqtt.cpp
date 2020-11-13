@@ -744,7 +744,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
 #endif
 
     // delay(MQTT_PUBLISH_WAIT);
-    delay(20);
+    delay(50);
 
 }
 
@@ -840,7 +840,7 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     }
 
     // delay(MQTT_PUBLISH_WAIT); // don't flood asynctcp
-    delay(20); // enough time to send the short message out
+    delay(50); // enough time to send the short message out
 
 }
 } // namespace emsesp
