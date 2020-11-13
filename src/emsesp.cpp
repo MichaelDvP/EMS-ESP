@@ -64,7 +64,7 @@ uint16_t EMSESP::publish_id_               = 0;
 bool     EMSESP::tap_water_active_         = false; // for when Boiler states we having running warm water. used in Shower()
 uint32_t EMSESP::last_fetch_               = 0;
 uint8_t  EMSESP::unique_id_count_          = 0;
-uint8_t  EMSESP::publish_all_cnt_          = 0;
+uint8_t  EMSESP::publish_all_idx_          = 0;
 
 // for a specific EMS device go and request data values
 // or if device_id is 0 it will fetch from all our known and active devices
@@ -292,16 +292,16 @@ void EMSESP::show_sensor_values(uuid::console::Shell & shell) {
 // MQTT publish everything, immediately
 void EMSESP::publish_all(bool force) {
     if (force) {
-        publish_all_cnt_ = 1;
+        publish_all_idx_ = 1;
         return;
     }
     if (Mqtt::connected()) {
-        publish_device_values(EMSdevice::DeviceType::BOILER, force);
-        publish_device_values(EMSdevice::DeviceType::THERMOSTAT, force);
-        publish_device_values(EMSdevice::DeviceType::SOLAR, force);
-        publish_device_values(EMSdevice::DeviceType::MIXER, force);
+        publish_device_values(EMSdevice::DeviceType::BOILER, false);
+        publish_device_values(EMSdevice::DeviceType::THERMOSTAT, false);
+        publish_device_values(EMSdevice::DeviceType::SOLAR, false);
+        publish_device_values(EMSdevice::DeviceType::MIXER, false);
         publish_other_values();
-        publish_sensor_values(true, force);
+        publish_sensor_values(true, false);
         system_.send_heartbeat();
     }
 }
@@ -309,7 +309,7 @@ void EMSESP::publish_all(bool force) {
 // on command "publish HA" loop and wait between devices for publishing all sensors
 void EMSESP::publish_all_loop() {
     static uint32_t last = 0;
-    if (!Mqtt::connected() || !publish_all_cnt_) {
+    if (!Mqtt::connected() || !publish_all_idx_) {
         return;
     }
     // every HA-sensor takes 20 ms, wait ~2 sec to finish (boiler have ~70 sensors)
@@ -317,7 +317,7 @@ void EMSESP::publish_all_loop() {
         return;
     }
     last = uuid::get_uptime();
-    switch (publish_all_cnt_++) {
+    switch (publish_all_idx_++) {
     case 1:
         publish_device_values(EMSdevice::DeviceType::BOILER, true);
         break;
@@ -341,8 +341,8 @@ void EMSESP::publish_all_loop() {
         break;
     default:
         // all finished
-        publish_all_cnt_ = 0;
-        last         = 0;
+        publish_all_idx_ = 0;
+        last             = 0;
     }
 }
 
