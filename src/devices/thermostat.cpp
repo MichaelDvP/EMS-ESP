@@ -180,8 +180,8 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
 
 // prepare data for Web UI
 void Thermostat::device_info_web(JsonArray & root) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_main;
-    JsonObject                                     json_main = doc_main.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    JsonObject                                      json_main = doc.to<JsonObject>();
     if (export_values_main(json_main)) {
         print_value_json(root, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(root, F("errorcode"), nullptr, F_(error), nullptr, json_main);
@@ -202,9 +202,9 @@ void Thermostat::device_info_web(JsonArray & root) {
         print_value_json(root, F("wwextra1"), nullptr, F_(wwextra1), nullptr, json_main);
         print_value_json(root, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
-
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
-    JsonObject                                      json_hc = doc_hc.to<JsonObject>();
+    doc.clear();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
+    JsonObject json_hc = doc.to<JsonObject>();
 
     if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
         // display for each active heating circuit
@@ -267,8 +267,8 @@ bool Thermostat::export_values(JsonObject & json) {
 void Thermostat::show_values(uuid::console::Shell & shell) {
     EMSdevice::show_values(shell); // always call this to show header
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_main;
-    JsonObject                                      json_main = doc_main.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    JsonObject                                      json_main = doc.to<JsonObject>();
     if (export_values_main(json_main)) {
         print_value_json(shell, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(shell, F("errorcode"), nullptr, F_(error), nullptr, json_main);
@@ -290,8 +290,9 @@ void Thermostat::show_values(uuid::console::Shell & shell) {
         print_value_json(shell, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
-    JsonObject                                      json_hc = doc_hc.to<JsonObject>();
+    doc.clear();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
+    JsonObject                                      json_hc = doc.to<JsonObject>();
     // e.g. {"hc1":{"seltemp":849.4,"currtemp":819.2,"mode":"unknown","modetype":"day"},"hc2":{"seltemp":875.1,"currtemp":409.6,"mode":"unknown","modetype":"day"},"hc3":{"seltemp":0,"currtemp":0,"mode":"unknown","modetype":"day"}}
 
     if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
@@ -336,6 +337,20 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
     if (EMSESP::actual_master_thermostat() != this->device_id()) {
         return;
     }
+
+    // if MQTT is in single mode send out the main data to the thermostat_data topic
+    if (Mqtt::mqtt_format() == Mqtt::Format::SINGLE) {
+        StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+        JsonObject                                      json_data = doc.to<JsonObject>();
+        if (export_values_main(json_data)) {
+            Mqtt::publish(F("thermostat_data"), json_data);
+            json_data.clear();
+        }
+        // this function will also have published each of the heating circuits
+        export_values_hc(Mqtt::mqtt_format(), json_data);
+        return;
+    }
+
     // see if we have already registered this with HA MQTT Discovery, if not send the config
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
         if (!ha_config(force)) {
@@ -347,19 +362,12 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
     JsonObject                                     json_data = doc.to<JsonObject>();
     bool                                           has_data  = false;
 
-    // if MQTT is in single mode send out the main data to the thermostat_data topic
-    has_data |= export_values_main(json_data);
-    if (Mqtt::mqtt_format() == Mqtt::Format::SINGLE && has_data) {
-        Mqtt::publish(F("thermostat_data"), json_data);
-        json_data.clear();
-    }
-
     // get the thermostat data.
-    // if we're in Single mode this function will also have published each of the heating circuits
+    has_data |= export_values_main(json_data);
     has_data |= export_values_hc(Mqtt::mqtt_format(), json_data);
 
-    // if we're in HA or CUSTOM, send out the complete topic with all the data
-    if (Mqtt::mqtt_format() != Mqtt::Format::SINGLE && has_data) {
+    // we're in HA or CUSTOM, send out the complete topic with all the data
+    if (has_data) {
         Mqtt::publish(F("thermostat_data"), json_data);
     }
 }
