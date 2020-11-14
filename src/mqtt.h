@@ -40,10 +40,8 @@ using uuid::console::Shell;
 
 #define EMSESP_MAX_JSON_SIZE_SMALL 384  // for smaller json docs when using StaticJsonDocument
 #define EMSESP_MAX_JSON_SIZE_MEDIUM 768 // for medium json docs from ems devices, when using StaticJsonDocument
-// #define EMSESP_MAX_JSON_SIZE_LARGE 2048 // for large json docs from ems devices, like boiler or thermostat data. Using DynamicJsonDocument
-// mqtt does not publish larger than 1570 on esp8266, boiler message is split and now smaller
-#define EMSESP_MAX_JSON_SIZE_LARGE 1024 // for static json docs from ems devices, like boiler or thermostat data. Using StaticJsonDocument
-#define EMSESP_MAX_JSON_SIZE_MAX 2048 // for large json docs from ems devices, like boiler or thermostat data. Using DynamicJsonDocument
+#define EMSESP_MAX_JSON_SIZE_LARGE 1024 // for large json docs from ems devices, like boiler or thermostat data. Using StaticJsonDocument
+#define EMSESP_MAX_JSON_SIZE_DYN 2048   // for large json docs from web. Using DynamicJsonDocument
 
 namespace emsesp {
 
@@ -172,11 +170,14 @@ class Mqtt {
     static std::list<QueuedMqttMessage> mqtt_messages_;
 
     static AsyncMqttClient * mqttClient_;
+    static uint16_t          mqtt_message_id_;
 
-    // static size_t   maximum_mqtt_messages_;
-    static uint16_t mqtt_message_id_;
+#if defined(EMSESP_STANDALONE)
+    static constexpr size_t MAX_MQTT_MESSAGES = 70; // size of queue
+#else
+    static constexpr size_t MAX_MQTT_MESSAGES = 20; // size of queue
+#endif
 
-    static constexpr size_t   MAX_MQTT_MESSAGES      = 20;  // size of queue
     static constexpr uint32_t MQTT_PUBLISH_WAIT      = 200; // delay between sending publishes, to account for large payloads
     static constexpr uint8_t  MQTT_PUBLISH_MAX_RETRY = 3;   // max retries for giving up on publishing
 
