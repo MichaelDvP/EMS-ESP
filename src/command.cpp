@@ -68,8 +68,9 @@ void Command::add(const uint8_t device_type, const uint8_t device_id, const __Fl
     // if the command already exists for that device type don't add it
     if (!find_command(device_type, uuid::read_flash_string(cmd).c_str())) {
         cmdfunctions_.emplace_back(device_type, cmd, cb, nullptr);
-
-        // see if we need to subscribe
+    }
+    // see if we need to subscribe
+    if (Mqtt::enabled()) {
         Mqtt::register_command(device_type, device_id, cmd, cb);
     }
 }

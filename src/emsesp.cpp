@@ -64,6 +64,7 @@ uint16_t EMSESP::publish_id_               = 0;
 bool     EMSESP::tap_water_active_         = false; // for when Boiler states we having running warm water. used in Shower()
 uint32_t EMSESP::last_fetch_               = 0;
 uint8_t  EMSESP::publish_all_idx_          = 0;
+uint8_t  EMSESP::unique_id_count_          = 0;
 
 // for a specific EMS device go and request data values
 // or if device_id is 0 it will fetch from all our known and active devices
@@ -772,6 +773,7 @@ bool EMSESP::add_device(const uint8_t device_id, const uint8_t product_id, std::
     auto flags       = device_p->flags;
     LOG_DEBUG(F("Adding new device %s (device ID 0x%02X, product ID %d, version %s)"), name.c_str(), device_id, product_id, version.c_str());
     emsdevices.push_back(EMSFactory::add(device_type, device_id, product_id, version, name, flags, brand));
+    emsdevices.back()->unique_id(++unique_id_count_);
 
     fetch_device_values(device_id); // go and fetch its data
 
