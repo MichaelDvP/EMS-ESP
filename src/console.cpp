@@ -107,7 +107,7 @@ void EMSESPShell::add_console_commands() {
     // just in case, remove everything
     // commands->remove_context_commands(ShellContext::MAIN);
     commands->remove_all_commands();
-
+/*
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(fetch)},
@@ -129,7 +129,7 @@ void EMSESPShell::add_console_commands() {
                                   shell.printfln(F("Published all data to MQTT, including HA configs"));
                               }
                           });
-
+*/
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(show)},
@@ -311,7 +311,7 @@ void EMSESPShell::add_console_commands() {
                               shell.printfln(F("Telnet timout is %d minutes"), value);
                           });
 #endif
-
+/*
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::ADMIN,
                           flash_string_vector{F_(send), F_(telegram)},
@@ -319,7 +319,7 @@ void EMSESPShell::add_console_commands() {
                           [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
                               EMSESP::send_raw_telegram(arguments.front().c_str());
                           });
-
+*/
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(watch)},

@@ -160,7 +160,7 @@ void Command::show_devices(uuid::console::Shell & shell) {
 
 // output list of all commands to console
 void Command::show_all(uuid::console::Shell & shell) {
-    shell.println(F("Available commands per device: "));
+    shell.println(F("Available commands per device: (usage: call <device> <command> [data] [id])"));
 
     // show system first
     shell.printf(" %s: ", EMSdevice::device_type_2_device_name(EMSdevice::DeviceType::SYSTEM).c_str());
