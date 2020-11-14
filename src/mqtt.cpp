@@ -695,8 +695,8 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
         return;
     }
 
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
-    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
     doc["name"]    = name;
     doc["uniq_id"] = entity;
@@ -724,7 +724,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     snprintf_P(ha_device, sizeof(ha_device), PSTR("ems-esp-%s"), EMSdevice::device_type_2_device_name(device_type).c_str());
     ids.add(ha_device);
 
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
 
     char topic[MQTT_TOPIC_MAX_SIZE];
     snprintf_P(topic, sizeof(topic), PSTR("homeassistant/binary_sensor/ems-esp/%s/config"), entity);
@@ -806,8 +806,8 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     }
     new_name[0] = toupper(new_name[0]); // capitalize first letter
 
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
-    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
     doc["name"]    = new_name;
     doc["uniq_id"] = uniq.c_str();
@@ -823,7 +823,7 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     JsonArray  ids = dev.createNestedArray("ids");
     ids.add(ha_device);
 
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
     // convert json to string and publish immediately with retain forced to true
     char payload_text[256];
     serializeJson(doc, payload_text); // convert json to string
