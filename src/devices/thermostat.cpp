@@ -32,7 +32,12 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         master_thermostat = settings.master_thermostat; // what the user has defined
     });
 
-    uint8_t model = this->model();
+    uint8_t model   = this->model();
+    monitor_typeids = {};
+    set_typeids     = {};
+    summer_typeids  = {};
+    curve_typeids   = {};
+    timer_typeids   = {};
 
     // if we're on auto mode, register this thermostat if it has a device id of 0x10, 0x17 or 0x18
     // or if its the master thermostat we defined
@@ -506,8 +511,12 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 
     // Warm Water circulation mode
     if (Helpers::hasValue(wwCircMode_)) {
-        char s[7];
-        rootThermostat["wwcircmode"] = Helpers::render_enum(s, {F("off"), F("on"), F("auto")}, wwCircMode_);
+        char s[10];
+        if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
+            rootThermostat["wwcircmode"] = Helpers::render_enum(s, {F("off"), F("on"), F("auto"), F("own_prog")}, wwCircMode_);
+        } else {
+            rootThermostat["wwcircmode"] = Helpers::render_enum(s, {F("off"), F("on"), F("auto")}, wwCircMode_);
+        }
     }
 
     return (rootThermostat.size());
@@ -865,6 +874,7 @@ void Thermostat::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordrytemp), this->device_type(), "floordrytemp", F_(degrees), F_(icontemperature));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode), this->device_type(), "wwmode", nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwtemp), this->device_type(), "wwtemp", F_(degrees), F_(icontemperature));
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode), this->device_type(), "wwcircmode", nullptr, nullptr);
     }
 
     if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
@@ -873,8 +883,6 @@ void Thermostat::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building), this->device_type(), "building", nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp), this->device_type(), "minexttemp", F_(degrees), F_(icontemperature));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode), this->device_type(), "wwmode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwtemp), this->device_type(), "wwtemp", F_(degrees), F_(icontemperature));
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwtemplow), this->device_type(), "wwtemplow", F_(degrees), F_(icontemperature));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode), this->device_type(), "wwcircmode", nullptr, nullptr);
     }
 }
@@ -1371,8 +1379,9 @@ void Thermostat::process_RC300WWtemp(std::shared_ptr<const Telegram> telegram) {
 // type 02F5
 void Thermostat::process_RC300WWmode(std::shared_ptr<const Telegram> telegram) {
     // circulation pump see: https://github.com/Th3M3/buderus_ems-wiki/blob/master/Einstellungen%20der%20Bedieneinheit%20RC310.md
-    // changed_ |= telegram->read_value(wwCircMode_, 1); // 0=off, FF=on
-    changed_ |= telegram->read_value(wwMode_, 2); // 0=off, 1=low, 2=high, 3=auto, 4=own prog
+    changed_ |= telegram->read_value(wwCircPump_, 1); // FF=off, 0=on ?
+    changed_ |= telegram->read_value(wwMode_, 2);     // 0=off, 1=low, 2=high, 3=auto, 4=own prog
+    changed_ |= telegram->read_value(wwCircMode_, 3); // 0=off, 1=on, 2=auto, 4=own?
 }
 
 // types 0x31D and 0x31E
@@ -1720,6 +1729,15 @@ bool Thermostat::set_wwonetime(const char * value, const int8_t id) {
 // sets the thermostat ww circulation working mode, where mode is a string
 bool Thermostat::set_wwcircmode(const char * value, const int8_t id) {
     uint8_t set = 0xFF;
+    if ((this->model() == EMS_DEVICE_FLAG_RC300) || (this->model() == EMS_DEVICE_FLAG_RC100)) {
+        if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto"), F("own")})) {
+            LOG_WARNING(F("Set warm water circulation mode: Invalid mode"));
+            return false;
+        }
+        LOG_INFO(F("Setting warm water circulation mode to %s"), value);
+        write_command(0x02F5, 3, set, 0x02F5);
+        return true;
+    }
     if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto")})) {
         LOG_WARNING(F("Set warm water circulation mode: Invalid mode"));
         return false;
@@ -1849,7 +1867,7 @@ bool Thermostat::set_datetime(const char * value, const int8_t id) {
 // converts string mode to HeatingCircuit::Mode
 bool Thermostat::set_mode(const char * value, const int8_t id) {
     // quit if its numerical, as it could be mistaken as a temperature value
-    if (value[0] <= 'A') {
+    if (value[0] < 'A') {
         return false;
     }
 
@@ -2420,6 +2438,7 @@ void Thermostat::add_commands() {
         register_mqtt_cmd(F("wwtemp"), [&](const char * value, const int8_t id) { return set_wwtemp(value, id); });
         register_mqtt_cmd(F("wwtemplow"), [&](const char * value, const int8_t id) { return set_wwtemplow(value, id); });
         register_mqtt_cmd(F("wwonetime"), [&](const char * value, const int8_t id) { return set_wwonetime(value, id); });
+        register_mqtt_cmd(F("wwcircmode"), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
         register_mqtt_cmd(F("building"), [&](const char * value, const int8_t id) { return set_building(value, id); });
         register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
         register_mqtt_cmd(F("designtemp"), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });

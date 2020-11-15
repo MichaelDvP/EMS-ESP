@@ -161,6 +161,7 @@ class Thermostat : public EMSdevice {
     uint8_t wwExtra1_   = EMS_VALUE_UINT_NOTSET; // wwExtra active for wwSystem 1
     uint8_t wwExtra2_   = EMS_VALUE_UINT_NOTSET;
     uint8_t wwMode_     = EMS_VALUE_UINT_NOTSET;
+    uint8_t wwCircPump_ = EMS_VALUE_UINT_NOTSET;
     uint8_t wwCircMode_ = EMS_VALUE_UINT_NOTSET;
     uint8_t wwTemp_     = EMS_VALUE_UINT_NOTSET;
     uint8_t wwTempLow_  = EMS_VALUE_UINT_NOTSET;

@@ -159,9 +159,10 @@ void RxService::add(uint8_t * data, uint8_t length) {
     }
 
     // src, dest and offset are always in fixed positions
-    uint8_t src    = data[0] & 0x7F; // strip MSB (HT3 adds it)
-    uint8_t dest   = data[1] & 0x7F; // strip MSB, don't care if its read or write for processing
-    uint8_t offset = data[3];        // offset is always 4th byte
+    uint8_t src       = data[0] & 0x7F; // strip MSB (HT3 adds it)
+    uint8_t dest      = data[1] & 0x7F; // strip MSB, don't care if its read or write for processing
+    uint8_t offset    = data[3];        // offset is always 4th byte
+    uint8_t operation = (data[1] & 0x80) ? Telegram::Operation::RX_READ : Telegram::Operation::RX;
 
     uint16_t  type_id;
     uint8_t * message_data;   // where the message block starts
@@ -195,11 +196,11 @@ void RxService::add(uint8_t * data, uint8_t length) {
         if ((trace_watch_id == WATCH_ID_NONE) || (type_id == trace_watch_id)
             || ((trace_watch_id < 0x80) && ((src == trace_watch_id) || (dest == trace_watch_id)))) {
             LOG_NOTICE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
-        } else {
-            LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
+        // } else {
+            // LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
         }
-    } else {
-        LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
+    // } else {
+        // LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
     }
 
 #ifdef EMSESP_DEBUG
@@ -216,7 +217,7 @@ void RxService::add(uint8_t * data, uint8_t length) {
     src = EMSESP::check_master_device(src, type_id, true);
 
     // create the telegram
-    auto telegram = std::make_shared<Telegram>(Telegram::Operation::RX, src, dest, type_id, offset, message_data, message_length);
+    auto telegram = std::make_shared<Telegram>(operation, src, dest, type_id, offset, message_data, message_length);
 
     // check if queue is full, if so remove top item to make space
     if (rx_telegrams_.size() >= MAX_RX_TELEGRAMS) {
