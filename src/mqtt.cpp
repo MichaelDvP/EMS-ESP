@@ -719,7 +719,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     snprintf_P(topic, sizeof(topic), PSTR("homeassistant/binary_sensor/ems-esp/%s/config"), entity);
 
     // queue MQTT publish
-    publish(topic, doc.as<JsonObject>());
+    publish_retain(topic, doc.as<JsonObject>(), true);
 }
 
 // HA config for a normal 'sensor' type
@@ -797,6 +797,10 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     JsonArray  ids = dev.createNestedArray("ids");
     ids.add(ha_device);
 
+#if defined(ESP32)
+    // queue MQTT publish
+    publish_retain(topic, doc.as<JsonObject>(), true);
+#else
     // convert json to string and publish immediately with retain forced to true
     char payload_text[EMSESP_MAX_JSON_SIZE_HA_CONFIG];
     serializeJson(doc, payload_text); // convert json to string
@@ -813,5 +817,6 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     }
 
     delay(50); // enough time to send the short message out
+#endif
 }
 } // namespace emsesp

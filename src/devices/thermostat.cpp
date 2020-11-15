@@ -800,6 +800,16 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
         }
     }
 
+    // not found, search heating_curve message types
+    if (hc_num == 0) {
+        for (uint8_t i = 0; i < curve_typeids.size(); i++) {
+            if (curve_typeids[i] == telegram->type_id) {
+                hc_num = i + 1;
+                break;
+            }
+        }
+    }
+
     // not found, search device-id types for remote thermostats
     if (telegram->src >= 0x18 && telegram->src <= 0x1B) {
         hc_num = telegram->src - 0x17;
