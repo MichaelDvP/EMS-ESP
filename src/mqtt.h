@@ -38,10 +38,11 @@
 
 using uuid::console::Shell;
 
-#define EMSESP_MAX_JSON_SIZE_SMALL 384  // for smaller json docs when using StaticJsonDocument
-#define EMSESP_MAX_JSON_SIZE_MEDIUM 768 // for medium json docs from ems devices, when using StaticJsonDocument
-#define EMSESP_MAX_JSON_SIZE_LARGE 1024 // for large json docs from ems devices, like boiler or thermostat data. Using StaticJsonDocument
-#define EMSESP_MAX_JSON_SIZE_DYN 2048   // for large json docs from web. Using DynamicJsonDocument
+#define EMSESP_MAX_JSON_SIZE_HA_CONFIG 384 // for small HA config payloads
+#define EMSESP_MAX_JSON_SIZE_SMALL 384     // for smaller json docs when using StaticJsonDocument
+#define EMSESP_MAX_JSON_SIZE_MEDIUM 768    // for medium json docs from ems devices, when using StaticJsonDocument
+#define EMSESP_MAX_JSON_SIZE_LARGE 1024    // for large json docs from ems devices, like boiler or thermostat data. Using StaticJsonDocument
+#define EMSESP_MAX_JSON_SIZE_DYN 2048      // for large json docs from web. Using DynamicJsonDocument
 
 namespace emsesp {
 
@@ -85,6 +86,8 @@ class Mqtt {
 
     static constexpr uint8_t MQTT_TOPIC_MAX_SIZE = 128; // note this should really match the user setting in mqttSettings.maxTopicLength
 
+    static void on_connect();
+
     static void subscribe(const uint8_t device_type, const std::string & topic, mqtt_subfunction_p cb);
     static void subscribe(const std::string & topic, mqtt_subfunction_p cb);
     static void resubscribe();
@@ -112,7 +115,6 @@ class Mqtt {
     static void show_topic_handlers(uuid::console::Shell & shell, const uint8_t device_type);
     static void show_mqtt(uuid::console::Shell & shell);
 
-    static void on_connect();
     static void ha_status();
 
     void disconnect() {
@@ -189,8 +191,6 @@ class Mqtt {
     void on_message(const char * topic, const char * payload, size_t len);
     void process_queue();
 
-    static uint16_t mqtt_publish_fails_;
-
     // function handlers for MQTT subscriptions
     struct MQTTSubFunction {
         uint8_t            device_type_;      // which device type, from DeviceType::
@@ -215,6 +215,9 @@ class Mqtt {
     uint32_t last_publish_mixer_      = 0;
     uint32_t last_publish_other_      = 0;
     uint32_t last_publish_sensor_     = 0;
+
+    static bool     connecting_;
+    static uint16_t mqtt_publish_fails_;
 
     // settings, copied over
     static std::string hostname_;
