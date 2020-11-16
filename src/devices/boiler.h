@@ -99,6 +99,8 @@ class Boiler : public EMSdevice {
     char     serviceCode_[3]    = {'\0'};                  // 2 character status/service code
     uint16_t serviceCodeNumber_ = EMS_VALUE_USHORT_NOTSET; // error/service code
     uint8_t  boilerState_       = EMS_VALUE_UINT_NOTSET;   // Boiler state flag
+    char     lastCode_[30]      = {'\0'};
+    uint32_t lastCodeDate_      = 0;
 
     // UBAMonitorSlow - 0x19 on EMS1
     int16_t  outdoorTemp_ = EMS_VALUE_SHORT_NOTSET;  // Outside temperature

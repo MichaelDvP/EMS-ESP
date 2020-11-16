@@ -53,6 +53,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         register_telegram_type(EMS_TYPE_RCOutdoorTemp, F("RCOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_RCOutdoorTemp(t); });
         register_telegram_type(EMS_TYPE_RCTime, F("RCTime"), false, [&](std::shared_ptr<const Telegram> t) { process_RCTime(t); });
         register_telegram_type(0xA2, F("RCError"), false, [&](std::shared_ptr<const Telegram> t) { process_RCError(t); });
+        register_telegram_type(0x12, F("RCErrorMessage"), false, [&](std::shared_ptr<const Telegram> t) { process_RCErrorMessage(t); });
     }
     // RC10
     if (model == EMSdevice::EMS_DEVICE_FLAG_RC10) {
@@ -181,6 +182,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
     for (uint8_t i = 0; i < curve_typeids.size(); i++) {
         EMSESP::send_read_request(curve_typeids[i], device_id);
     }
+    EMSESP::send_read_request(0x12, device_id); // read last error (only published on errors)
 }
 
 // prepare data for Web UI
@@ -190,6 +192,7 @@ void Thermostat::device_info_web(JsonArray & root) {
     if (export_values_main(json_main)) {
         print_value_json(root, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(root, F("errorcode"), nullptr, F_(error), nullptr, json_main);
+        print_value_json(root, F("lastcode"), nullptr, F_(lastCode), nullptr, json_main);
         print_value_json(root, F("display"), nullptr, F_(display), nullptr, json_main);
         print_value_json(root, F("language"), nullptr, F_(language), nullptr, json_main);
         print_value_json(root, F("offsetclock"), nullptr, F_(offsetclock), nullptr, json_main);
@@ -276,6 +279,7 @@ void Thermostat::show_values(uuid::console::Shell & shell) {
     if (export_values_main(json_main)) {
         print_value_json(shell, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(shell, F("errorcode"), nullptr, F_(error), nullptr, json_main);
+        print_value_json(shell, F("lastcode"), nullptr, F_(lastCode), nullptr, json_main);
         print_value_json(shell, F("display"), nullptr, F_(display), nullptr, json_main);
         print_value_json(shell, F("language"), nullptr, F_(language), nullptr, json_main);
         print_value_json(shell, F("offsetclock"), nullptr, F_(offsetclock), nullptr, json_main);
@@ -385,6 +389,10 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 
     if (Helpers::hasValue(errorNumber_)) {
         rootThermostat["errorcode"] = errorCode_;
+    }
+
+    if (lastCode_[0] != '\0') {
+        rootThermostat["lastcode"] = lastCode_;
     }
 
     if (model == EMSdevice::EMS_DEVICE_FLAG_RC30_1) {
@@ -1555,6 +1563,24 @@ void Thermostat::process_RCError(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(errorNumber_, 3);
 
     snprintf_P(&errorCode_[0], errorCode_.capacity() + 1, PSTR("%s(%d)"), buf, errorNumber_);
+}
+// 0x12
+void Thermostat::process_RCErrorMessage(std::shared_ptr<const Telegram> telegram) {
+    // data: displaycode(2), errornumber(2), year, month, hour, day, minute, duration(2), src-addr
+    if (telegram->message_data[4] & 0x80) { // valid date
+        char     code[3];
+        uint16_t codeNo;
+        code[0]  = telegram->message_data[0];
+        code[1]  = telegram->message_data[1];
+        code[2]  = 0;
+        telegram->read_value(codeNo, 2);
+        uint16_t year  = (telegram->message_data[4] & 0x7F) + 2000;
+        uint8_t  month = telegram->message_data[5];
+        uint8_t  day   = telegram->message_data[7];
+        uint8_t  hour  = telegram->message_data[6];
+        uint8_t  min   = telegram->message_data[8];
+        snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) %02d.%02d.%d %02d:%02d"), code, codeNo, day, month, year, hour, min);
+    }
 }
 
 // 0xA5 - Set minimum external temperature

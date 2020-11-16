@@ -810,10 +810,11 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     publish_retain(topic, doc.as<JsonObject>(), true);
 #else
     // convert json to string and publish immediately with retain forced to true
-    char payload_text[EMSESP_MAX_JSON_SIZE_HA_CONFIG];
+    // char payload_text[EMSESP_MAX_JSON_SIZE_HA_CONFIG];
+    std::string payload_text;
     serializeJson(doc, payload_text); // convert json to string
 
-    uint16_t packet_id = mqttClient_->publish(topic, 0, true, payload_text);
+    uint16_t packet_id = mqttClient_->publish(topic, 0, true, payload_text.c_str());
     if (!packet_id) {
         LOG_ERROR(F("Failed to publish topic %s"), topic);
     } else {
