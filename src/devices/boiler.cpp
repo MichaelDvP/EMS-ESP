@@ -70,6 +70,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F("boilhystoff"), [&](const char * value, const int8_t id) { return set_hyst_off(value, id); });
     register_mqtt_cmd(F("burnperiod"), [&](const char * value, const int8_t id) { return set_burn_period(value, id); });
     register_mqtt_cmd(F("pumpdelay"), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
+    register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
 }
 
 // create the config topics for Home Assistant MQTT Discovery
@@ -1382,6 +1383,20 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
         }
         write_command(EMS_TYPE_UBAParameterWW, 6, v, EMS_TYPE_UBAParameterWW);
     }
+
+    return true;
+}
+// Reset command
+bool Boiler::set_reset(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    if (v == false) {
+        return false;
+    }
+    LOG_INFO(F("reseting boiler"));
+    write_command(0x05, 0x08, 0xFF);
 
     return true;
 }

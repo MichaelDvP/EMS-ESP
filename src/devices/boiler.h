@@ -188,6 +188,7 @@ class Boiler : public EMSdevice {
     bool set_hyst_off(const char * value, const int8_t id);
     bool set_burn_period(const char * value, const int8_t id);
     bool set_pump_delay(const char * value, const int8_t id);
+    bool set_reset(const char * value, const int8_t id);
 };
 
 } // namespace emsesp

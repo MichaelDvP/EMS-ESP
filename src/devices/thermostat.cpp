@@ -185,8 +185,8 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
 
 // prepare data for Web UI
 void Thermostat::device_info_web(JsonArray & root) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json_main = doc.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json_main = doc.to<JsonObject>();
     if (export_values_main(json_main)) {
         print_value_json(root, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(root, F("errorcode"), nullptr, F_(error), nullptr, json_main);
@@ -208,7 +208,6 @@ void Thermostat::device_info_web(JsonArray & root) {
         print_value_json(root, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
     doc.clear();
-    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
     JsonObject json_hc = doc.to<JsonObject>();
 
     if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
@@ -272,8 +271,8 @@ bool Thermostat::export_values(JsonObject & json) {
 void Thermostat::show_values(uuid::console::Shell & shell) {
     EMSdevice::show_values(shell); // always call this to show header
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json_main = doc.to<JsonObject>();
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    JsonObject                                     json_main = doc.to<JsonObject>();
     if (export_values_main(json_main)) {
         print_value_json(shell, F("time"), nullptr, F_(time), nullptr, json_main);
         print_value_json(shell, F("errorcode"), nullptr, F_(error), nullptr, json_main);
@@ -295,9 +294,8 @@ void Thermostat::show_values(uuid::console::Shell & shell) {
         print_value_json(shell, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
 
-    doc.clear();
-    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc_hc;
-    JsonObject                                      json_hc = doc.to<JsonObject>();
+    doc.clear(); // reuse the doc 
+    JsonObject json_hc = doc.to<JsonObject>();
     // e.g. {"hc1":{"seltemp":849.4,"currtemp":819.2,"mode":"unknown","modetype":"day"},"hc2":{"seltemp":875.1,"currtemp":409.6,"mode":"unknown","modetype":"day"},"hc3":{"seltemp":0,"currtemp":0,"mode":"unknown","modetype":"day"}}
 
     if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
@@ -847,7 +845,7 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
 // publish config topic for HA MQTT Discovery for main thermostat values
 // homeassistant/climate/ems-esp/thermostat/config
 void Thermostat::register_mqtt_ha_config() {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     doc["uniq_id"] = F("thermostat");
     doc["ic"]      = F("mdi:home-thermometer-outline");
 
