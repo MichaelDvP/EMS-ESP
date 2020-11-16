@@ -41,6 +41,7 @@ std::vector<Mqtt::MQTTSubFunction> Mqtt::mqtt_subfunctions_;
 
 uint16_t                           Mqtt::mqtt_publish_fails_ = 0;
 bool                               Mqtt::connecting_         = false;
+uint8_t                            Mqtt::connectcount_       = 0;
 uint16_t                           Mqtt::mqtt_message_id_    = 0;
 std::list<Mqtt::QueuedMqttMessage> Mqtt::mqtt_messages_;
 char                               will_topic_[Mqtt::MQTT_TOPIC_MAX_SIZE]; // because MQTT library keeps only char pointer
@@ -102,7 +103,7 @@ void Mqtt::subscribe(const std::string & topic, mqtt_subfunction_p cb) {
     subscribe(0, topic, cb); // no device_id needed, if generic to EMS-ESP
 }
 
-// resubscribe to all MQTT topics again
+// resubscribe to all MQTT topics
 void Mqtt::resubscribe() {
     if (mqtt_subfunctions_.empty()) {
         return;
@@ -469,27 +470,33 @@ void Mqtt::on_connect() {
     }
 
     connecting_ = true;
+    connectcount_++;
+
+    // first time to connect
+    if (connectcount_ == 1) {
+        // send info topic appended with the version information as JSON
+        StaticJsonDocument<90> doc;
+        doc["event"]   = "start";
+        doc["version"] = EMSESP_APP_VERSION;
+#ifndef EMSESP_STANDALONE
+        doc["ip"] = WiFi.localIP().toString();
+#endif
+        publish(F_(info), doc.as<JsonObject>());
+
+        // create the EMS-ESP device in HA, which is MQTT retained
+        if (mqtt_format() == Format::HA) {
+            ha_status();
+        }
+
+        publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
+    } else {
+        // we doing a re-connect from a TCP break
+        // only re-subscribe again to all MQTT topics
+        resubscribe();
+    }
 
     LOG_INFO(F("MQTT connected"));
-
-    // send info topic appended with the version information as JSON
-    StaticJsonDocument<90> doc;
-    doc["event"]   = "start";
-    doc["version"] = EMSESP_APP_VERSION;
-#ifndef EMSESP_STANDALONE
-    doc["ip"] = WiFi.localIP().toString();
-#endif
-    publish(F_(info), doc.as<JsonObject>());
-
-    publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
-
     reset_publish_fails(); // reset fail count to 0
-
-    resubscribe(); // in case this is a reconnect, re-subscribe again to all MQTT topics
-
-    if (mqtt_format() == Format::HA) {
-        ha_status(); // create a device in HA
-    }
 }
 
 // Home Assistant Discovery - the main master Device
@@ -647,9 +654,10 @@ void Mqtt::process_queue() {
     // else try and publish it
     uint16_t packet_id =
         mqttClient_->publish(message->topic.c_str(), mqtt_qos_, message->retain, message->payload.c_str(), message->payload.size(), false, mqtt_message.id_);
-    LOG_DEBUG(F("Publishing topic %s (#%02d, attempt #%d, size %d, pid %d)"),
+    LOG_DEBUG(F("Publishing topic %s (#%02d, retain=%d, try#%d, size %d, pid %d)"),
               message->topic.c_str(),
               mqtt_message.id_,
+              message->retain,
               mqtt_message.retry_count_ + 1,
               message->payload.size(),
               packet_id);
@@ -687,7 +695,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
         return;
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
     doc["name"]    = name;
     doc["uniq_id"] = entity;
@@ -819,4 +827,5 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     delay(50); // enough time to send the short message out
 #endif
 }
+
 } // namespace emsesp

@@ -788,6 +788,16 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
         }
     }
 
+    // not found, search heating_curve message types
+    if (hc_num == 0) {
+        for (uint8_t i = 0; i < curve_typeids.size(); i++) {
+            if (curve_typeids[i] == telegram->type_id) {
+                hc_num = i + 1;
+                break;
+            }
+        }
+    }
+
     // not found, search timer message types
     if (hc_num == 0) {
         for (uint8_t i = 0; i < timer_typeids.size(); i++) {
@@ -978,7 +988,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     // for each of the heating circuits
     std::string topic2(100, '\0');
     snprintf_P(&topic2[0], topic2.capacity() + 1, PSTR("thermostat_hc%d"), hc_num);
-    register_mqtt_topic(topic2, [&](const char * m) { return thermostat_ha_cmd(m, hc_num); });
+    register_mqtt_topic(topic2, [=](const char * m) { return thermostat_ha_cmd(m, hc_num); });
 
     char hc_name[10]; // hc{1-4}
     strlcpy(hc_name, "hc", 10);
@@ -1037,7 +1047,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
 }
 
 // for HA specifically when receiving over MQTT in the thermostat topic
-// it could be either a 'mode' or a float value
+// it could be either a 'mode' or a float value for a temperature. we try brute force both and see which one works.
 // return true if it parses the message correctly
 bool Thermostat::thermostat_ha_cmd(const char * message, uint8_t hc_num) {
     // check if it's json. We know the message isn't empty
