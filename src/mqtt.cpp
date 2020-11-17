@@ -790,6 +790,7 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     new_name[0] = toupper(new_name[0]); // capitalize first letter
 
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_HA_CONFIG);
 
     doc["name"]    = new_name;
     doc["uniq_id"] = uniq.c_str();
@@ -810,7 +811,6 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     publish_retain(topic, doc.as<JsonObject>(), true);
 #else
     // convert json to string and publish immediately with retain forced to true
-    // char payload_text[EMSESP_MAX_JSON_SIZE_HA_CONFIG];
     std::string payload_text;
     serializeJson(doc, payload_text); // convert json to string
 

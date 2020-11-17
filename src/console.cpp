@@ -380,7 +380,7 @@ void EMSESPShell::add_console_commands() {
                 return;
             }
 
-            DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE);
+            DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_DYN);
             JsonObject          json = doc.to<JsonObject>();
 
             bool ok = false;
@@ -476,9 +476,9 @@ void Console::load_standard_commands(unsigned int context) {
                                        flash_string_vector{F_(name_optional)},
                                        [](Shell & shell, const std::vector<std::string> & arguments) {
                                            if (arguments.size() == 0) {
-                                               Test::run_test_shell(shell, "default");
+                                               Test::run_test(shell, "default");
                                            } else {
-                                               Test::run_test_shell(shell, arguments.front());
+                                               Test::run_test(shell, arguments.front());
                                            }
                                        });
 #endif

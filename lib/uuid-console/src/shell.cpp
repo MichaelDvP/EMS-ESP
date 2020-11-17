@@ -262,9 +262,9 @@ void Shell::loop_normal() {
                 } else if (esc_ == 20) { // F9
                     set_command_str(F("call system info"));
                 } else if (esc_ == 21) { // F10
-                    set_command_str(F("call system report"));
+                    set_command_str(F("call system settings"));
                 } else if (esc_ == 23) { // F11
-                    line_buffer_ = read_flash_string(F("send telegram \"0B \""));
+                    line_buffer_ = read_flash_string(F("call send \"0B \""));
                     cursor_ = 1;
                 } else if (esc_ == 24) { // F12
                     set_command_str(F("log debug; watch raw"));

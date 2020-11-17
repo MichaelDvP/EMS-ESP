@@ -1211,14 +1211,18 @@ std::string Thermostat::mode_tostring(uint8_t mode) {
 // 0xA8 - for reading the mode from the RC20 thermostat (0x17)
 void Thermostat::process_RC20Set(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->mode, 23);
 }
 
 // type 0xAE - data from the RC20 thermostat (0x17)
 void Thermostat::process_RC20Monitor_2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_bitvalue(hc->mode_type, 0, 7);      // day/night MSB 7th bit is day
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 2, 1); // is * 2, force as single byte
     changed_ |= telegram->read_value(hc->curr_roomTemp, 3);        // is * 10
@@ -1228,20 +1232,27 @@ void Thermostat::process_RC20Monitor_2(std::shared_ptr<const Telegram> telegram)
 // see https://github.com/proddy/EMS-ESP/issues/334#issuecomment-611698259
 void Thermostat::process_RC20Set_2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->mode, 3);
 }
 
 // 0xAF - for reading the roomtemperature from the RC20/ES72 thermostat (0x18, 0x19, ..)
 void Thermostat::process_RC20Remote(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->curr_roomTemp, 0);
 }
 
 // type 0xB1 - data from the RC10 thermostat (0x17)
 void Thermostat::process_RC10Monitor(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 1, 1); // is * 2, force as single byte
     changed_ |= telegram->read_value(hc->curr_roomTemp, 2);        // is * 10
 }
@@ -1258,6 +1269,9 @@ void Thermostat::process_RC10Set(std::shared_ptr<const Telegram> telegram) {
 // type 0x0165, ff
 void Thermostat::process_JunkersSet(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->daytemp, 17);     // is * 2
     changed_ |= telegram->read_value(hc->nighttemp, 16);   // is * 2
     changed_ |= telegram->read_value(hc->nofrosttemp, 15); // is * 2
@@ -1265,6 +1279,9 @@ void Thermostat::process_JunkersSet(std::shared_ptr<const Telegram> telegram) {
 // type 0x0179, ff
 void Thermostat::process_JunkersSet2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->daytemp, 7);     // is * 2
     changed_ |= telegram->read_value(hc->nighttemp, 6);   // is * 2
     changed_ |= telegram->read_value(hc->nofrosttemp, 5); // is * 2
@@ -1283,7 +1300,9 @@ void Thermostat::process_RCOutdoorTemp(std::shared_ptr<const Telegram> telegram)
 // 0x91 - data from the RC20 thermostat (0x17) - 15 bytes long
 void Thermostat::process_RC20Monitor(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 1, 1); // is * 2, force as single byte
     changed_ |= telegram->read_value(hc->curr_roomTemp, 2);        // is * 10
 }
@@ -1291,7 +1310,9 @@ void Thermostat::process_RC20Monitor(std::shared_ptr<const Telegram> telegram) {
 // type 0x0A - data from the Nefit Easy/TC100 thermostat (0x18) - 31 bytes long
 void Thermostat::process_EasyMonitor(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->curr_roomTemp, 8);      // is * 100
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 10); // is * 100
 }
@@ -1323,7 +1344,9 @@ void Thermostat::process_JunkersMonitor(std::shared_ptr<const Telegram> telegram
     }
 
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->curr_roomTemp, 4);     // value is * 10
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 2); // value is * 10
 
@@ -1334,7 +1357,9 @@ void Thermostat::process_JunkersMonitor(std::shared_ptr<const Telegram> telegram
 // type 0x02A5 - data from the Nefit RC1010/3000 thermostat (0x18) and RC300/310s on 0x10
 void Thermostat::process_RC300Monitor(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->curr_roomTemp, 0); // is * 10
 
     changed_ |= telegram->read_bitvalue(hc->mode_type, 10, 1);
@@ -1355,7 +1380,9 @@ void Thermostat::process_RC300Monitor(std::shared_ptr<const Telegram> telegram) 
 // type 0x02B9 EMS+ for reading from RC300/RC310 thermostat
 void Thermostat::process_RC300Set(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     // NOTE when setting the room temp we pick from two values, hopefully one is correct!
     // manual is position 10
     // comfort is position 2, there are 3 levels in pos 3, 2, 1
@@ -1375,6 +1402,9 @@ void Thermostat::process_RC300Set(std::shared_ptr<const Telegram> telegram) {
 // types 0x2AF ff
 void Thermostat::process_RC300Summer(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->roominfluence, 0);
     changed_ |= telegram->read_value(hc->offsettemp, 2);
     changed_ |= telegram->read_value(hc->summertemp, 6);
@@ -1390,6 +1420,9 @@ void Thermostat::process_RC300Summer(std::shared_ptr<const Telegram> telegram) {
 // types 0x29B ff
 void Thermostat::process_RC300Curve(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->heatingtype, 1); // 1=radiator, 2=convector, 3=floor
     changed_ |= telegram->read_value(hc->nofrosttemp, 6);
     if (hc->heatingtype < 3) {
@@ -1446,7 +1479,9 @@ void Thermostat::process_RC300Floordry(std::shared_ptr<const Telegram> telegram)
 // type 0x41 - data from the RC30 thermostat(0x10) - 14 bytes long
 void Thermostat::process_RC30Monitor(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 1, 1); // is * 2, force as single byte
     changed_ |= telegram->read_value(hc->curr_roomTemp, 2);
 }
@@ -1454,7 +1489,9 @@ void Thermostat::process_RC30Monitor(std::shared_ptr<const Telegram> telegram) {
 // type 0xA7 - for reading the mode from the RC30 thermostat (0x10)
 void Thermostat::process_RC30Set(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->mode, 23);
 }
 
@@ -1468,7 +1505,9 @@ void Thermostat::process_RC35Monitor(std::shared_ptr<const Telegram> telegram) {
     }
 
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->setpoint_roomTemp, 2, 1); // is * 2, force to single byte, is 0 in summermode
     changed_ |= telegram->read_value(hc->curr_roomTemp, 3);        // is * 10 - or 0x7D00 if thermostat is mounted on boiler
 
@@ -1487,7 +1526,9 @@ void Thermostat::process_RC35Set(std::shared_ptr<const Telegram> telegram) {
     }
 
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
-
+    if (hc == nullptr) {
+        return;
+    }
     changed_ |= telegram->read_value(hc->heatingtype, 0);   // 0- off, 1-radiator, 2-convector, 3-floor
     changed_ |= telegram->read_value(hc->nighttemp, 1);     // is * 2
     changed_ |= telegram->read_value(hc->daytemp, 2);       // is * 2
