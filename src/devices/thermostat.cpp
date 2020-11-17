@@ -298,7 +298,7 @@ void Thermostat::show_values(uuid::console::Shell & shell) {
         print_value_json(shell, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
 
-    doc.clear(); // reuse the doc 
+    doc.clear(); // reuse the doc
     JsonObject json_hc = doc.to<JsonObject>();
     // e.g. {"hc1":{"seltemp":849.4,"currtemp":819.2,"mode":"unknown","modetype":"day"},"hc2":{"seltemp":875.1,"currtemp":409.6,"mode":"unknown","modetype":"day"},"hc3":{"seltemp":0,"currtemp":0,"mode":"unknown","modetype":"day"}}
 
@@ -790,16 +790,6 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
     if (hc_num == 0) {
         for (uint8_t i = 0; i < summer_typeids.size(); i++) {
             if (summer_typeids[i] == telegram->type_id) {
-                hc_num = i + 1;
-                break;
-            }
-        }
-    }
-
-    // not found, search heating_curve message types
-    if (hc_num == 0) {
-        for (uint8_t i = 0; i < curve_typeids.size(); i++) {
-            if (curve_typeids[i] == telegram->type_id) {
                 hc_num = i + 1;
                 break;
             }
