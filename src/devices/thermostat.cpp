@@ -802,20 +802,20 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
         }
     }
 
-    // not found, search timer message types
+    // not found, search heating_curve message types
     if (hc_num == 0) {
-        for (uint8_t i = 0; i < timer_typeids.size(); i++) {
-            if (timer_typeids[i] == telegram->type_id) {
+        for (uint8_t i = 0; i < curve_typeids.size(); i++) {
+            if (curve_typeids[i] == telegram->type_id) {
                 hc_num = i + 1;
                 break;
             }
         }
     }
 
-    // not found, search heating_curve message types
+    // not found, search timer message types
     if (hc_num == 0) {
-        for (uint8_t i = 0; i < curve_typeids.size(); i++) {
-            if (curve_typeids[i] == telegram->type_id) {
+        for (uint8_t i = 0; i < timer_typeids.size(); i++) {
+            if (timer_typeids[i] == telegram->type_id) {
                 hc_num = i + 1;
                 break;
             }
