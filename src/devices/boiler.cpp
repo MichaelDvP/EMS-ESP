@@ -775,6 +775,9 @@ void Boiler::show_values(uuid::console::Shell & shell) {
  * Values will always be posted first time as heatingActive_ and tapwaterActive_ will have values EMS_VALUE_BOOL_NOTSET
  */
 void Boiler::check_active() {
+    if  (!Helpers::hasValue(boilerState_)) {
+        return;
+    }
     bool    b;
     uint8_t val;
 
@@ -901,20 +904,29 @@ void Boiler::process_UBAMonitorWW(std::shared_ptr<const Telegram> telegram) {
 void Boiler::process_UBAMonitorFastPlus(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(selFlowTemp_, 6);
     changed_ |= telegram->read_bitvalue(burnGas_, 11, 0);
+    changed_ |= telegram->read_bitvalue(heatPump_, 11, 1);
     changed_ |= telegram->read_bitvalue(wWHeat_, 11, 2);
     changed_ |= telegram->read_value(curBurnPow_, 10);
     changed_ |= telegram->read_value(selBurnPow_, 9);
     changed_ |= telegram->read_value(curFlowTemp_, 7);
     changed_ |= telegram->read_value(flameCurr_, 19);
 
-    // read the service code / installation status as appears on the display
-    if ((telegram->message_length > 4) && (telegram->offset == 0)) {
-        changed_ |= telegram->read_value(serviceCode_[0], 4);
-        changed_ |= telegram->read_value(serviceCode_[1], 5);
-        serviceCode_[2] = '\0';
+    // read 3 char service code / installation status as appears on the display
+    if ((telegram->message_length > 3) && (telegram->offset == 0)) {
+        changed_ |= telegram->read_value(serviceCode_[0], 1);
+        changed_ |= telegram->read_value(serviceCode_[1], 2);
+        changed_ |= telegram->read_value(serviceCode_[2], 3);
+        serviceCode_[3] = '\0';
     }
+    changed_ |= telegram->read_value(serviceCodeNumber_, 4);
 
     // at this point do a quick check to see if the hot water or heating is active
+    telegram->read_value(boilerState_, 22);
+    // if this is not the state, build one from burnGas_
+    // boilerState_ = burnGas_ ? 0x80 : 0;
+    // boilerState_ |= heatPump_ ? 0x01 : 0;
+    // boilerState_ |= wWHeat_ ? 0x02 : 0;
+
     check_active();
 }
 

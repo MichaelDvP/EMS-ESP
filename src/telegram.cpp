@@ -196,13 +196,17 @@ void RxService::add(uint8_t * data, uint8_t length) {
         if ((trace_watch_id == WATCH_ID_NONE) || (type_id == trace_watch_id)
             || ((trace_watch_id < 0x80) && ((src == trace_watch_id) || (dest == trace_watch_id)))) {
             LOG_NOTICE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
-        // } else {
-            // LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
+#ifdef EMSESP_TRACERAW
+        } else {
+            LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
         }
-    // } else {
-        // LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
+    } else {
+        LOG_TRACE(F("Rx: %s"), Helpers::data_to_hex(data, length).c_str());
     }
-
+#else
+       }
+    }
+#endif
 #ifdef EMSESP_DEBUG
     LOG_DEBUG(F("[DEBUG] New Rx telegram, message length %d"), message_length);
 #endif

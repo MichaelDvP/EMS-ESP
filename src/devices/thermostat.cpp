@@ -569,6 +569,16 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
                 dataThermostat["currtemp"] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
             }
 
+            if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
+                if (Helpers::hasValue(hc->ha_temp)) {
+                    dataThermostat["hatemp"] = Helpers::round2((float)hc->ha_temp / 10);
+                } else if (Helpers::hasValue(hc->curr_roomTemp)) {
+                    dataThermostat["hatemp"] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
+                } else {
+                    dataThermostat["hatemp"] = Helpers::round2((float)hc->setpoint_roomTemp / setpoint_temp_divider);
+                }
+            }
+
             if (Helpers::hasValue(hc->daytemp)) {
                 if (flags == EMSdevice::EMS_DEVICE_FLAG_JUNKERS) {
                     // Heat temperature
@@ -937,7 +947,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     doc["temp_stat_tpl"] = seltemp_str;
 
     char currtemp_str[30];
-    snprintf_P(currtemp_str, sizeof(currtemp_str), PSTR("{{value_json.hc%d.currtemp}}"), hc_num);
+    snprintf_P(currtemp_str, sizeof(currtemp_str), PSTR("{{value_json.hc%d.hatemp}}"), hc_num);
     doc["curr_temp_tpl"] = currtemp_str;
 
     doc["min_temp"]  = F("5");
@@ -997,7 +1007,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(mode), this->device_type(), "mode", nullptr, nullptr);
 
     Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(seltemp), this->device_type(), "seltemp", F_(degrees), F_(icontemperature));
-    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(currtemp), this->device_type(), "currtemp", F_(degrees), F_(icontemperature));
+    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F("hatemp"), this->device_type(), "hatemp", F_(degrees), F_(icontemperature));
 
     uint8_t model = this->model();
     switch (model) {
@@ -1670,6 +1680,30 @@ bool Thermostat::set_display(const char * value, const int8_t id) {
 
     return true;
 }
+
+bool Thermostat::set_roomtemp(const char * value, const int8_t id) {
+    float f = 0;
+    if (!Helpers::value2float(value, f)) {
+        LOG_WARNING(F("Set roomtemperature: Invalid value"));
+        return false;
+    }
+
+    uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;
+    std::shared_ptr<Thermostat::HeatingCircuit> hc     = heating_circuit(hc_num);
+    if (hc == nullptr) {
+        return false;
+    }
+
+    if (f > 100 || f < 0) {
+        hc->ha_temp = EMS_VALUE_SHORT_NOTSET;
+    } else {
+        hc->ha_temp = (int16_t)(f * 10);
+    }
+
+    return true;
+}
+
+
 
 bool Thermostat::set_remotetemp(const char * value, const int8_t id) {
     float f = 0;
@@ -2503,6 +2537,7 @@ void Thermostat::add_commands() {
     register_mqtt_cmd(F("temp"), [&](const char * value, const int8_t id) { return set_temp(value, id); });
     register_mqtt_cmd(F("mode"), [&](const char * value, const int8_t id) { return set_mode(value, id); });
     register_mqtt_cmd(F("datetime"), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
+    register_mqtt_cmd(F("roomtemp"), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
 
     uint8_t model = this->model();
     switch (model) {

@@ -602,12 +602,17 @@ bool EMSESP::process_telegram(std::shared_ptr<const Telegram> telegram) {
         if ((watch_id_ == WATCH_ID_NONE) || (telegram->type_id == watch_id_)
             || ((watch_id_ < 0x80) && ((telegram->src == watch_id_) || (telegram->dest == watch_id_)))) {
             LOG_NOTICE(pretty_telegram(telegram).c_str());
+#ifdef EMSESP_TRACERAW
+        }
+    }
+#else
         } else {
             LOG_TRACE(pretty_telegram(telegram).c_str());
         }
     } else {
         LOG_TRACE(pretty_telegram(telegram).c_str());
     }
+#endif
 
     // only process broadcast telegrams or ones sent to us on request
     if ((telegram->dest != 0x00) && (telegram->dest != rxservice_.ems_bus_id())) {
