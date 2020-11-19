@@ -32,12 +32,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         master_thermostat = settings.master_thermostat; // what the user has defined
     });
 
-    uint8_t model   = this->model();
-    monitor_typeids = {};
-    set_typeids     = {};
-    summer_typeids  = {};
-    curve_typeids   = {};
-    timer_typeids   = {};
+    uint8_t model = this->model();
 
     // if we're on auto mode, register this thermostat if it has a device id of 0x10, 0x17 or 0x18
     // or if its the master thermostat we defined
@@ -1607,9 +1602,9 @@ void Thermostat::process_RCErrorMessage(std::shared_ptr<const Telegram> telegram
     if (telegram->message_data[4] & 0x80) { // valid date
         char     code[3];
         uint16_t codeNo;
-        code[0]  = telegram->message_data[0];
-        code[1]  = telegram->message_data[1];
-        code[2]  = 0;
+        code[0] = telegram->message_data[0];
+        code[1] = telegram->message_data[1];
+        code[2] = 0;
         telegram->read_value(codeNo, 2);
         uint16_t year  = (telegram->message_data[4] & 0x7F) + 2000;
         uint8_t  month = telegram->message_data[5];

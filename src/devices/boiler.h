@@ -109,7 +109,6 @@ class Boiler : public EMSdevice {
     uint8_t  pumpMod_     = EMS_VALUE_UINT_NOTSET;   // Pump modulation %
     uint32_t burnStarts_  = EMS_VALUE_ULONG_NOTSET;  // # burner restarts
     uint32_t burnWorkMin_ = EMS_VALUE_ULONG_NOTSET;  // Total burner operating time
-    uint32_t burnWorkM2_  = EMS_VALUE_ULONG_NOTSET;  // Total burner operating time
     uint32_t heatWorkMin_ = EMS_VALUE_ULONG_NOTSET;  // Total heat operating time
     uint16_t switchTemp_  = EMS_VALUE_USHORT_NOTSET; // Switch temperature
 
