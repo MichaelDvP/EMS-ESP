@@ -613,6 +613,11 @@ bool Boiler::export_values_main(JsonObject & json) {
         json["burnWorkMin"] = burnWorkMin_;
     }
 
+    // Burner stage 2 operating time
+    if (Helpers::hasValue(burnWorkM2_)) {
+        json["burnWork2Min"] = burnWorkM2_;
+    }
+
     // Total heat operating time
     if (Helpers::hasValue(heatWorkMin_)) {
         json["heatWorkMin"] = heatWorkMin_;
@@ -725,6 +730,9 @@ void Boiler::show_values(uuid::console::Shell & shell) {
 
     if (Helpers::hasValue(burnWorkMin_)) {
         shell.printfln(F("  Total burner operating time: %d days %d hours %d minutes"), burnWorkMin_ / 1440, (burnWorkMin_ % 1440) / 60, burnWorkMin_ % 60);
+    }
+    if (Helpers::hasValue(burnWorkM2_)) {
+        shell.printfln(F("  Burner Stage 2 operating time: %d days %d hours %d minutes"), burnWorkM2_ / 1440, (burnWorkM2_ % 1440) / 60, burnWorkMin_ % 60);
     }
     if (Helpers::hasValue(heatWorkMin_)) {
         shell.printfln(F("  Total heat operating time: %d days %d hours %d minutes"), heatWorkMin_ / 1440, (heatWorkMin_ % 1440) / 60, heatWorkMin_ % 60);
@@ -935,6 +943,7 @@ void Boiler::process_UBAMonitorSlow(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(pumpMod_, 9);
     changed_ |= telegram->read_value(burnStarts_, 10, 3);  // force to 3 bytes
     changed_ |= telegram->read_value(burnWorkMin_, 13, 3); // force to 3 bytes
+    changed_ |= telegram->read_value(burnWorkM2_, 16, 3);  // force to 3 bytes
     changed_ |= telegram->read_value(heatWorkMin_, 19, 3); // force to 3 bytes
 }
 
