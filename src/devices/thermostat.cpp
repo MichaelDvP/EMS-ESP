@@ -238,6 +238,7 @@ void Thermostat::device_info_web(JsonArray & root) {
                 print_value_json(root, F("maxflowtemp"), FPSTR(prefix_str), F_(maxflowtemp), F_(degrees), json);
                 print_value_json(root, F("summertemp"), FPSTR(prefix_str), F_(summertemp), F_(degrees), json);
                 print_value_json(root, F("summermode"), FPSTR(prefix_str), F_(summermode), F_(degrees), json);
+                print_value_json(root, F("reducemode"), FPSTR(prefix_str), F_(reducemode), nullptr, json);
                 print_value_json(root, F("mode"), FPSTR(prefix_str), F_(mode), nullptr, json);
                 print_value_json(root, F("modetype"), FPSTR(prefix_str), F_(modetype), nullptr, json);
             }
@@ -326,6 +327,7 @@ void Thermostat::show_values(uuid::console::Shell & shell) {
                 print_value_json(shell, F("maxflowtemp"), F_(2spaces), F_(maxflowtemp), F_(degrees), json);
                 print_value_json(shell, F("summertemp"), F_(2spaces), F_(summertemp), F_(degrees), json);
                 print_value_json(shell, F("summermode"), F_(2spaces), F_(summermode), F_(degrees), json);
+                print_value_json(shell, F("reducemode"), F_(2spaces), F_(reducemode), nullptr, json);
                 print_value_json(shell, F("mode"), F_(2spaces), F_(mode), nullptr, json);
                 print_value_json(shell, F("modetype"), F_(2spaces), F_(modetype), nullptr, json);
             }
@@ -670,6 +672,12 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
             if (Helpers::hasValue(hc->summer_setmode)) {
                 char s[7];
                 dataThermostat["summermode"] = Helpers::render_enum(s, {F("summer"), F("auto"), F("winter")}, hc->summer_setmode);
+            }
+
+            // Reduce mode
+            if (Helpers::hasValue(hc->reducemode)) {
+                char s[10];
+                dataThermostat["reducemode"] = Helpers::render_enum(s, {F("off"), F("reduce"), F("room"), F("outside")}, hc->reducemode);
             }
 
             // mode - always force showing this when in HA so not to break HA's climate component
@@ -1043,6 +1051,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(roominfluence), this->device_type(), "roominfluence", F_(degrees), F_(icontemperature));
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(minflowtemp), this->device_type(), "minflowtemp", F_(degrees), F_(icontemperature));
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(maxflowtemp), this->device_type(), "maxflowtemp", F_(degrees), F_(icontemperature));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(reducemode), this->device_type(), "reducemode", nullptr, nullptr);
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype), this->device_type(), "modetype", nullptr, nullptr);
@@ -1541,6 +1550,7 @@ void Thermostat::process_RC35Set(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(hc->summertemp, 22);     // is * 1
     changed_ |= telegram->read_value(hc->nofrosttemp, 23);    // is * 1
     changed_ |= telegram->read_value(hc->flowtempoffset, 24); // is * 1, only in mixed circuits
+    changed_ |= telegram->read_value(hc->reducemode, 25);     // 0-off, 1-reduce, 2-roomhold, 3-outsidehold
     changed_ |= telegram->read_value(hc->minflowtemp, 16);
     if (hc->heatingtype == 3) {
         changed_ |= telegram->read_value(hc->designtemp, 36);  // is * 1
@@ -2142,6 +2152,23 @@ bool Thermostat::set_summermode(const char * value, const int8_t id) {
     return true;
 }
 
+// sets the thermostat summermode for RC300
+bool Thermostat::set_reducemode(const char * value, const int8_t id) {
+    uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;
+    std::shared_ptr<Thermostat::HeatingCircuit> hc     = heating_circuit(hc_num);
+    if (hc == nullptr) {
+        LOG_WARNING(F("Setting reduce mode: Heating Circuit %d not found or activated"), hc_num);
+        return false;
+    }
+    uint8_t set = 0xFF;
+    if (!Helpers::value2enum(value, set, {F("off"), F("reduce"), F("room"), F("outside")})) {
+        LOG_WARNING(F("Setting reduce mode: Invalid mode"));
+        return false;
+    }
+    LOG_INFO(F("Setting reduce mode to %s for heating circuit %d"), value, hc->hc_num());
+    write_command(set_typeids[hc->hc_num() - 1], 25, set, set_typeids[hc->hc_num() - 1]);
+    return true;
+}
 
 // sets the thermostat temp, where mode is a string
 bool Thermostat::set_temperature(const float temperature, const std::string & mode, const uint8_t hc_num) {
@@ -2597,6 +2624,7 @@ void Thermostat::add_commands() {
         register_mqtt_cmd(F("flowtempoffset"), [&](const char * value, const int8_t id) { return set_flowtempoffset(value, id); });
         register_mqtt_cmd(F("minflowtemp"), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
         register_mqtt_cmd(F("maxflowtemp"), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
+        register_mqtt_cmd(F("reducemode"), [&](const char * value, const int8_t id) { return set_reducemode(value, id); });
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
         register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });

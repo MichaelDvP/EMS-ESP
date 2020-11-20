@@ -269,6 +269,7 @@ MAKE_PSTR(roominfluence, "Room influence")
 MAKE_PSTR(flowtempoffset, "Flow temperature offset")
 MAKE_PSTR(minflowtemp, "Min. flow temperature")
 MAKE_PSTR(maxflowtemp, "Max. flow temperature")
+MAKE_PSTR(reducemode, "Reducemode")
 MAKE_PSTR(mode, "Mode")
 MAKE_PSTR(modetype, "Mode type")
 
