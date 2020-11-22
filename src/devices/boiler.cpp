@@ -963,7 +963,7 @@ void Boiler::process_UBAMonitorSlowPlus2(std::shared_ptr<const Telegram> telegra
 
 /*
  * UBAMonitorSlowPlus - type 0xE5 - central heating monitor EMS+
- * Boiler(0x08) -> Me(0x0B), UBAMonitorSlowPlus(0xE5), 
+ * Boiler(0x08) -> Me(0x0B), UBAMonitorSlowPlus(0xE5),
  * data: 01 00 20 00 00 78 00 00 00 00 00 1E EB 00 9D 3E 00 00 00 00 6B 5E 00 06 4C 64 00 00 00 00 8A A3
  */
 void Boiler::process_UBAMonitorSlowPlus(std::shared_ptr<const Telegram> telegram) {
@@ -976,7 +976,7 @@ void Boiler::process_UBAMonitorSlowPlus(std::shared_ptr<const Telegram> telegram
     changed_ |= telegram->read_value(burnWorkMin_, 13, 3); // force to 3 bytes
     changed_ |= telegram->read_value(heatWorkMin_, 19, 3); // force to 3 bytes
     changed_ |= telegram->read_value(pumpMod_, 25);
-    // temperature measurements at 4, and  6, see #620
+    // temperature measurements at 4, see #620
 }
 
 /*
