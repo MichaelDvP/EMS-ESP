@@ -928,7 +928,7 @@ void Boiler::process_UBAMonitorFastPlus(std::shared_ptr<const Telegram> telegram
     // at this point do a quick check to see if the hot water or heating is active
     uint8_t state = 0;
     telegram->read_value(state, 11);
-    boilerState_ = state & 0x01 ? 0x80 : 0;
+    boilerState_ = state & 0x01 ? 0x08 : 0;
     boilerState_ |= state & 0x02 ? 0x01 : 0;
     boilerState_ |= state & 0x04 ? 0x02 : 0;
 
@@ -1060,6 +1060,8 @@ void Boiler::process_UBAMaintenanceStatus(std::shared_ptr<const Telegram> telegr
     // first byte: Maintenance due (0 = no, 3 = yes, due to operating hours, 8 = yes, due to date)
 }
 
+#pragma GCC diagnostic pop
+
 // 0x10, 0x11
 void Boiler::process_UBAErrorMessage(std::shared_ptr<const Telegram> telegram) {
     // data: displaycode(2), errornumber(2), year, month, hour, day, minute, duration(2), src-addr
@@ -1083,8 +1085,6 @@ void Boiler::process_UBAErrorMessage(std::shared_ptr<const Telegram> telegram) {
         }
     }
 }
-
-#pragma GCC diagnostic pop
 
 // 0x15
 void Boiler::process_UBAMaintenanceData(std::shared_ptr<const Telegram> telegram) {
