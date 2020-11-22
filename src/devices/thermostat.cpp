@@ -2166,7 +2166,7 @@ bool Thermostat::set_summermode(const char * value, const int8_t id) {
     return true;
 }
 
-// sets the thermostat summermode for RC300
+// sets the thermostat reducemode for RC35
 bool Thermostat::set_reducemode(const char * value, const int8_t id) {
     uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;
     std::shared_ptr<Thermostat::HeatingCircuit> hc     = heating_circuit(hc_num);
