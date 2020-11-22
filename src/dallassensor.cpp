@@ -145,14 +145,13 @@ void DallasSensor::loop() {
                         if (!sensor.read) {
                             sensor.temperature_c = EMS_VALUE_SHORT_NOTSET;
                             changed_             = true;
-                            // LOG_ERROR(F("Readerror dallas sensor %s"), sensor.to_string().c_str());
                         }
                         sensor.read = false;
                     }
                     scancnt_ = 0;
                 } else if (scancnt_ == -2) { // startup
                     firstscan_ = sensors_.size();
-                    // LOG_DEBUG(F("Found %zu sensor(s). Adding them."), sensors_.size()); // uncomment for debug
+                    LOG_DEBUG(F("First scan found %d dallassensor(s). Adding them."), firstscan_);
                 } else if ((scancnt_ <= 0) && (firstscan_ != sensors_.size())) { // check 2 times for no change of sensor #
                     scancnt_ = -3;
                     sensors_.clear(); // restart scaning and clear to get correct numbering
