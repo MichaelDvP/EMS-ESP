@@ -34,6 +34,7 @@ void WebSettings::read(WebSettings & settings, JsonObject & root) {
     root["ems_bus_id"]           = settings.ems_bus_id;
     root["syslog_enabled"]       = settings.syslog_enabled;
     root["syslog_level"]         = settings.syslog_level;
+    root["trace_raw"]            = settings.trace_raw;
     root["syslog_mark_interval"] = settings.syslog_mark_interval;
     root["syslog_host"]          = settings.syslog_host;
     root["master_thermostat"]    = settings.master_thermostat;
@@ -77,6 +78,8 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
     settings.syslog_level         = root["syslog_level"] | EMSESP_DEFAULT_SYSLOG_LEVEL;
     settings.syslog_mark_interval = root["syslog_mark_interval"] | EMSESP_DEFAULT_SYSLOG_MARK_INTERVAL;
     settings.syslog_host          = root["syslog_host"] | EMSESP_DEFAULT_SYSLOG_HOST;
+    settings.trace_raw            = root["trace_raw"] | false ;
+
     snprintf_P(&crc_after[0],
                crc_after.capacity() + 1,
                PSTR("%d%d%d%s"),

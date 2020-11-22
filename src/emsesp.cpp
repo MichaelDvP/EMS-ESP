@@ -65,6 +65,7 @@ bool     EMSESP::tap_water_active_         = false; // for when Boiler states we
 uint32_t EMSESP::last_fetch_               = 0;
 uint8_t  EMSESP::publish_all_idx_          = 0;
 uint8_t  EMSESP::unique_id_count_          = 0;
+bool     EMSESP::trace_raw_                = 0;
 
 // for a specific EMS device go and request data values
 // or if device_id is 0 it will fetch from all our known and active devices
@@ -602,17 +603,12 @@ bool EMSESP::process_telegram(std::shared_ptr<const Telegram> telegram) {
         if ((watch_id_ == WATCH_ID_NONE) || (telegram->type_id == watch_id_)
             || ((watch_id_ < 0x80) && ((telegram->src == watch_id_) || (telegram->dest == watch_id_)))) {
             LOG_NOTICE(pretty_telegram(telegram).c_str());
-#ifdef EMSESP_TRACERAW
-        }
-    }
-#else
-        } else {
+        } else if (!trace_raw_) {
             LOG_TRACE(pretty_telegram(telegram).c_str());
         }
-    } else {
+    } else if (!trace_raw_){
         LOG_TRACE(pretty_telegram(telegram).c_str());
     }
-#endif
 
     // only process broadcast telegrams or ones sent to us on request
     if ((telegram->dest != 0x00) && (telegram->dest != rxservice_.ems_bus_id())) {

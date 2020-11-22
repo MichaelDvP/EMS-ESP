@@ -229,9 +229,9 @@ void Mqtt::on_message(const char * topic, const char * payload, size_t len) {
     char message[len + 2];
     strlcpy(message, payload, len + 1);
 
-#ifdef EMSESP_DEBUG
+// #ifdef EMSESP_DEBUG
     LOG_DEBUG(F("[DEBUG] Received %s => %s (length %d)"), topic, message, len);
-#endif
+// #endif
 
     // see if we have this topic in our subscription list, then call its callback handler
     for (const auto & mf : mqtt_subfunctions_) {

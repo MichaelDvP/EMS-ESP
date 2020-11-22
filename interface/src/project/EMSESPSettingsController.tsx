@@ -245,6 +245,17 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 onChange={handleValueChange('syslog_mark_interval')}
                 margin="normal"
             />
+            <BlockFormControlLabel
+                control={
+                    <Checkbox
+                        checked={data.trace_raw}
+                        onChange={handleValueChange('trace_raw')}
+                        value="trace_raw"
+                    />
+                }
+                label="Trace in raw format"
+            />
+
             <br></br>
             <Typography variant="h6" color="primary" >
                 Analog Input

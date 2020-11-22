@@ -72,6 +72,7 @@ class WebSettings {
     int8_t   syslog_level; // uuid::log::Level
     uint32_t syslog_mark_interval;
     String   syslog_host;
+    bool     trace_raw;
     uint8_t  rx_gpio;
     uint8_t  tx_gpio;
     uint8_t  dallas_gpio;

@@ -17,6 +17,7 @@ export interface EMSESPSettings {
   api_enabled: boolean;
   bool_format: number;
   analog_enabled: boolean;
+  trace_raw:boolean;
 }
 
 export enum busConnectionStatus {
