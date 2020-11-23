@@ -84,7 +84,7 @@ void EMSESP::fetch_device_values(const uint8_t device_id) {
 
 // clears list of recognized devices
 void EMSESP::clear_all_devices() {
-    emsdevices.clear(); // remove entries, but doesn't delete actual devices
+    // emsdevices.clear(); // remove entries, but doesn't delete actual devices
 }
 
 // return number of devices of a known type
