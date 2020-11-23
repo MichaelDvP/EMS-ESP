@@ -267,22 +267,20 @@ void Mqtt::on_message(const char * topic, const char * payload, size_t len) {
             bool        cmd_known = false;
             JsonVariant data      = doc["data"];
 
-            JsonObject json; // empty object
-
             if (data.is<char *>()) {
-                cmd_known = Command::call(mf.device_type_, command, data.as<char *>(), n, json);
+                cmd_known = Command::call(mf.device_type_, command, data.as<char *>(), n);
             } else if (data.is<int>()) {
                 char data_str[10];
-                cmd_known = Command::call(mf.device_type_, command, Helpers::itoa(data_str, (int16_t)data.as<int>()), n, json);
+                cmd_known = Command::call(mf.device_type_, command, Helpers::itoa(data_str, (int16_t)data.as<int>()), n);
             } else if (data.is<float>()) {
                 char data_str[10];
-                cmd_known = Command::call(mf.device_type_, command, Helpers::render_value(data_str, (float)data.as<float>(), 2), n, json);
+                cmd_known = Command::call(mf.device_type_, command, Helpers::render_value(data_str, (float)data.as<float>(), 2), n);
             } else if (data.isNull()) {
-                cmd_known = Command::call(mf.device_type_, command, "", n, json);
+                cmd_known = Command::call(mf.device_type_, command, "", n);
             }
 
             if (!cmd_known) {
-                LOG_ERROR(F("MQTT: no matching cmd (%s), invalid data or command failed"), command);
+                LOG_ERROR(F("No matching cmd (%s), invalid data or command failed"), command);
             }
 
             return;
@@ -474,7 +472,7 @@ void Mqtt::on_connect() {
     // first time to connect
     if (connectcount_ == 1) {
         // send info topic appended with the version information as JSON
-        StaticJsonDocument<90> doc;
+        StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
         doc["event"]   = "start";
         doc["version"] = EMSESP_APP_VERSION;
 #ifndef EMSESP_STANDALONE
@@ -820,7 +818,7 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
         LOG_ERROR(F("Failed to publish topic %s"), topic);
     } else {
 #if defined(EMSESP_STANDALONE)
-        LOG_DEBUG(F("Publishing topic=%s, payload=%s"), topic, payload_text);
+        LOG_DEBUG(F("Publishing topic=%s, payload=%s"), topic, payload_text.c_str());
 #else
         LOG_DEBUG(F("Publishing topic %s"), topic);
 #endif
