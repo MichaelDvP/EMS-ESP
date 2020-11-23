@@ -41,6 +41,7 @@ std::vector<Mqtt::MQTTSubFunction> Mqtt::mqtt_subfunctions_;
 
 uint16_t                           Mqtt::mqtt_publish_fails_ = 0;
 bool                               Mqtt::connecting_         = false;
+bool                               Mqtt::initialized_        = false;
 uint8_t                            Mqtt::connectcount_       = 0;
 uint16_t                           Mqtt::mqtt_message_id_    = 0;
 std::list<Mqtt::QueuedMqttMessage> Mqtt::mqtt_messages_;
@@ -229,9 +230,7 @@ void Mqtt::on_message(const char * topic, const char * payload, size_t len) {
     char message[len + 2];
     strlcpy(message, payload, len + 1);
 
-// #ifdef EMSESP_DEBUG
-    LOG_DEBUG(F("[DEBUG] Received %s => %s (length %d)"), topic, message, len);
-// #endif
+    LOG_DEBUG(F("Received %s => %s (length %d)"), topic, message, len);
 
     // see if we have this topic in our subscription list, then call its callback handler
     for (const auto & mf : mqtt_subfunctions_) {
@@ -358,10 +357,10 @@ void Mqtt::start() {
     });
 
     // if MQTT disabled, quit
-    if (!mqtt_enabled_) {
+    if (!mqtt_enabled_ || initialized_) {
         return;
     }
-
+    initialized_ = true;
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {

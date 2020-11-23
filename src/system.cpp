@@ -152,7 +152,6 @@ void System::syslog_init() {
         syslog_level_         = settings.syslog_level;
         syslog_mark_interval_ = settings.syslog_mark_interval;
         syslog_host_          = settings.syslog_host;
-        EMSESP::trace_raw(settings.trace_raw);
     });
 
 #ifndef EMSESP_STANDALONE
