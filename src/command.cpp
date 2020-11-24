@@ -43,6 +43,7 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
 
     auto cf = find_command(device_type, cmd);
     if ((cf == nullptr) || (cf->cmdfunction_json_)) {
+        LOG_WARNING(F("Command %s not found or wrong format"), cmd);
         return false; // command not found, or requires a json
     }
 
@@ -65,7 +66,8 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
 #endif
 
     auto cf = find_command(device_type, cmd);
-    if ((cf == nullptr) || (!cf->cmdfunction_json_)) {
+    if ((cf == nullptr) ) {
+        LOG_WARNING(F("Command %s not found"), cmd);
         return false; // command not found or not json
     }
 
@@ -74,14 +76,18 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
         LOG_WARNING(F("Ignore call for command %s in %s because no json"), cmd, EMSdevice::device_type_2_device_name(device_type).c_str());
         return false;
     }
-
-    return ((cf->cmdfunction_json_)(value, id, json));
+    if (!cf->cmdfunction_json_) {
+        return ((cf->cmdfunction_)(value, id));
+    } else {
+        return ((cf->cmdfunction_json_)(value, id, json));
+    }
 }
 
 // add a command to the list, which does not return json
 void Command::add(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb) {
     // if the command already exists for that device type don't add it
     if (find_command(device_type, uuid::read_flash_string(cmd).c_str()) != nullptr) {
+        LOG_WARNING(F("Command %s not found"), cmd);
         return;
     }
 
