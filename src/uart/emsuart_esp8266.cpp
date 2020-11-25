@@ -54,7 +54,7 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         while ((USS(EMSUART_UART) >> USRXC) & 0x0FF) { // read fifo into buffer
             uint8_t rx = USF(EMSUART_UART);
             if (length < EMS_MAXBUFFERSIZE) {
-                if (length || rx) { // skip a leading null byte
+                if (length || rx) { // skip a leading zero
                     uart_buffer[length++] = rx;
                 }
             } else {
@@ -63,7 +63,7 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         }
 
         if (!drop_next_rx) {
-            if (uart_buffer[length -1]) { // add one byte if brk not in buffer
+            if (uart_buffer[length - 1]) { // check if last byte is break
                 length++;
             }
             pEMSRxBuf->length = length;
