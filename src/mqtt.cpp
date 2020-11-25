@@ -470,23 +470,31 @@ void Mqtt::on_connect() {
     connectcount_++;
 
     // first time to connect
+    // if (connectcount_ == 1) {
+    // send info topic appended with the version information as JSON
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
     if (connectcount_ == 1) {
-        // send info topic appended with the version information as JSON
-        StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
         doc["event"]   = "start";
-        doc["version"] = EMSESP_APP_VERSION;
-#ifndef EMSESP_STANDALONE
-        doc["ip"] = WiFi.localIP().toString();
-#endif
-        publish(F_(info), doc.as<JsonObject>());
-
-        // create the EMS-ESP device in HA, which is MQTT retained
-        if (mqtt_format() == Format::HA) {
-            ha_status();
-        }
-
-        publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
     } else {
+        char s[14];
+        snprintf_P(s, 14, PSTR("reconnect #%d"), connectcount_ - 1);
+        doc["event"]  = s;
+        doc["reconnect"] = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    }
+    doc["version"] = EMSESP_APP_VERSION;
+#ifndef EMSESP_STANDALONE
+    doc["ip"] = WiFi.localIP().toString();
+#endif
+    publish(F_(info), doc.as<JsonObject>());
+
+    // create the EMS-ESP device in HA, which is MQTT retained
+    if (mqtt_format() == Format::HA) {
+        ha_status();
+    }
+
+     publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
+//    } else {
+    if (connectcount_ > 1) {
         // we doing a re-connect from a TCP break
         // only re-subscribe again to all MQTT topics
         resubscribe();
