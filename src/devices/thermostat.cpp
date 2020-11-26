@@ -681,7 +681,7 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
             // Reduce mode
             if (Helpers::hasValue(hc->reducemode)) {
                 char s[10];
-                dataThermostat["reducemode"] = Helpers::render_enum(s, {F("off"), F("reduce"), F("room"), F("outside")}, hc->reducemode);
+                dataThermostat["reducemode"] = Helpers::render_enum(s, {F("nofrost"), F("reduce"), F("room"), F("outside")}, hc->reducemode);
             }
 
             // mode - always force showing this when in HA so not to break HA's climate component
@@ -2151,7 +2151,7 @@ bool Thermostat::set_reducemode(const char * value, const int8_t id) {
         return false;
     }
     uint8_t set = 0xFF;
-    if (!Helpers::value2enum(value, set, {F("off"), F("reduce"), F("room"), F("outside")})) {
+    if (!Helpers::value2enum(value, set, {F("nofrost"), F("reduce"), F("room"), F("outside")})) {
         LOG_WARNING(F("Setting reduce mode: Invalid mode"));
         return false;
     }
