@@ -51,8 +51,8 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0xE6, F("UBAParametersPlus"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParametersPlus(t); });
     register_telegram_type(0xE9, F("UBADHWStatus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBADHWStatus(t); });
     register_telegram_type(0xEA, F("UBAParameterWWPlus"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWWPlus(t); });
-    register_telegram_type(0x494, F("UBAEnergySupplied"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAEnergySupplied(t); });
-    register_telegram_type(0x495, F("UBAInformation"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAInformation(t); });
+    register_telegram_type(0x494, F("UBAEnergySupplied"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAEnergySupplied(t); });
+    register_telegram_type(0x495, F("UBAInformation"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAInformation(t); });
 
     // MQTT commands for boiler topic
     register_mqtt_cmd(F("comfort"), [&](const char * value, const int8_t id) { return set_warmwater_mode(value, id); });
@@ -1199,6 +1199,12 @@ void Boiler::process_UBADHWStatus(std::shared_ptr<const Telegram> telegram) {
 
 /*
  * UBAInformation - type 0x495
+ * all values 32 bit
+ * 08 0B FF 00 03 95 01 01 AB 83 00 27 78 EB 00 84 FA 39 FF FF FF 00 00 53 7D 8D 00 00 0F 04 1C
+ * 08 00 FF 00 03 95 01 01 AB 83 00 27 78 EB 00 84 FA 39 FF FF FF 00 00 53 7D 8D 00 00 0F 04 63
+ * 08 00 FF 18 03 95 00 00 05 84 00 00 07 22 FF FF FF FF 00 00 02 5C 00 00 03 C0 00 00 01 98 64
+ * 08 00 FF 30 03 95 00 00 00 D4 FF FF FF FF 00 00 1C 70 FF FF FF FF 00 00 20 30 00 00 0E 06 FB
+ * 08 00 FF 48 03 95 00 00 06 C0 00 00 07 66 FF FF FF FF 2E
  */
 void Boiler::process_UBAInformation(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(upTimeControl_, 0);
@@ -1224,6 +1230,10 @@ void Boiler::process_UBAInformation(std::shared_ptr<const Telegram> telegram) {
 
 /*
  * UBAEnergy - type 0x494
+ * Energy-values all 32bit
+ * 08 00 FF 00 03 94 03 31 21 59 00 00 7C 70 00 00 15 B8 00 00 40 E3 00 00 27 23 FF FF FF FF EA
+ * 08 00 FF 18 03 94 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 7E
+ * 08 00 FF 31 03 94 00 00 00 00 00 00 00 38
  */
 void Boiler::process_UBAEnergySupplied(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(nrgSuppTotal_, 4);
