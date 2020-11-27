@@ -3,7 +3,7 @@
 ### Added
 - function keys in editor: cursor, del, home, end. F1=help, F2=show, and other shortcuts
 - SM100 pump working time and energy units
-- heating curve parameters for RC300
+- heating curve parameters and commands for RC300
 - `wwonetime` for RC300 thermostat
 - expose test framework via api (#611)
 - SysLog has enable/disable flag in WebUI
@@ -30,6 +30,7 @@
 - renamed pio targets (esp8266-ci and esp32-ci for GitHub CI)
 - telnet default settings `log info`, timeout 60 min
 - `log debug` not showing telegram names, use `log trace` or `watch on` to show the telegrams
+- optimized how console and web display device data ([#632](https://github.com/proddy/EMS-ESP/issues/632))
 
 ### Removed
 - old shell and python build scripts

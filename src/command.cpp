@@ -66,7 +66,7 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
 #endif
 
     auto cf = find_command(device_type, cmd);
-    if ((cf == nullptr) ) {
+    if (cf == nullptr) {
         LOG_WARNING(F("Command %s not found"), cmd);
         return false; // command not found or not json
     }
