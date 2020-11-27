@@ -48,9 +48,9 @@ class Boiler : public EMSdevice {
 
     void register_mqtt_ha_config();
     void register_mqtt_ha_config_ww();
-    void check_active();
-    bool export_values_main(JsonObject & doc);
-    bool export_values_ww(JsonObject & doc);
+    void check_active(const bool force = false);
+    bool export_values_main(JsonObject & doc, const bool textformat = false);
+    bool export_values_ww(JsonObject & doc, const bool textformat = false);
 
     bool changed_           = false;
     bool mqtt_ha_config_    = false; // HA MQTT Discovery

@@ -495,6 +495,8 @@ void Mqtt::on_connect() {
         // we doing a re-connect from a TCP break
         // only re-subscribe again to all MQTT topics
         resubscribe();
+        // republish all values and HA-config
+        EMSESP::publish_all(true);
     }
 
     LOG_INFO(F("MQTT connected"));
