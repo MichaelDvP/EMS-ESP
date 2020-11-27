@@ -378,6 +378,7 @@ void Mqtt::start() {
         if (reason == AsyncMqttClientDisconnectReason::MQTT_NOT_AUTHORIZED) {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
+        mqttClient_->connect();
     });
 
     // create will_topic with the hostname prefixed. It has to be static because asyncmqttclient destroys the reference
