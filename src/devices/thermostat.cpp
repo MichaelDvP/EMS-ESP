@@ -1214,6 +1214,7 @@ void Thermostat::process_RC20Set(std::shared_ptr<const Telegram> telegram) {
 }
 
 // type 0xAE - data from the RC20 thermostat (0x17)
+// 17 00 AE 00 80 12 2E 00 D0 00 00 64 (#data=8)
 void Thermostat::process_RC20Monitor_2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
     if (hc == nullptr) {
@@ -1226,6 +1227,7 @@ void Thermostat::process_RC20Monitor_2(std::shared_ptr<const Telegram> telegram)
 
 // 0xAD - for reading the mode from the RC20/ES72 thermostat (0x17)
 // see https://github.com/proddy/EMS-ESP/issues/334#issuecomment-611698259
+// offset: 01-nighttemp, 02-daytemp, 03-mode, 0B-program(1-9), 0D-setpoint_roomtemp(temporary)
 void Thermostat::process_RC20Set_2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
     if (hc == nullptr) {
@@ -2160,6 +2162,33 @@ bool Thermostat::set_reducemode(const char * value, const int8_t id) {
     return true;
 }
 
+// sets the thermostat program for RC35 and RC20
+bool Thermostat::set_program(const char * value, const int8_t id) {
+    uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;
+    std::shared_ptr<Thermostat::HeatingCircuit> hc     = heating_circuit(hc_num);
+    if (hc == nullptr) {
+        LOG_WARNING(F("Setting program: Heating Circuit %d not found or activated"), hc_num);
+        return false;
+    }
+    int set = 0xFF;
+    if (!Helpers::value2number(value, set)) {
+        LOG_WARNING(F("Setting program: Invalid number"));
+        return false;
+    }
+    if (set < 0 || set > 11) {
+        LOG_WARNING(F("Setting program: Invalid number"));
+        return false;
+    }
+    LOG_INFO(F("Setting program to %d for heating circuit %d"), set, hc->hc_num());
+    uint8_t  model = this->model();
+    if (model == EMS_DEVICE_FLAG_RC20_2 && set > 0 && set < 10) {
+        write_command(set_typeids[hc->hc_num() - 1], 13, set, set_typeids[hc->hc_num() - 1]);
+    } else if ((model == EMS_DEVICE_FLAG_RC35) || (model == EMS_DEVICE_FLAG_RC30_1)) {
+        write_command(timer_typeids[hc->hc_num() - 1], 84, set, timer_typeids[hc->hc_num() - 1]);
+    }
+    return true;
+}
+
 // sets the thermostat temp, where mode is a string
 bool Thermostat::set_temperature(const float temperature, const std::string & mode, const uint8_t hc_num) {
     if (mode_tostring(HeatingCircuit::Mode::MANUAL) == mode) {
@@ -2587,6 +2616,7 @@ void Thermostat::add_commands() {
     case EMS_DEVICE_FLAG_RC20_2:
         register_mqtt_cmd(F("nighttemp"), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
         register_mqtt_cmd(F("daytemp"), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
+        register_mqtt_cmd(F("program"), [&](const char * value, const int8_t id) { return set_program(value, id); });
         break;
     case EMS_DEVICE_FLAG_RC30_1: // only RC30_1
         register_mqtt_cmd(F("clockoffset"), [&](const char * value, const int8_t id) { return set_clockoffset(value, id); });
@@ -2615,6 +2645,7 @@ void Thermostat::add_commands() {
         register_mqtt_cmd(F("minflowtemp"), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
         register_mqtt_cmd(F("maxflowtemp"), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
         register_mqtt_cmd(F("reducemode"), [&](const char * value, const int8_t id) { return set_reducemode(value, id); });
+        register_mqtt_cmd(F("program"), [&](const char * value, const int8_t id) { return set_program(value, id); });
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
         register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });

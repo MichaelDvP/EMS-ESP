@@ -340,6 +340,7 @@ class Thermostat : public EMSdevice {
     bool set_maxflowtemp(const char * value, const int8_t id);
     bool set_roomtemp(const char * value, const int8_t id);
     bool set_reducemode(const char * value, const int8_t id);
+    bool set_program(const char * value, const int8_t id);
 
     // set functions - these don't use the id/hc, the parameters are ignored
     bool set_wwmode(const char * value, const int8_t id);
