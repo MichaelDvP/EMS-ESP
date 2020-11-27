@@ -65,7 +65,7 @@ bool     EMSESP::tap_water_active_         = false; // for when Boiler states we
 uint32_t EMSESP::last_fetch_               = 0;
 uint8_t  EMSESP::publish_all_idx_          = 0;
 uint8_t  EMSESP::unique_id_count_          = 0;
-bool     EMSESP::trace_raw_                = 0;
+bool     EMSESP::trace_raw_                = false;
 
 // for a specific EMS device go and request data values
 // or if device_id is 0 it will fetch from all our known and active devices
