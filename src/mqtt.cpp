@@ -476,7 +476,7 @@ void Mqtt::on_connect() {
         doc["event"]   = "start";
     } else {
         char s[40];
-        snprintf_P(s, sizeof(s), PSTR("reconnect #%d, %s"), connectcount_ - 1, uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).c_str());
+        snprintf_P(s, sizeof(s), PSTR("reconnect #%d @%s"), connectcount_ - 1, uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).c_str());
         doc["event"]  = s;
     }
     doc["version"] = EMSESP_APP_VERSION;
