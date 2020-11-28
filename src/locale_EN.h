@@ -219,6 +219,7 @@ MAKE_PSTR(nrgSuppTotal, "Energy supplied total")
 MAKE_PSTR(nrgSuppHeating, "Energy supplied heating")
 MAKE_PSTR(nrgSuppWw, "Energy supplied warm water")
 MAKE_PSTR(nrgSuppCooling, "Energy supplied cooling")
+
 // solar
 MAKE_PSTR(collectorTemp, "Collector temperature (TS1)")
 MAKE_PSTR(tankBottomTemp, "Bottom temperature (TS2)")
