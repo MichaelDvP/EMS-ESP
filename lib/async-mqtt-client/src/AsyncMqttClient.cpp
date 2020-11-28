@@ -32,7 +32,7 @@ AsyncMqttClient::AsyncMqttClient()
     , _onDisconnectUserCallback(nullptr)
     , _onSubscribeUserCallback(nullptr)
     , _onUnsubscribeUserCallback(nullptr)
-    , _onMessageUserCallbacks()
+    , _onMessageUserCallback(nullptr)
     , _onPublishUserCallback(nullptr)
     , _onPingUserCallback(nullptr)
     , _parsingInformation { .bufferState = AsyncMqttClientInternals::BufferState::NONE }
@@ -155,7 +155,7 @@ AsyncMqttClient & AsyncMqttClient::onUnsubscribe(AsyncMqttClientInternals::OnUns
 }
 
 AsyncMqttClient & AsyncMqttClient::onMessage(AsyncMqttClientInternals::OnMessageUserCallback callback) {
-    _onMessageUserCallbacks.push_back(callback);
+    _onMessageUserCallback = callback;
     return *this;
 }
 
@@ -606,7 +606,7 @@ void AsyncMqttClient::_onMessage(char * topic, char * payload, uint8_t qos, bool
         properties.dup    = dup;
         properties.retain = retain;
 
-        for (auto callback : _onMessageUserCallbacks) callback(topic, payload, properties, len, index, total);
+        _onMessageUserCallback(topic, payload, properties, len, index, total);
     }
 }
 

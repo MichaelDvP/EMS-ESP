@@ -74,6 +74,9 @@ void Mqtt::subscribe(const uint8_t device_type, const std::string & topic, mqtt_
     // add to MQTT queue as a subscribe operation
     auto message = queue_subscribe_message(topic);
 
+    if (message == nullptr) {
+        return;
+    }
     // register in our libary with the callback function.
     // We store both the original topic and the fully-qualified one
     mqtt_subfunctions_.emplace_back(device_type, std::move(topic), std::move(message->topic), std::move(cb));
@@ -362,6 +365,10 @@ void Mqtt::start() {
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
+        mqttClient_->connect();
+        if (!connecting_) {
+            return;
+        }
         connecting_ = false;
         if (reason == AsyncMqttClientDisconnectReason::TCP_DISCONNECTED) {
             LOG_INFO(F("MQTT disconnected: TCP"));
@@ -378,7 +385,6 @@ void Mqtt::start() {
         if (reason == AsyncMqttClientDisconnectReason::MQTT_NOT_AUTHORIZED) {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
-        mqttClient_->connect();
     });
 
     // create will_topic with the hostname prefixed. It has to be static because asyncmqttclient destroys the reference
@@ -535,6 +541,10 @@ void Mqtt::ha_status() {
 // returns a pointer to the message created
 std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, const std::string & topic, const std::string & payload, bool retain) {
     if (topic.empty()) {
+        return nullptr;
+    }
+    if (!connected()) {
+        mqtt_messages_.clear();
         return nullptr;
     }
 

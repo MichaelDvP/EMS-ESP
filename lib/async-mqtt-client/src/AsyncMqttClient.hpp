@@ -120,7 +120,7 @@ class AsyncMqttClient {
     AsyncMqttClientInternals::OnDisconnectUserCallback           _onDisconnectUserCallback;
     AsyncMqttClientInternals::OnSubscribeUserCallback            _onSubscribeUserCallback;
     AsyncMqttClientInternals::OnUnsubscribeUserCallback          _onUnsubscribeUserCallback;
-    std::vector<AsyncMqttClientInternals::OnMessageUserCallback> _onMessageUserCallbacks;
+    AsyncMqttClientInternals::OnMessageUserCallback              _onMessageUserCallback;
     AsyncMqttClientInternals::OnPublishUserCallback              _onPublishUserCallback;
     AsyncMqttClientInternals::OnPingUserCallback                 _onPingUserCallback;
 
