@@ -924,6 +924,10 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
     // check for poll
     if (length == 1) {
         EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
+        // first send after 60 sec
+        if (uuid::get_uptime() < 60000UL) {
+            return;
+        }
 
 #ifdef EMSESP_UART_DEBUG
         char s[4];

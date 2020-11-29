@@ -40,11 +40,12 @@ def bin_copy(source, target, env):
     shutil.copy(str(target[0]), bin_file)
 
     # create the gzip'd version
-    if os.path.isfile(gzip_file): os.remove(gzip_file)
-    with open(bin_file, "rb") as fp:
-         with gzip.open(gzip_file, "wb", compresslevel = 9) as f:
-             shutil.copyfileobj(fp, f)
+    # if os.path.isfile(gzip_file): os.remove(gzip_file)
+    # with open(bin_file, "rb") as fp:
+    #      with gzip.open(gzip_file, "wb", compresslevel = 9) as f:
+    #          shutil.copyfileobj(fp, f)
 
-    print("Built firmwares: "+ bin_file + ", " + gzip_file)
+    # print("Built firmwares: "+ bin_file + ", " + gzip_file)
+    print("Built firmware: "+ bin_file)
 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", [bin_copy])
