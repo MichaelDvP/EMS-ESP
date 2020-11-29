@@ -678,8 +678,8 @@ void EMSESP::device_info_web(const uint8_t unique_id, JsonObject & root) {
     for (const auto & emsdevice : emsdevices) {
         if (emsdevice) {
             if (emsdevice->unique_id() == unique_id) {
-                root["name"] = emsdevice->to_string_short(); // can't use c_str() because of scope
-                JsonArray data     = root.createNestedArray("data");
+                root["name"]   = emsdevice->to_string_short(); // can't use c_str() because of scope
+                JsonArray data = root.createNestedArray("data");
                 emsdevice->device_info_web(data);
                 return;
             }
@@ -925,9 +925,9 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
     if (length == 1) {
         EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
         // first send after 60 sec
-        if (uuid::get_uptime() < 60000UL) {
-            return;
-        }
+        // if (uuid::get_uptime_ms() < 60000ULL) {
+        //     return;
+        // }
 
 #ifdef EMSESP_UART_DEBUG
         char s[4];
