@@ -56,6 +56,6 @@ export interface EMSESPDevices {
 }
 
 export interface EMSESPDeviceData {
-  deviceName: string;
-  deviceData: string[];
+  name: string;
+  data: string[];
 }
