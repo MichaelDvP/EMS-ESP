@@ -817,7 +817,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     }
 
     if (Helpers::hasValue(maintenanceType_)) {
-        char s[7];
+        // char s[7];
         // json["maintenanceType"] = Helpers::render_enum(s, {F("off"), F("Time"), F("Date")}, maintenanceType_);
         if (maintenanceType_ == 1) {
             json["maintenanceTime"] = maintenanceTime_ * 100;

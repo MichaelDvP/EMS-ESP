@@ -560,8 +560,6 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
     // if the queue is full, make room but removing the last one
     if (mqtt_messages_.size() >= MAX_MQTT_MESSAGES) {
         mqtt_messages_.pop_front();
-    } else if (!connected()) {
-        mqtt_messages_.clear();
     }
     mqtt_messages_.emplace_back(mqtt_message_id_++, std::move(message));
 
@@ -570,7 +568,7 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
 
 // add MQTT message to queue, payload is a string
 std::shared_ptr<const MqttMessage> Mqtt::queue_publish_message(const std::string & topic, const std::string & payload, bool retain) {
-    if (!enabled()) {
+    if (!enabled() || !connected()) {
         return nullptr;
     };
     return queue_message(Operation::PUBLISH, topic, payload, retain);
