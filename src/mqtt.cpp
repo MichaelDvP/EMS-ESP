@@ -544,10 +544,6 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
     if (topic.empty()) {
         return nullptr;
     }
-    if (!connected()) {
-        mqtt_messages_.clear();
-        return nullptr;
-    }
 
     // take the topic and prefix the hostname, unless its for HA
     std::shared_ptr<MqttMessage> message;
@@ -564,6 +560,8 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
     // if the queue is full, make room but removing the last one
     if (mqtt_messages_.size() >= MAX_MQTT_MESSAGES) {
         mqtt_messages_.pop_front();
+    } else if (!connected()) {
+        mqtt_messages_.clear();
     }
     mqtt_messages_.emplace_back(mqtt_message_id_++, std::move(message));
 
@@ -649,7 +647,7 @@ void Mqtt::publish_ha(const std::string & topic, const JsonObject & payload) {
     serializeJson(payload, payload_text); // convert json to string
 
 #if defined(EMSESP_STANDALONE)
-    LOG_DEBUG(F("Publishing HA topic=%s, payload=%s"), topic, payload_text.c_str());
+    LOG_DEBUG(F("Publishing HA topic=%s, payload=%s"), topic.c_str(), payload_text.c_str());
 #else
     LOG_DEBUG(F("Publishing HA topic %s"), topic.c_str());
 #endif

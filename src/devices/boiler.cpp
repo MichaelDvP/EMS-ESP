@@ -705,9 +705,9 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(upTimeControl_)) {
         if (textformat) {
             char slong[40];
-            json["upTimeControl"] = Helpers::render_value(slong, upTimeControl_, EMS_VALUE_TIME);
+            json["upTimeControl"] = Helpers::render_value(slong, upTimeControl_ / 60, EMS_VALUE_TIME);
         } else {
-            json["upTimeControl"] = upTimeControl_;
+            json["upTimeControl"] = upTimeControl_ / 60;
         }
     }
 
@@ -715,9 +715,9 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(upTimeCompHeating_)) {
         if (textformat) {
             char slong[40];
-            json["upTimeCompHeating"] = Helpers::render_value(slong, upTimeCompHeating_, EMS_VALUE_TIME);
+            json["upTimeCompHeating"] = Helpers::render_value(slong, upTimeCompHeating_ / 60, EMS_VALUE_TIME);
         } else {
-            json["upTimeCompHeating"] = upTimeCompHeating_;
+            json["upTimeCompHeating"] = upTimeCompHeating_ / 60;
         }
     }
 
@@ -725,9 +725,9 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(upTimeCompCooling_)) {
         if (textformat) {
             char slong[40];
-            json["upTimeCompCooling"] = Helpers::render_value(slong, upTimeCompCooling_, EMS_VALUE_TIME);
+            json["upTimeCompCooling"] = Helpers::render_value(slong, upTimeCompCooling_ / 60, EMS_VALUE_TIME);
         } else {
-            json["upTimeCompCooling"] = upTimeCompCooling_;
+            json["upTimeCompCooling"] = upTimeCompCooling_ / 60;
         }
     }
 
@@ -735,9 +735,9 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(upTimeCompWw_)) {
         if (textformat) {
             char slong[40];
-            json["upTimeCompWw"] = Helpers::render_value(slong, upTimeCompWw_, EMS_VALUE_TIME);
+            json["upTimeCompWw"] = Helpers::render_value(slong, upTimeCompWw_ / 60, EMS_VALUE_TIME);
         } else {
-            json["upTimeCompWw"] = upTimeCompWw_;
+            json["upTimeCompWw"] = upTimeCompWw_ / 60;
         }
     }
 
@@ -818,7 +818,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
 
     if (Helpers::hasValue(maintenanceType_)) {
         char s[7];
-        json["maintenanceType"] = Helpers::render_enum(s, {F("off"), F("Time"), F("Date")}, maintenanceType_);
+        // json["maintenanceType"] = Helpers::render_enum(s, {F("off"), F("Time"), F("Date")}, maintenanceType_);
         if (maintenanceType_ == 1) {
             json["maintenanceTime"] = maintenanceTime_ * 100;
         } else if (maintenanceType_ == 2) {
@@ -1203,8 +1203,10 @@ void Boiler::process_UBAFlags(std::shared_ptr<const Telegram> telegram) {
 
 // 0x1C
 // not yet implemented
+// 08 00 1C 94 0B 0A 1D 31 08 00 80 00 00 00 -> message for 29.11.2020
+// 08 00 1C 94 0B 0A 1D 31 00 00 00 00 00 00 -> message reset
 void Boiler::process_UBAMaintenanceStatus(std::shared_ptr<const Telegram> telegram) {
-    // first byte: Maintenance due (0 = no, 3 = yes, due to operating hours, 8 = yes, due to date)
+    // 5. byte: Maintenance due (0 = no, 3 = yes, due to operating hours, 8 = yes, due to date)
 }
 
 #pragma GCC diagnostic pop
