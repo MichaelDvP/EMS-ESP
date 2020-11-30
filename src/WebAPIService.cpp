@@ -109,6 +109,7 @@ void WebAPIService::webAPIService(AsyncWebServerRequest * request) {
 
     // if we have returned data in JSON format, send this to the WEB
     if (json.size()) {
+        // doc.shrinkToFit();
         std::string buffer;
         serializeJsonPretty(doc, buffer);
         request->send(200, "text/plain", buffer.c_str());

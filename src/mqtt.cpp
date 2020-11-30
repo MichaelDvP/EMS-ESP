@@ -497,7 +497,6 @@ void Mqtt::on_connect() {
         ha_status();
     }
 
-    publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
     if (connectcount_ > 1) {
         // we doing a re-connect from a TCP break
         // only re-subscribe again to all MQTT topics
@@ -505,6 +504,8 @@ void Mqtt::on_connect() {
         // republish all values and HA-config
         EMSESP::publish_all(true);
     }
+
+    publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
 
     LOG_INFO(F("MQTT connected"));
     reset_publish_fails(); // reset fail count to 0

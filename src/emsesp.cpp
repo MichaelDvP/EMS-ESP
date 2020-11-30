@@ -265,7 +265,7 @@ void EMSESP::show_device_values(uuid::console::Shell & shell) {
         return;
     }
 
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_MAX_DYN);
 
     // do this in the order of factory classes to keep a consistent order when displaying
     for (const auto & device_class : EMSFactory::device_handlers()) {
