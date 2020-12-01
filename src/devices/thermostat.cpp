@@ -1194,7 +1194,7 @@ void Thermostat::process_RC20Set_2(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(hc->nighttemp, 1); // is * 2,
     changed_ |= telegram->read_value(hc->daytemp, 2);   // is * 2,
     changed_ |= telegram->read_value(hc->mode, 3);
-    changed_ |= telegram->read_value(hc->program, 11); // 1 .. 9 predefined programs 
+    changed_ |= telegram->read_value(hc->program, 11); // 1 .. 9 predefined programs
 }
 
 // 0xAF - for reading the roomtemperature from the RC20/ES72 thermostat (0x18, 0x19, ..)
@@ -1380,7 +1380,7 @@ void Thermostat::process_RC300Curve(std::shared_ptr<const Telegram> telegram) {
     if (hc == nullptr) {
         return;
     }
-    changed_ |= telegram->read_value(hc->controlmode, 0);
+    changed_ |= telegram->read_value(hc->controlmode, 0); // 1-outdoor, 2-simple, 3-MPC, 4-room, 5-power, 6-const
     changed_ |= telegram->read_value(hc->heatingtype, 1); // 1=radiator, 2=convector, 3=floor
     changed_ |= telegram->read_value(hc->nofrosttemp, 6);
     if (hc->heatingtype < 3) {
@@ -1754,7 +1754,7 @@ bool Thermostat::set_control(const char * value, const int8_t id) {
 
 // sets the thermostat ww working mode, where mode is a string, ems and ems+
 bool Thermostat::set_wwmode(const char * value, const int8_t id) {
-    uint8_t set   = 0xFF;
+    uint8_t set = 0xFF;
 
     if ((model() == EMS_DEVICE_FLAG_RC300) || (model() == EMS_DEVICE_FLAG_RC100)) {
         if (!Helpers::value2enum(value, set, {F("off"), F("low"), F("high"), F("auto"), F("own")})) {
@@ -1814,7 +1814,7 @@ bool Thermostat::set_wwonetime(const char * value, const int8_t id) {
 
 // sets the thermostat ww circulation working mode, where mode is a string
 bool Thermostat::set_wwcircmode(const char * value, const int8_t id) {
-    uint8_t set   = 0xFF;
+    uint8_t set = 0xFF;
 
     if ((model() == EMS_DEVICE_FLAG_RC300) || (model() == EMS_DEVICE_FLAG_RC100)) {
         if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto"), F("own")})) {
