@@ -167,10 +167,11 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
     for (uint8_t i = 0; i < monitor_typeids.size(); i++) {
         EMSESP::send_read_request(monitor_typeids[i], device_id);
     }
+
+    /* do not flood tx-queue now, these values are fetched later
     for (uint8_t i = 0; i < set_typeids.size(); i++) {
         EMSESP::send_read_request(set_typeids[i], device_id);
     }
-    /* do not flood tx-queue, these values are fetched later
     for (uint8_t i = 0; i < summer_typeids.size(); i++) {
         EMSESP::send_read_request(summer_typeids[i], device_id);
     }
@@ -185,8 +186,9 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
 }
 
 // prepare data for Web UI
-void Thermostat::device_info_web(JsonArray & root) {
+void Thermostat::device_info_web(JsonArray & root, uint8_t & no) {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    if (no == 0) {
     JsonObject                                     json_main = doc.to<JsonObject>();
     if (export_values_main(json_main)) {
         create_value_json(root, F("time"), nullptr, F_(time), nullptr, json_main);
@@ -209,7 +211,9 @@ void Thermostat::device_info_web(JsonArray & root) {
         create_value_json(root, F("wwextra1"), nullptr, F_(wwextra1), nullptr, json_main);
         create_value_json(root, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
     }
-    doc.clear();
+    no++;
+    } else if (no == 1) {
+    // doc.clear();
     JsonObject json_hc = doc.to<JsonObject>();
 
     if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
@@ -249,6 +253,8 @@ void Thermostat::device_info_web(JsonArray & root) {
                 create_value_json(root, F("modetype"), FPSTR(prefix_str), F_(modetype), nullptr, json);
             }
         }
+    }
+    no = 0;
     }
 }
 
@@ -1500,6 +1506,7 @@ void Thermostat::process_RC35Set(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(hc->flowtempoffset, 24); // is * 1, only in mixed circuits
     changed_ |= telegram->read_value(hc->reducemode, 25);     // 0-nofrost, 1-reduce, 2-roomhold, 3-outdoorhold
     changed_ |= telegram->read_value(hc->controlmode, 33);    // 0-outdoortemp, 1-roomtemp
+    // changed_ |= telegram->read_value(hc->noreducetemp, 38);    // outdoor temperature for no reduce
     changed_ |= telegram->read_value(hc->minflowtemp, 16);
     if (hc->heatingtype == 3) {
         changed_ |= telegram->read_value(hc->designtemp, 36);  // is * 1

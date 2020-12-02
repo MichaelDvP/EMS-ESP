@@ -379,6 +379,7 @@ void TxService::send_telegram(const QueuedTxTelegram & tx_telegram) {
     tx_state(telegram->operation); // tx now in a wait state
 }
 
+/*
 // send an array of bytes as a telegram
 // we need to calculate the CRC and append it before sending
 // this function is fire-and-forget. there are no checks or post-send validations
@@ -400,6 +401,7 @@ void TxService::send_telegram(const uint8_t * data, const uint8_t length) {
         increment_telegram_fail_count(); // another Tx fail
     }
 }
+*/
 
 // builds a Tx telegram and adds to queue
 // given some details like the destination, type, offset and message block

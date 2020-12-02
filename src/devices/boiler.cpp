@@ -211,10 +211,11 @@ void Boiler::register_mqtt_ha_config_ww() {
 }
 
 // send stuff to the Web UI
-void Boiler::device_info_web(JsonArray & root) {
+void Boiler::device_info_web(JsonArray & root, uint8_t & no) {
     // fetch the values into a JSON document
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
     JsonObject                                     json = doc.to<JsonObject>();
+    if (no == 0) {
     if (!export_values_main(json, true)) {
         return; // empty
     }
@@ -281,8 +282,9 @@ void Boiler::device_info_web(JsonArray & root) {
     create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
     create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
     create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
-
-    doc.clear();
+    no++;
+    } else if (no == 1) {
+    // doc.clear();
     if (!export_values_ww(json, true)) { // append ww values
         return;
     }
@@ -315,6 +317,8 @@ void Boiler::device_info_web(JsonArray & root) {
     create_value_json(root, F("wwBufferTemperature"), nullptr, F_(wwBufferTemperature), F_(degrees), json);
     create_value_json(root, F("wWStarts"), nullptr, F_(wWStarts), nullptr, json);
     create_value_json(root, F("wWWorkM"), nullptr, F_(wWWorkM), nullptr, json);
+    no = 0;
+}
 }
 
 bool Boiler::export_values(JsonObject & json) {
@@ -1287,7 +1291,9 @@ bool Boiler::set_flow_temp(const char * value, const int8_t id) {
     }
 
     LOG_INFO(F("Setting boiler flow temperature to %d C"), v);
+    // some boiler have it in 0x1A, some in 0x35, but both telegrams are sometimes writeonly
     write_command(EMS_TYPE_UBASetPoints, 0, v, EMS_TYPE_UBASetPoints);
+    // write_command(0x35, 3, v, 0x35);
 
     return true;
 }
@@ -1622,6 +1628,14 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {
+    std::string s(12, '\0');
+    if (Helpers::value2string(value, s)) {
+        if (s == "reset") {
+            LOG_INFO(F("Reset boiler maintenance message"));
+            write_command(0x05, 0x08, 0xFF, 0x1C);
+            return true;
+        }
+    }
     if (strlen(value) == 10) { // date
         uint8_t day   = (value[0] - '0') * 10 + (value[1] - '0');
         uint8_t month = (value[3] - '0') * 10 + (value[4] - '0');
