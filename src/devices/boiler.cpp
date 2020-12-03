@@ -72,7 +72,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F("boilhystoff"), [&](const char * value, const int8_t id) { return set_hyst_off(value, id); });
     register_mqtt_cmd(F("burnperiod"), [&](const char * value, const int8_t id) { return set_burn_period(value, id); });
     register_mqtt_cmd(F("pumpdelay"), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
-    register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
+    // register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
     register_mqtt_cmd(F("maintenance"), [&](const char * value, const int8_t id) { return set_maintenance(value, id); });
 
     EMSESP::send_read_request(0x10, device_id); // read last errorcode on start (only published on errors)
@@ -167,8 +167,8 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppCooling), device_type(), "nrgSuppCooling", F_(kwh), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceMessage), device_type(), "maintenanceMessage", nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance), device_type(), "maintenance", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceTime), device_type(), "maintenanceTime", F_(hours), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceDate), device_type(), "maintenanceDate", nullptr, nullptr);
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceTime), device_type(), "maintenanceTime", F_(hours), nullptr);
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceDate), device_type(), "maintenanceDate", nullptr, nullptr);
     mqtt_ha_config_ = true; // done
 }
 
@@ -279,9 +279,14 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & no) {
     create_value_json(root, F("nrgSuppWw"), nullptr, F_(nrgSuppWw), F_(kwh), json);
     create_value_json(root, F("nrgSuppCooling"), nullptr, F_(nrgSuppCooling), F_(kwh), json);
     create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
-    create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
-    create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
-    create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
+    if (maintenanceType_ == 1) {
+        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), F_(hours), json);
+    } else {
+        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
+    }
+    // create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
+    // create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
+    // create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
     no++;
     } else if (no == 1) {
     // doc.clear();
@@ -835,9 +840,9 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         if (maintenanceType_ == 0) {
             json["maintenance"] = FJSON("off");
         } else if (maintenanceType_ == 1) {
-            json["maintenanceTime"] = maintenanceTime_ * 100;
+            json["maintenance"] = maintenanceTime_ * 100;
         } else if (maintenanceType_ == 2) {
-            json["maintenanceDate"] = maintenanceDate_;
+            json["maintenance"] = maintenanceDate_;
         }
     }
 
@@ -1611,20 +1616,30 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
 
     return true;
 }
-// Reset command
-bool Boiler::set_reset(const char * value, const int8_t id) {
-    bool v = false;
-    if (!Helpers::value2bool(value, v)) {
-        return false;
-    }
-    if (v == false) {
-        return false;
-    }
-    LOG_INFO(F("Reset boiler maintenance message"));
-    write_command(0x05, 0x08, 0xFF, 0x1C);
 
-    return true;
+/*
+// Reset command
+// 0 & 1        Reset-Mode (Manuel, others)
+// 8            reset maintenance message Hxx
+// 12 & 13      Reset that Error-memory
+
+bool Boiler::set_reset(const char * value, const int8_t id) {
+    std::string s(12, '\0');
+    if (!Helpers::value2string(value, s)) {
+        return false;
+    }
+    if (s == "maintenance") {
+        LOG_INFO(F("Reset boiler maintenance message"));
+        write_command(0x05, 0x08, 0xFF, 0x1C);
+        return true;
+    } else if (s == "error") {
+        LOG_INFO(F("Reset boiler error message"));
+        write_command(0x05, 0x00, 0x5A); error reset
+        return true;
+    }
+    return false;
 }
+*/
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {

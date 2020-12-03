@@ -1523,7 +1523,7 @@ void Thermostat::process_RC35Timer(std::shared_ptr<const Telegram> telegram) {
     if (hc == nullptr) {
         return;
     }
-    changed_ |= telegram->read_value(hc->program, 84); // 0 .. 10, 0-userprogram 1, 10-userprogram 2 
+    changed_ |= telegram->read_value(hc->program, 84); // 0 .. 10, 0-userprogram 1, 10-userprogram 2
 }
 
 // process_RCTime - type 0x06 - date and time from a thermostat - 14 bytes long
