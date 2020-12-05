@@ -1628,8 +1628,8 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
 
 /*
 // Reset command
-// 0 & 1        Reset-Mode (Manuel, others)
-// 8            reset maintenance message Hxx
+// 0 & 1        Reset-Mode (Manual, others), 5A resets Lxx error?
+// 8            reset maintenance message Hxx, send FF
 // 12 & 13      Reset that Error-memory
 
 bool Boiler::set_reset(const char * value, const int8_t id) {
