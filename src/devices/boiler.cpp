@@ -165,7 +165,7 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppHeating), device_type(), "nrgSuppHeating", F_(kwh), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppWw), device_type(), "nrgSuppWw", F_(kwh), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppCooling), device_type(), "nrgSuppCooling", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceMessage), device_type(), "maintenanceMessage", nullptr, nullptr);
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceMessage), device_type(), "maintenanceMessage", nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance), device_type(), "maintenance", nullptr, nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceTime), device_type(), "maintenanceTime", F_(hours), nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceDate), device_type(), "maintenanceDate", nullptr, nullptr);
@@ -278,7 +278,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & no) {
     create_value_json(root, F("nrgSuppHeating"), nullptr, F_(nrgSuppHeating), F_(kwh), json);
     create_value_json(root, F("nrgSuppWw"), nullptr, F_(nrgSuppWw), F_(kwh), json);
     create_value_json(root, F("nrgSuppCooling"), nullptr, F_(nrgSuppCooling), F_(kwh), json);
-    create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
+    // create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
     if (maintenanceType_ == 1) {
         create_value_json(root, F("maintenance"), nullptr, F_(maintenance), F_(hours), json);
     } else {
@@ -701,9 +701,18 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         }
     }
 
-    // Service Code & Service Code Number
+    // Service Code & Service Code Number. Priority error - maintenance - workingcode
+    if ((serviceCode_[0] >= '1' && serviceCode_[0] <= '9') || (serviceCode_[0] >= 'A' && serviceCode_[0] <= 'Z')) {
+        json["serviceCode"] = serviceCode_;
+    } else if (Helpers::hasValue(maintenanceMessage_) && maintenanceMessage_ > 0) {
+        char s[5];
+        snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
+        json["serviceCode"] = s;
+    } else { // if (serviceCode_[0] != '\0') {
+        json["serviceCode"] = serviceCode_;
+    }
+
     if (Helpers::hasValue(serviceCodeNumber_)) {
-        json["serviceCode"]       = serviceCode_;
         json["serviceCodeNumber"] = serviceCodeNumber_;
     }
 
@@ -825,17 +834,17 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(nrgSuppCooling_)) {
         json["nrgSuppCooling"] = nrgSuppCooling_;
     }
-
+/*
     if (Helpers::hasValue(maintenanceMessage_)) {
         if (maintenanceMessage_ > 0) {
             char s[5];
             snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
             json["maintenanceMessage"] = s;
-        // } else {
-        //     json["maintenanceMessage"] = "";
+        } else {
+            json["maintenanceMessage"] = "";
         }
     }
-
+*/
     if (Helpers::hasValue(maintenanceType_)) {
         if (maintenanceType_ == 0) {
             json["maintenance"] = FJSON("off");
