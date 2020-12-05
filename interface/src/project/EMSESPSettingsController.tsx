@@ -104,6 +104,18 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 onChange={handleValueChange('tx_gpio')}
                 margin="normal"
             />
+            <TextValidator
+                validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:120']}
+                errorMessages={['Tx delay is required', "Must be a number", "Must be 0 or higher", "Max value is 120"]}
+                name="tx_delay"
+                label="Tx delayed start (seconds)"
+                fullWidth
+                variant="outlined"
+                value={data.tx_delay}
+                type="number"
+                onChange={handleValueChange('tx_delay')}
+                margin="normal"
+            />
             <br></br>
             <Typography variant="h6" color="primary" >
                 Dallas Sensor

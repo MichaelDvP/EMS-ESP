@@ -226,6 +226,7 @@ class EMSESP {
     static uint8_t  publish_all_idx_;
     static uint8_t  unique_id_count_;
     static bool     trace_raw_;
+    static uint64_t tx_delay_;
 };
 
 } // namespace emsesp

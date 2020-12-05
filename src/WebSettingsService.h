@@ -26,6 +26,7 @@
 #define EMSESP_SETTINGS_SERVICE_PATH "/rest/emsespSettings"
 
 #define EMSESP_DEFAULT_TX_MODE 1       // EMS1.0
+#define EMSESP_DEFAULT_TX_DELAY 0      // no delay
 #define EMSESP_DEFAULT_EMS_BUS_ID 0x0B // service key
 #define EMSESP_DEFAULT_SYSLOG_ENABLED false
 #define EMSESP_DEFAULT_SYSLOG_LEVEL 3 // ERR
@@ -64,6 +65,7 @@ namespace emsesp {
 class WebSettings {
   public:
     uint8_t  tx_mode;
+    uint8_t  tx_delay;
     uint8_t  ems_bus_id;
     uint8_t  master_thermostat;
     bool     shower_timer;

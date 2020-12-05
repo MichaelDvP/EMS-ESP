@@ -168,7 +168,8 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         EMSESP::send_read_request(monitor_typeids[i], device_id);
     }
 
-    /* do not flood tx-queue now, these values are fetched later
+    /* do not flood tx-queue now, these values are fetched later by toggle fetch
+
     for (uint8_t i = 0; i < set_typeids.size(); i++) {
         EMSESP::send_read_request(set_typeids[i], device_id);
     }
@@ -1241,6 +1242,7 @@ void Thermostat::process_JunkersSet(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(hc->nighttemp, 16);   // is * 2
     changed_ |= telegram->read_value(hc->nofrosttemp, 15); // is * 2
 }
+
 // type 0x0179, ff
 void Thermostat::process_JunkersSet2(std::shared_ptr<const Telegram> telegram) {
     std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
@@ -1581,7 +1583,8 @@ void Thermostat::process_RCError(std::shared_ptr<const Telegram> telegram) {
 
     snprintf_P(&errorCode_[0], errorCode_.capacity() + 1, PSTR("%s(%d)"), buf, errorNumber_);
 }
-// 0x12
+
+// 0x12 error log
 void Thermostat::process_RCErrorMessage(std::shared_ptr<const Telegram> telegram) {
     // data: displaycode(2), errornumber(2), year, month, hour, day, minute, duration(2), src-addr
     if (telegram->message_data[4] & 0x80) { // valid date
@@ -1660,6 +1663,7 @@ bool Thermostat::set_display(const char * value, const int8_t id) {
     return true;
 }
 
+// set roomtemp for HA-thermostat
 bool Thermostat::set_roomtemp(const char * value, const int8_t id) {
     float f = 0;
     if (!Helpers::value2float(value, f)) {
@@ -1682,8 +1686,7 @@ bool Thermostat::set_roomtemp(const char * value, const int8_t id) {
     return true;
 }
 
-
-
+// set remotetemp for RC20 remote simulation on RC35 master
 bool Thermostat::set_remotetemp(const char * value, const int8_t id) {
     float f = 0;
     if (!Helpers::value2float(value, f)) {
@@ -1817,7 +1820,6 @@ bool Thermostat::set_wwonetime(const char * value, const int8_t id) {
     write_command(0x02F5, 11, b ? 0xFF : 0x00, 0x031D);
     return true;
 }
-
 
 // sets the thermostat ww circulation working mode, where mode is a string
 bool Thermostat::set_wwcircmode(const char * value, const int8_t id) {
@@ -2162,6 +2164,7 @@ bool Thermostat::set_controlmode(const char * value, const int8_t id) {
     LOG_WARNING(F("Setting control mode: Invalid mode"));
     return false;
 }
+
 // sets the thermostat program for RC35 and RC20
 bool Thermostat::set_program(const char * value, const int8_t id) {
     uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;

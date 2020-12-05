@@ -66,6 +66,7 @@ uint32_t EMSESP::last_fetch_               = 0;
 uint8_t  EMSESP::publish_all_idx_          = 0;
 uint8_t  EMSESP::unique_id_count_          = 0;
 bool     EMSESP::trace_raw_                = false;
+uint64_t EMSESP::tx_delay_                 = 0;
 
 // for a specific EMS device go and request data values
 // or if device_id is 0 it will fetch from all our known and active devices
@@ -146,7 +147,8 @@ void EMSESP::watch_id(uint16_t watch_id) {
 void EMSESP::init_tx() {
     uint8_t tx_mode;
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        tx_mode = settings.tx_mode;
+        tx_mode   = settings.tx_mode;
+        tx_delay_ = settings.tx_delay * 1000;
 
 #ifndef EMSESP_FORCE_SERIAL
         EMSuart::stop();
@@ -926,15 +928,15 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
             return;
         }
     }
-    static uint64_t delayed_tx_start_ = 0;
     // check for poll
     if (length == 1) {
+        static uint64_t delayed_tx_start_ = 0;
         if (!rxservice_.bus_connected()) {
             delayed_tx_start_ = uuid::get_uptime_ms();
         }
         EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
-        // first send delay 15 sec after connect
-        if (uuid::get_uptime_ms() - delayed_tx_start_ < 15000ULL) {
+        // first send delayed after connect
+        if ((uuid::get_uptime_ms() - delayed_tx_start_) < tx_delay_) {
             return;
         }
 
