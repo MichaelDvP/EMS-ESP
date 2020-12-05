@@ -926,14 +926,17 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
             return;
         }
     }
-
+    static uint64_t delayed_tx_start_ = 0;
     // check for poll
     if (length == 1) {
+        if (!rxservice_.bus_connected()) {
+            delayed_tx_start_ = uuid::get_uptime_ms();
+        }
         EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
-        // first send after 60 sec
-        // if (uuid::get_uptime_ms() < 60000ULL) {
-        //     return;
-        // }
+        // first send delay 15 sec after connect
+        if (uuid::get_uptime_ms() - delayed_tx_start_ < 15000ULL) {
+            return;
+        }
 
 #ifdef EMSESP_UART_DEBUG
         char s[4];
