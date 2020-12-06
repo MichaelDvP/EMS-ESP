@@ -704,16 +704,15 @@ bool Thermostat::ha_config(bool force) {
     if (!ha_registered()) {
         register_mqtt_ha_config();
         ha_registered(true);
+        // return false; // heating circuits in next cycle
     }
 
     // check to see which heating circuits need to be added as HA climate components
     // but only if it's active and there is a real value for the current room temperature (https://github.com/proddy/EMS-ESP/issues/582)
     for (const auto & hc : heating_circuits_) {
         if (hc->is_active() && !hc->ha_registered()) {
-            if (Helpers::hasValue(hc->curr_roomTemp)) {
-                register_mqtt_ha_config(hc->hc_num());
-                hc->ha_registered(true);
-            }
+            register_mqtt_ha_config(hc->hc_num());
+            hc->ha_registered(true);
         }
     }
 
