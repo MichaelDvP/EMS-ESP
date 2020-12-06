@@ -935,7 +935,9 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
             delayed_tx_start_ = uuid::get_uptime_ms();
             LOG_DEBUG(F("Tx delay started"));
         }
-        EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
+        if ((first_value ^ 0x80 ^ rxservice_.ems_mask()) == txservice_.ems_bus_id()) {
+            EMSbus::last_bus_activity(uuid::get_uptime()); // set the flag indication the EMS bus is active
+        }
         // first send delayed after connect
         if ((uuid::get_uptime_ms() - delayed_tx_start_) < tx_delay_) {
             return;
