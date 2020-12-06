@@ -191,7 +191,7 @@ class EMSbus {
     static uint8_t calculate_crc(const uint8_t * data, const uint8_t length);
 
   private:
-    static constexpr uint32_t EMS_BUS_TIMEOUT = 5000; // timeout in ms before recognizing the ems bus is offline (5 seconds)
+    static constexpr uint32_t EMS_BUS_TIMEOUT = 30000; // timeout in ms before recognizing the ems bus is offline (30 seconds)
 
     static uint32_t last_bus_activity_; // timestamp of last time a valid Rx came in
     static bool     bus_connected_;     // start assuming the bus hasn't been connected
