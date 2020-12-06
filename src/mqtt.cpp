@@ -233,6 +233,7 @@ void Mqtt::on_message(const char * topic, const char * payload, size_t len) {
     char message[len + 2];
     strlcpy(message, payload, len + 1);
 
+    // always log debug the incoming command
     LOG_DEBUG(F("Received %s => %s (length %d)"), topic, message, len);
 
     // see if we have this topic in our subscription list, then call its callback handler

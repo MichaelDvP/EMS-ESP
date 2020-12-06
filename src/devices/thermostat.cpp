@@ -570,7 +570,8 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
 
             // Heating Type
             if (Helpers::hasValue(hc->heatingtype)) {
-                dataThermostat["heatingtype"] = hc->heatingtype;
+                char s[10];
+                dataThermostat["heatingtype"] = Helpers::render_enum(s, {F("off"), F("radiator"), F("convector"), F("floor")}, hc->heatingtype);
             }
 
             // Target flow temperature
