@@ -1,6 +1,6 @@
 export interface EMSESPSettings {
   tx_mode: number;
-  tx_delay:number;
+  tx_delay: number;
   ems_bus_id: number;
   syslog_enabled: boolean;
   syslog_level: number;
@@ -18,7 +18,7 @@ export interface EMSESPSettings {
   api_enabled: boolean;
   bool_format: number;
   analog_enabled: boolean;
-  trace_raw:boolean;
+  trace_raw: boolean;
 }
 
 export enum busConnectionStatus {

@@ -557,7 +557,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     }
 
     // Return temperature, with no sensor retTemp can be 0x8000 or 0x0000
-    if (Helpers::hasValue(retTemp_) && retTemp_ > 0) {
+    if (Helpers::hasValue(retTemp_) && (retTemp_ > 0)) {
         json["retTemp"] = (float)retTemp_ / 10;
     }
 
@@ -1030,9 +1030,8 @@ void Boiler::process_UBAMonitorWW(std::shared_ptr<const Telegram> telegram) {
 
 /*
  * UBAMonitorFastPlus - type 0xE4 - central heating monitor EMS+
- * Still to figure out are: sysPress, maybe pos 21?
  * temperatures at 7 and 23 always identical
- *  Bosch Logamax Plus GB122: issue #620
+ * Bosch Logamax Plus GB122: issue #620
  * 88 00 E4 00 00 2D 2D 00 00 C9 34 02 21 64 3D 05 02 01 DE 00 00 00 00 03 62 14 00 02 21 00 00 00 00 00 00 00 2B 2B 83
  * GB125/Logamatic MC110: issue #650
  * 08 00 E4 00 10 20 2D 48 00 C8 38 02 37 3C 27 03 00 00 00 00 00 01 7B 01 8F 11 00 02 37 80 00 02 1B 80 00 7F FF 80 00
@@ -1047,7 +1046,7 @@ void Boiler::process_UBAMonitorFastPlus(std::shared_ptr<const Telegram> telegram
     changed_ |= telegram->read_value(curFlowTemp_, 7);
     changed_ |= telegram->read_value(flameCurr_, 19);
     changed_ |= telegram->read_value(retTemp_, 17); // can be 0 if no sensor, handled in export_values
-    changed_ |= telegram->read_value(sysPress_, 21); // ?
+    changed_ |= telegram->read_value(sysPress_, 21);
 
     //changed_ |= telegram->read_value(temperatur_, 13); // unknown temperature
     //changed_ |= telegram->read_value(temperatur_, 27); // unknown temperature
