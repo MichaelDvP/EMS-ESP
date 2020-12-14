@@ -252,6 +252,23 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     return json_hc.size();
 }
 
+/*
+// heating circuits 0x02E1, 0x02E2 etc...
+// e.g.  Thermostat(0x10) -> Mixing Module(0x20), (0x2E1), data: 01 00 00 00 01
+// other single byte message 0x2EB,..:  Thermostat(0x10) -> Mixing Module(0x20), (0x2EB), data: 00
+void Mixer::process_MMPLUSStetMessage_HC(std::shared_ptr<const Telegram> telegram) {
+    type(Type::HC);
+    hc_ = telegram->type_id - 0x02E1 + 1;
+    changed_ |= telegram->read_value(flowSetTemp_, ?);
+    changed_ |= telegram->read_bitvalue(pumpStatus_, ?, 0);
+}
+
+*/
+/*
+// SetMessage for ww circuits:
+// e.g. Thermostat(0x10) -> Mixing Module(0x28), (0x33B), data: 00 02 00
+*/
+
 // heating circuits 0x02D7, 0x02D8 etc...
 // e.g.  A0 00 FF 00 01 D7 00 00 00 80 00 00 00 00 03 C5
 //       A0 0B FF 00 01 D7 00 00 00 80 00 00 00 00 03 80
