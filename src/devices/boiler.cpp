@@ -74,8 +74,8 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F("pumpdelay"), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
     // register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
     register_mqtt_cmd(F("maintenance"), [&](const char * value, const int8_t id) { return set_maintenance(value, id); });
-    register_mqtt_cmd(F("pumpmodmin"), [&](const char * value, const int8_t id) { return set_max_pump(value, id); });
-    register_mqtt_cmd(F("pumpmodmax"), [&](const char * value, const int8_t id) { return set_min_pump(value, id); });
+    register_mqtt_cmd(F("pumpmodmax"), [&](const char * value, const int8_t id) { return set_max_pump(value, id); });
+    register_mqtt_cmd(F("pumpmodmin"), [&](const char * value, const int8_t id) { return set_min_pump(value, id); });
 
     EMSESP::send_read_request(0x10, device_id); // read last errorcode on start (only published on errors)
     EMSESP::send_read_request(0x11, device_id); // read last errorcode on start (only published on errors)
@@ -1365,7 +1365,7 @@ bool Boiler::set_min_power(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting boiler min power to %d"), v);
+    LOG_INFO(F("Setting boiler min power to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
         write_command(EMS_TYPE_UBAParametersPlus, 7, v, EMS_TYPE_UBAParametersPlus);
     } else {
@@ -1383,7 +1383,7 @@ bool Boiler::set_max_power(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting boiler max power to %d"), v);
+    LOG_INFO(F("Setting boiler max power to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
         write_command(EMS_TYPE_UBAParametersPlus, 6, v, EMS_TYPE_UBAParametersPlus);
     } else {
@@ -1401,7 +1401,7 @@ bool Boiler::set_min_pump(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting pump min to %d"), v);
+    LOG_INFO(F("Setting pump min to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
         write_command(EMS_TYPE_UBAParametersPlus, 14, v, EMS_TYPE_UBAParametersPlus);
     } else {
@@ -1419,7 +1419,7 @@ bool Boiler::set_max_pump(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting pump max to %d"), v);
+    LOG_INFO(F("Setting pump max to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
         write_command(EMS_TYPE_UBAParametersPlus, 13, v, EMS_TYPE_UBAParametersPlus);
     } else {

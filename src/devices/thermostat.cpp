@@ -1614,7 +1614,7 @@ bool Thermostat::set_minexttemp(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting min external temperature to %d"), mt);
+    LOG_INFO(F("Setting min external temperature to %d C"), mt);
     if ((model() == EMS_DEVICE_FLAG_RC300) || (model() == EMS_DEVICE_FLAG_RC100)) {
         write_command(0x240, 10, mt, 0x240);
     } else {
@@ -1646,7 +1646,7 @@ bool Thermostat::set_calinttemp(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Calibrating internal temperature to %d.%d"), ct / 10, ct < 0 ? -ct % 10 : ct % 10);
+    LOG_INFO(F("Calibrating internal temperature to %d.%d C"), ct / 10, ct < 0 ? -ct % 10 : ct % 10);
     write_command(EMS_TYPE_IBASettings, 2, ct, EMS_TYPE_IBASettings);
 
     return true;
@@ -1794,7 +1794,7 @@ bool Thermostat::set_wwtemp(const char * value, const int8_t id) {
         LOG_WARNING(F("Set warm water high temperature: Invalid value"));
         return false;
     }
-    LOG_INFO(F("Setting warm water high temperature to %d"), t);
+    LOG_INFO(F("Setting warm water high temperature to %d C"), t);
     write_command(0x031B, 0, t, 0x031B);
     return true;
 }
@@ -1806,7 +1806,7 @@ bool Thermostat::set_wwtemplow(const char * value, const int8_t id) {
         LOG_WARNING(F("Set warm water low temperature: Invalid value"));
         return false;
     }
-    LOG_INFO(F("Setting warm water low temperature to %d"), t);
+    LOG_INFO(F("Setting warm water low temperature to %d C"), t);
     write_command(0x031B, 1, t, 0x031B);
     return true;
 }
