@@ -872,7 +872,8 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         if (!mqtt_ha_config_) {
             register_mqtt_ha_config();
             return;
-        } else if (!mqtt_ha_config_ww_) {
+        }
+        if (!mqtt_ha_config_ww_) {
             register_mqtt_ha_config_ww();
             return;
         }

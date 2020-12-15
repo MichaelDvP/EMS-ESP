@@ -1747,15 +1747,15 @@ bool Thermostat::set_language(const char * value, const int8_t id) {
 
 // Set the control-mode for hc 0-off, 1-RC20, 2-RC3x
 bool Thermostat::set_control(const char * value, const int8_t id) {
-    int ctrl = 0;
-    if (!Helpers::value2number(value, ctrl)) {
+    uint8_t ctrl = 0;
+    if (!Helpers::value2enum(value, ctrl, {F("off"), F("rc20"), F("rc3x")})) {
         LOG_WARNING(F("Set control: Invalid value"));
         return false;
     }
 
     uint8_t                                     hc_num = (id == -1) ? AUTO_HEATING_CIRCUIT : id;
     std::shared_ptr<Thermostat::HeatingCircuit> hc     = heating_circuit(hc_num);
-    if (hc == nullptr || ctrl > 2) {
+    if (hc == nullptr) {
         return false;
     }
 
