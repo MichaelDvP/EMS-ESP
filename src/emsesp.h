@@ -141,7 +141,7 @@ class EMSESP {
     }
 
     static void set_read_id(uint16_t id) {
-        read_id_ = id & 0x7F;
+        read_id_ = id;
     }
 
     enum Bus_status : uint8_t { BUS_STATUS_CONNECTED = 0, BUS_STATUS_TX_ERRORS, BUS_STATUS_OFFLINE };

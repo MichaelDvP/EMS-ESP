@@ -2597,7 +2597,7 @@ void Thermostat::add_commands() {
     register_mqtt_cmd(F("roomtemp"), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
     if (device_id() == EMSESP::actual_master_thermostat()) {
         register_mqtt_cmd(F("datetime"), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
-    } 
+    }
 
     switch (model()) {
     case EMS_DEVICE_FLAG_RC100:
