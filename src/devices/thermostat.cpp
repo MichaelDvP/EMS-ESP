@@ -1602,7 +1602,8 @@ void Thermostat::process_RCErrorMessage(std::shared_ptr<const Telegram> telegram
         uint8_t  day   = telegram->message_data[7];
         uint8_t  hour  = telegram->message_data[6];
         uint8_t  min   = telegram->message_data[8];
-        snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) %02d.%02d.%d %02d:%02d"), code, codeNo, day, month, year, hour, min);
+        uint8_t  id    = telegram->message_data[11];
+        snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) id:0x%02X %02d.%02d.%d %02d:%02d"), code, codeNo, id, day, month, year, hour, min);
     }
 }
 

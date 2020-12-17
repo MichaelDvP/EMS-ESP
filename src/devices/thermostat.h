@@ -173,7 +173,7 @@ class Thermostat : public EMSdevice {
     uint8_t ibaClockOffset_       = EMS_VALUE_UINT_NOTSET; // offset (in sec) to clock, 0xff = -1 s, 0x02 = 2 s
 
     uint16_t errorNumber_        = EMS_VALUE_USHORT_NOTSET;
-    char     lastCode_[30]       = {'\0'};
+    char     lastCode_[35]       = {'\0'};
     int8_t   dampedoutdoortemp_  = EMS_VALUE_INT_NOTSET;
     uint16_t tempsensor1_        = EMS_VALUE_USHORT_NOTSET;
     uint16_t tempsensor2_        = EMS_VALUE_USHORT_NOTSET;

@@ -14,6 +14,7 @@ WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, Secur
     WiFi.persistent(false);
     WiFi.setAutoReconnect(false);
 #ifdef ESP32
+    // btStop();
     // WiFi.setTxPower(WIFI_POWER_7dBm);
     // Init the wifi driver on ESP32
     WiFi.mode(WIFI_MODE_MAX);
