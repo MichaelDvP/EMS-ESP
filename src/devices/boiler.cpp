@@ -872,8 +872,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         if (!mqtt_ha_config_) {
             register_mqtt_ha_config();
             return;
-        }
-        if (!mqtt_ha_config_ww_) {
+        } else if (!mqtt_ha_config_ww_) {
             register_mqtt_ha_config_ww();
             return;
         }
@@ -1036,7 +1035,7 @@ void Boiler::process_UBAMonitorWW(std::shared_ptr<const Telegram> telegram) {
  * temperatures at 7 and 23 always identical
  * Bosch Logamax Plus GB122: issue #620
  * 88 00 E4 00 00 2D 2D 00 00 C9 34 02 21 64 3D 05 02 01 DE 00 00 00 00 03 62 14 00 02 21 00 00 00 00 00 00 00 2B 2B 83
- * GB125/Logamatic MC110: issue #650
+ * GB125/Logamatic MC110: issue #650: add retTemp & sysPress
  * 08 00 E4 00 10 20 2D 48 00 C8 38 02 37 3C 27 03 00 00 00 00 00 01 7B 01 8F 11 00 02 37 80 00 02 1B 80 00 7F FF 80 00
  */
 void Boiler::process_UBAMonitorFastPlus(std::shared_ptr<const Telegram> telegram) {
@@ -1252,6 +1251,9 @@ void Boiler::process_UBAFlags(std::shared_ptr<const Telegram> telegram) {
 
 // 0x10, 0x11
 void Boiler::process_UBAErrorMessage(std::shared_ptr<const Telegram> telegram) {
+    if (telegram->offset > 0 || telegram->message_length < 9) {
+        return;
+    }
     // data: displaycode(2), errornumber(2), year, month, hour, day, minute, duration(2), src-addr
     if (telegram->message_data[4] & 0x80) { // valid date
         char     code[3];
@@ -1276,6 +1278,9 @@ void Boiler::process_UBAErrorMessage(std::shared_ptr<const Telegram> telegram) {
 
 // 0x15
 void Boiler::process_UBAMaintenanceData(std::shared_ptr<const Telegram> telegram) {
+    if (telegram->offset > 0 || telegram->message_length < 5) {
+        return;
+    }
     // first byte: Maintenance messages (0 = none, 1 = by operating hours, 2 = by date)
     telegram->read_value(maintenanceType_, 0);
     telegram->read_value(maintenanceTime_, 1);
@@ -1348,7 +1353,7 @@ bool Boiler::set_heating_temp(const char * value, const int8_t id) {
         return false;
     }
 
-    LOG_INFO(F("Setting boiler heating temperature to "), v);
+    LOG_INFO(F("Setting boiler heating temperature to %d C"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
         write_command(EMS_TYPE_UBAParametersPlus, 1, v, EMS_TYPE_UBAParametersPlus);
     } else {
@@ -1394,7 +1399,7 @@ bool Boiler::set_max_power(const char * value, const int8_t id) {
     return true;
 }
 
-// set max temp
+// set min pump modulation
 bool Boiler::set_min_pump(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
@@ -1412,7 +1417,7 @@ bool Boiler::set_min_pump(const char * value, const int8_t id) {
     return true;
 }
 
-// set max pump mod
+// set max pump modulation
 bool Boiler::set_max_pump(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
