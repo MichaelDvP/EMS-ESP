@@ -1867,7 +1867,10 @@ bool Thermostat::set_holiday(const char * value, const int8_t id) {
         LOG_WARNING(F("Set holiday: Heating Circuit %d not found or activated for device ID 0x%02X"), hc_num, device_id());
         return false;
     }
-
+    if (hd.length() != 21 || hd[6] != '2' || hd[17] != '2') {
+        LOG_WARNING(F("Set holiday: Invalid value"));
+        return false;
+    }
     uint8_t data[6];
     data[0] = (hd[0] - '0') * 10 + (hd[1] - '0');
     data[1] = (hd[3] - '0') * 10 + (hd[4] - '0');

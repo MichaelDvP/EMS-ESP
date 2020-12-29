@@ -51,12 +51,20 @@ bool System::command_pin(const char * value, const int8_t id) {
         return false;
     }
 
-    bool v = false;
+    bool v  = false;
+#if defined(ESP32)
+    int  v1 = 0;
+    if (id == 25 && Helpers::value2number(value, v1)) {
+        analogWrite(id, v1);
+    } else
+#endif
     if (Helpers::value2bool(value, v)) {
         pinMode(id, OUTPUT);
         digitalWrite(id, v);
         LOG_INFO(F("GPIO %d set to %s"), id, v ? "HIGH" : "LOW");
         return true;
+    } else if (value[0] == '-' && value[1] == '1') {
+        pinMode(id, INPUT);
     }
 
     return false;
@@ -251,6 +259,9 @@ bool System::upload_status() {
 #if defined(EMSESP_STANDALONE)
     return false;
 #else
+    if (Update.isFinished()) {
+        RestartService::restartNow();
+    }
     return upload_status_ || Update.isRunning();
 #endif
 }
@@ -319,7 +330,7 @@ void System::send_heartbeat() {
     uint8_t frag_memory = ESP.getHeapFragmentation();
 #endif
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
     uint8_t ems_status = EMSESP::bus_status();
     if (ems_status == EMSESP::BUS_STATUS_TX_ERRORS) {
@@ -330,18 +341,38 @@ void System::send_heartbeat() {
         doc["status"] = FJSON("disconnected");
     }
 
-    doc["rssi"]       = rssi;
-    doc["uptime"]     = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
-    doc["uptime_sec"] = uuid::get_uptime_sec();
-    doc["mqttfails"]  = Mqtt::publish_fails();
-    doc["txfails"]    = EMSESP::txservice_.telegram_fail_count();
-    doc["rxfails"]    = EMSESP::rxservice_.telegram_error_count();
-    doc["freemem"]    = free_memory;
+    doc["rssi"]        = rssi;
+    doc["uptime"]      = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    doc["uptime_sec"]  = uuid::get_uptime_sec();
+    doc["mqttfails"]   = Mqtt::publish_fails();
+    doc["rx_received"] = EMSESP::rxservice_.telegram_count();
+    doc["tx_sent"]     = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
+    doc["rx_quality"]  = EMSESP::rxservice_.quality();
+    doc["tx_quality"]  = EMSESP::txservice_.quality();
+    doc["tx_fails"]    = EMSESP::txservice_.telegram_fail_count();
+    doc["rx_fails"]    = EMSESP::rxservice_.telegram_error_count();
+    doc["freemem"]     = free_memory;
 #if defined(ESP8266)
     doc["fragmem"] = frag_memory;
 #endif
     if (analog_enabled_) {
-        doc["adc"] = analog_;
+        doc["adc"]  = analog_;
+#if defined(ESP8266)
+        doc["io2"]  = digitalRead(2);
+        doc["io4"]  = digitalRead(4);
+        doc["io5"]  = digitalRead(5);
+        doc["io12"] = digitalRead(12);
+        doc["io14"] = digitalRead(14);
+        doc["io16"] = digitalRead(16);
+#elif defined(ESP32)
+        doc["io16"]  = digitalRead(16);
+        doc["io17"]  = digitalRead(17);
+        doc["io18"]  = digitalRead(18);
+        doc["io19"]  = digitalRead(19);
+        doc["io21"]  = digitalRead(21);
+        doc["io22"]  = digitalRead(22);
+        doc["io26"]  = digitalRead(26);
+#endif
     }
 
     Mqtt::publish(F("heartbeat"), doc.as<JsonObject>()); // send to MQTT with retain off. This will add to MQTT queue.

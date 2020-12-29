@@ -475,7 +475,7 @@ void Mqtt::on_connect() {
 
     // first time to connect
     // send info topic appended with the version information as JSON
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     if (connectcount_ == 1) {
         doc["event"]   = "start";
     } else {
@@ -485,7 +485,38 @@ void Mqtt::on_connect() {
     }
     doc["version"] = EMSESP_APP_VERSION;
 #ifndef EMSESP_STANDALONE
+    char s[30];
     doc["ip"] = WiFi.localIP().toString();
+#if defined(ESP8266)
+    snprintf_P(s, sizeof(s), PSTR("0x%08x"), ESP.getChipId());
+    doc ["chip"] = s;
+    doc ["sdk"]  = ESP.getSdkVersion();
+    snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getCoreVersion().c_str());
+    doc ["core"] = s;
+    // snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getBootVersion());
+    // doc ["boot_ver"] = s;
+    // snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getBootMode());
+    // doc ["boot_mode"] = s;
+    doc ["cpu_freq"] = ESP.getCpuFreqMHz();
+    snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getResetReason().c_str());
+    doc ["reset"] = s;
+#elif defined(ESP32)
+    doc ["sdk"]      = ESP.getSdkVersion());
+    doc ["cpu_freq"] = ESP.getCpuFreqMHz());
+#endif
+    snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getSketchSize());
+    doc ["sketch"] = s;
+    snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getFreeSketchSpace());
+    doc ["free"] = s;
+#endif
+#ifdef ESP32
+    doc["fs_used"]  = SPIFFS.usedBytes();
+    doc["fs_total"] = SPIFFS.totalBytes();
+#elif defined(ESP8266)
+    FSInfo fs_info;
+    LittleFS.info(fs_info);
+    doc["fs_used"]  = fs_info.usedBytes;
+    doc["fs_total"] = fs_info.totalBytes;
 #endif
     publish(F_(info), doc.as<JsonObject>());
 
