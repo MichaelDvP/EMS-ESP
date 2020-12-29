@@ -259,9 +259,6 @@ bool System::upload_status() {
 #if defined(EMSESP_STANDALONE)
     return false;
 #else
-    if (Update.isFinished()) {
-        RestartService::restartNow();
-    }
     return upload_status_ || Update.isRunning();
 #endif
 }
