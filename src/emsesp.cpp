@@ -287,10 +287,10 @@ void EMSESP::show_device_values(uuid::console::Shell & shell) {
             if ((emsdevice) && (emsdevice->device_type() == device_class.first)) {
                 // print header
                 shell.printfln(F("%s: %s"), emsdevice->device_type_name().c_str(), emsdevice->to_string().c_str());
-                uint8_t no = 0;
+                uint8_t part = 0;
                 do {
                     JsonArray root = doc.to<JsonArray>();
-                    emsdevice->device_info_web(root, no); // create array
+                    emsdevice->device_info_web(root, part); // create array
 
                     // iterate values and print to shell
                     uint8_t key_value = 0;
@@ -299,7 +299,7 @@ void EMSESP::show_device_values(uuid::console::Shell & shell) {
                     }
 
                     doc.clear(); // clear so we can re-use for each device
-                } while (no);
+                } while (part);
 
                 shell.println();
             }
@@ -697,10 +697,10 @@ void EMSESP::device_info_web(const uint8_t unique_id, JsonObject & root) {
             if (emsdevice->unique_id() == unique_id) {
                 root["name"]   = emsdevice->to_string_short(); // can't use c_str() because of scope
                 JsonArray data = root.createNestedArray("data");
-                uint8_t no = 0;
+                uint8_t part = 0;
                 do {
-                    emsdevice->device_info_web(data, no);
-                } while (no);
+                    emsdevice->device_info_web(data, part);
+                } while (part);
                 return;
             }
         }
