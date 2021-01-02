@@ -55,7 +55,9 @@ bool System::command_pin(const char * value, const int8_t id) {
 #if defined(ESP32)
     int  v1 = 0;
     if (id == 25 && Helpers::value2number(value, v1)) {
-        analogWrite(id, v1);
+        if (v1 >= 0 && v1 <= 255) {
+            dacWrite(id, v1);
+        }
     } else
 #endif
     if (Helpers::value2bool(value, v)) {

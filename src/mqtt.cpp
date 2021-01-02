@@ -501,8 +501,8 @@ void Mqtt::on_connect() {
     snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getResetReason().c_str());
     doc ["reset"] = s;
 #elif defined(ESP32)
-    doc ["sdk"]      = ESP.getSdkVersion());
-    doc ["cpu_freq"] = ESP.getCpuFreqMHz());
+    doc ["sdk"]      = ESP.getSdkVersion();
+    doc ["cpu_freq"] = ESP.getCpuFreqMHz();
 #endif
     snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getSketchSize());
     doc ["sketch"] = s;
