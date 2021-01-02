@@ -1047,6 +1047,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     node["fragmem"] = ESP.getHeapFragmentation();
 #endif
 
+/*
     node = json.createNestedObject("Settings");
 
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
@@ -1078,6 +1079,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node["bool_format"]       = settings.bool_format;
         node["analog_enabled"]    = Helpers::render_boolean(s, settings.analog_enabled);
     });
+*/
 
     node = json.createNestedObject("Status");
 
