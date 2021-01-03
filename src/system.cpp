@@ -20,6 +20,9 @@
 #include "emsesp.h" // for send_raw_telegram() command
 
 #include "version.h" // firmware version of EMS-ESP
+#if defined(ESP32)
+#include "driver/adc.h"
+#endif
 
 #if defined(EMSESP_TEST)
 #include "test/test.h"
@@ -229,6 +232,13 @@ void System::other_init() {
         Helpers::bool_format(settings.bool_format);
         analog_enabled_ = settings.analog_enabled;
     });
+#ifdef ESP32
+    if (analog_enabled_) {
+        adc_power_on();
+    } else {
+        adc_power_off();
+    }
+#endif
 }
 
 // init stuff. This is called when settings are changed in the web

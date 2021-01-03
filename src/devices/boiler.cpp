@@ -218,6 +218,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
     JsonObject                                     json = doc.to<JsonObject>();
     if (part == 0) {
+        part = 1; // we have another part
         if (!export_values_main(json, true)) {
             return; // empty
         }
@@ -289,12 +290,11 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         // create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
         // create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
         // create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
-        part++;
     } else if (part == 1) {
+        part = 0; // no more parts
         if (!export_values_ww(json, true)) { // append ww values
             return;
         }
-
         // ww
         create_value_json(root, F("wWSelTemp"), nullptr, F_(wWSelTemp), F_(degrees), json);
         create_value_json(root, F("wWSetTemp"), nullptr, F_(wWSetTemp), F_(degrees), json);
@@ -323,7 +323,6 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("wwBufferTemperature"), nullptr, F_(wwBufferTemperature), F_(degrees), json);
         create_value_json(root, F("wWStarts"), nullptr, F_(wWStarts), nullptr, json);
         create_value_json(root, F("wWWorkM"), nullptr, F_(wWWorkM), nullptr, json);
-        part = 0; // no more parts
     }
 }
 
