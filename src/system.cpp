@@ -1053,6 +1053,11 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     node = json.createNestedObject("System");
 
     node["version"] = EMSESP_APP_VERSION;
+#if defined(ESP8266)
+    node["platform"] = "esp8266";
+#elif defined(ESP32)
+    node["platform"] = "esp32";
+#endif
     node["uptime"]  = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
     node["freemem"] = free_mem();
 #if defined(ESP8266)
@@ -1114,11 +1119,13 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node["#read requests sent"]   = EMSESP::txservice_.telegram_read_count();
         node["#write requests sent"]  = EMSESP::txservice_.telegram_write_count();
         node["#incomplete telegrams"] = EMSESP::rxservice_.telegram_error_count();
-        node["#tx fails"]             = TxService::MAXIMUM_TX_RETRIES, EMSESP::txservice_.telegram_fail_count();
+        // node["#tx fails"]             = TxService::MAXIMUM_TX_RETRIES, EMSESP::txservice_.telegram_fail_count();
+        node["#tx fails"]             = EMSESP::txservice_.telegram_fail_count();
         node["rx line quality"]       = EMSESP::rxservice_.quality();
         node["tx line quality"]       = EMSESP::txservice_.quality();
         node["#MQTT publish fails"]   = Mqtt::publish_fails();
         node["#dallas sensors"]       = EMSESP::sensor_devices().size();
+        node["#dallas fails"]         = EMSESP::sensor_fails();
     }
 
     JsonArray devices2 = json.createNestedArray("Devices");

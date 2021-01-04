@@ -123,6 +123,9 @@ class EMSESP {
     static bool have_sensors() {
         return (!(dallassensor_.sensors().empty()));
     }
+    static uint32_t sensor_fails() {
+        return dallassensor_.fails();
+    }
 
     enum Watch : uint8_t { WATCH_OFF, WATCH_ON, WATCH_RAW, WATCH_UNKNOWN };
     static void     watch_id(uint16_t id);

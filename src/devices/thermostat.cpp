@@ -212,17 +212,15 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
             create_value_json(root, F("wwextra1"), nullptr, F_(wwextra1), nullptr, json_main);
             create_value_json(root, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json_main);
         }
-        part++;
-    } else if (part == 1) {
-       JsonObject json_hc = doc.to<JsonObject>();
-        if (export_values_hc(Mqtt::Format::NESTED, json_hc)) {
+        part = 1;
+    } else if (part >= 1) {
+       JsonObject json = doc.to<JsonObject>();
+        if (export_values_hc(part, json)) {
             // display for each active heating circuit
-            for (const auto & hc : heating_circuits_) {
+            std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(part);
+            if (hc != nullptr) {
                 if (hc->is_active()) {
                     char prefix_str[10];
-                    snprintf_P(prefix_str, sizeof(prefix_str), PSTR("hc%d"), hc->hc_num());
-                    JsonObject json = json_hc[prefix_str];
-
                     snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(hc %d) "), hc->hc_num());
 
                     create_value_json(root, F("seltemp"), FPSTR(prefix_str), F_(seltemp), F_(degrees), json);
@@ -253,7 +251,9 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
                 }
             }
         }
-        part = 0; // no more parts
+        if (++part > 4) {
+            part = 0; // no more parts
+        }
     }
 }
 
@@ -273,7 +273,13 @@ bool Thermostat::updated_values() {
 
 bool Thermostat::export_values(JsonObject & json) {
     bool has_value = export_values_main(json);
-    has_value |= export_values_hc(Mqtt::Format::NESTED, json);
+    for (const auto & hc : heating_circuits_) {
+        JsonObject json_hc;
+        char hc_name[10]; // hc{1-4}
+        snprintf_P(hc_name, 10, PSTR("hc%d"), hc->hc_num());
+        json_hc = json.createNestedObject(hc_name);
+        has_value |= export_values_hc(hc->hc_num(), json_hc);
+    }
     return has_value;
 }
 
@@ -291,8 +297,14 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
             Mqtt::publish(F("thermostat_data"), json_data);
             json_data.clear();
         }
-        // this function will also have published each of the heating circuits
-        export_values_hc(Mqtt::mqtt_format(), json_data);
+        for (const auto & hc : heating_circuits_) {
+            // this function will also have published each of the heating circuits
+            export_values_hc(hc->hc_num(), json_data);
+            char topic[30];
+            snprintf_P(topic, 30, PSTR("thermostat_data_hc%d"), hc->hc_num());
+            Mqtt::publish(topic, json_data);
+            json_data.clear();
+        }
         return;
     }
 
@@ -305,14 +317,21 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
 
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
     JsonObject                                     json_data = doc.to<JsonObject>();
-    bool                                           has_data  = false;
+    // bool                                           has_data  = false;
 
     // get the thermostat data.
+/*
     has_data |= export_values_main(json_data);
-    has_data |= export_values_hc(Mqtt::mqtt_format(), json_data);
-
+    for (const auto & hc : heating_circuits_) {
+        JsonObject dataThermostat;
+        char hc_name[10]; // hc{1-4}
+        snprintf_P(hc_name, 10, PSTR("hc%d"), hc->hc_num());
+        dataThermostat = json_data.createNestedObject(hc_name);
+        has_data |= export_values_hc(hc->hc_num(), Mqtt::mqtt_format(), dataThermostat);
+    }
+*/
     // we're in HA or CUSTOM, send out the complete topic with all the data
-    if (has_data) {
+    if (export_values(json_data)) {
         Mqtt::publish(F("thermostat_data"), json_data);
     }
 }
@@ -471,16 +490,20 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 // creates JSON doc from values, for each heating circuit
 // if the mqtt_format is 0 then it will not perform the MQTT publish
 // returns false if empty
-bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermostat) {
+bool Thermostat::export_values_hc(uint8_t hc_num, JsonObject & dataThermostat) {
     uint8_t    model = this->model();
-    JsonObject dataThermostat;
+    // JsonObject dataThermostat;
     bool       has_data = false;
 
+    std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(hc_num);
+    if (hc == nullptr) {
+        return false;
+    }
     // go through all the heating circuits
-    for (const auto & hc : heating_circuits_) {
+//    for (const auto & hc : heating_circuits_) {
         if (hc->is_active()) {
             has_data = true;
-
+/*
             // if the MQTT format is 'nested' or 'ha' then create the parent object hc<n>
             if (mqtt_format == Mqtt::Format::SINGLE) {
                 dataThermostat = rootThermostat;
@@ -489,7 +512,7 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
                 snprintf_P(hc_name, 10, PSTR("hc%d"), hc->hc_num());
                 dataThermostat = rootThermostat.createNestedObject(hc_name);
             }
-
+*/
             // different logic on how temperature values are stored, depending on model
             uint8_t setpoint_temp_divider;
             uint8_t curr_temp_divider;
@@ -645,10 +668,10 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
             }
 
             // mode - always force showing this when in HA so not to break HA's climate component
-            if ((Helpers::hasValue(hc->mode)) || (mqtt_format == Mqtt::Format::HA)) {
+            if ((Helpers::hasValue(hc->mode)) || (Mqtt::mqtt_format() == Mqtt::Format::HA)) {
                 uint8_t hc_mode = hc->get_mode(model);
                 // if we're sending to HA the only valid mode types are heat, auto and off
-                if (mqtt_format == Mqtt::Format::HA) {
+                if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
                     if ((hc_mode == HeatingCircuit::Mode::MANUAL) || (hc_mode == HeatingCircuit::Mode::DAY)) {
                         hc_mode = HeatingCircuit::Mode::HEAT;
                     } else if ((hc_mode == HeatingCircuit::Mode::NIGHT) || (hc_mode == HeatingCircuit::Mode::OFF)) {
@@ -671,7 +694,7 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
             } else if (Helpers::hasValue(hc->mode_type)) {
                 dataThermostat["modetype"] = mode_tostring(hc->get_mode_type(model));
             }
-
+/*
             // if format is single, send immediately and clear object for next hc
             // the topic will have the hc number appended
             if (mqtt_format == Mqtt::Format::SINGLE) {
@@ -680,8 +703,9 @@ bool Thermostat::export_values_hc(uint8_t mqtt_format, JsonObject & rootThermost
                 Mqtt::publish(topic, rootThermostat);
                 rootThermostat.clear(); // clear object
             }
+*/ 
         }
-    }
+//    }
 
     return (has_data);
 }
@@ -1608,8 +1632,9 @@ void Thermostat::process_RCErrorMessage(std::shared_ptr<const Telegram> telegram
         uint8_t  day   = telegram->message_data[7];
         uint8_t  hour  = telegram->message_data[6];
         uint8_t  min   = telegram->message_data[8];
-        uint8_t  id    = telegram->message_data[11];
-        snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) id:0x%02X %02d.%02d.%d %02d:%02d"), code, codeNo, id, day, month, year, hour, min);
+        // uint8_t  id    = telegram->message_data[11];
+        // snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) id:0x%02X %02d.%02d.%d %02d:%02d"), code, codeNo, id, day, month, year, hour, min);
+        snprintf_P(lastCode_, sizeof(lastCode_), PSTR("%s(%d) %02d.%02d.%d %02d:%02d"), code, codeNo, day, month, year, hour, min);
     }
 }
 
