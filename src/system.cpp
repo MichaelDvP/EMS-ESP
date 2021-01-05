@@ -396,7 +396,8 @@ void System::measure_analog() {
 #if defined(ESP8266)
         uint16_t a = analogRead(A0); // 10 bit 3,2V
 #elif defined(ESP32)
-        uint16_t a = analogRead(36) * 3 / 10; // 10 bit 1V
+        // uint16_t a = analogRead(36) * 3 / 10; // 10 bit 1V
+        uint16_t a = analogRead(36); // 10 bit with resistors 220k-100k
 #else
         uint16_t a = 0; // standalone
 #endif
