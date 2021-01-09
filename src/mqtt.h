@@ -71,6 +71,7 @@ class Mqtt {
     void set_publish_time_mixer(uint16_t publish_time);
     void set_publish_time_other(uint16_t publish_time);
     void set_publish_time_sensor(uint16_t publish_time);
+    void set_base(std::string base);
     void set_qos(uint8_t mqtt_qos);
     void set_retain(bool mqtt_retain);
     void set_format(uint8_t mqtt_format);
@@ -141,12 +142,18 @@ class Mqtt {
         mqtt_publish_fails_ = 0;
     }
 
+    static void reset_mqtt();
+
     static uint8_t mqtt_format() {
         return mqtt_format_;
     }
 
     static AsyncMqttClient * client() {
         return mqttClient_;
+    }
+
+    static std::string base() {
+        return mqtt_base_;
     }
 
   private:
@@ -195,7 +202,7 @@ class Mqtt {
     struct MQTTSubFunction {
         uint8_t            device_type_;      // which device type, from DeviceType::
         const std::string  topic_;            // short topic name
-        const std::string  full_topic_;       // the fully qualified topic name, usually with the hostname prefixed
+        const std::string  full_topic_;       // the fully qualified topic name, usually with the base prefixed
         mqtt_subfunction_p mqtt_subfunction_; // can be empty
 
         MQTTSubFunction(uint8_t device_type, const std::string && topic, const std::string && full_topic, mqtt_subfunction_p mqtt_subfunction)
@@ -222,7 +229,7 @@ class Mqtt {
     static uint8_t  connectcount_;
 
     // settings, copied over
-    static std::string hostname_;
+    static std::string mqtt_base_;
     static uint8_t     mqtt_qos_;
     static bool        mqtt_retain_;
     static uint32_t    publish_time_;

@@ -349,8 +349,8 @@ void DallasSensor::publish_values(const bool force) {
                 StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> config;
                 config["dev_cla"] = FJSON("temperature");
 
-                char stat_t[50];
-                snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/dallassensor_data"), System::hostname().c_str());
+                char stat_t[128];
+                snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/dallassensor_data"), Mqtt::base().c_str());
                 config["stat_t"] = stat_t;
 
                 config["unit_of_meas"] = FJSON("°C");

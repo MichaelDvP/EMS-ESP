@@ -95,8 +95,8 @@ void Boiler::register_mqtt_ha_config() {
     doc["uniq_id"] = FJSON("boiler");
     doc["ic"]      = FJSON("mdi:home-thermometer-outline");
 
-    char stat_t[50];
-    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/boiler_data"), System::hostname().c_str());
+    char stat_t[128];
+    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/boiler_data"), Mqtt::base().c_str());
     doc["stat_t"] = stat_t;
 
     doc["val_tpl"] = FJSON("{{value_json.serviceCode}}");

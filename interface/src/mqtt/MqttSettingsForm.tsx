@@ -44,6 +44,17 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           margin="normal"
         />
         <TextValidator
+          validators={['required']}
+          errorMessages={['Base is required']}
+          name="base"
+          label="Base"
+          fullWidth
+          variant="outlined"
+          value={data.base}
+          onChange={handleValueChange('base')}
+          margin="normal"
+        />
+        <TextValidator
           validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:65535']}
           errorMessages={['Port is required', "Must be a number", "Must be greater than 0 ", "Max value is 65535"]}
           name="port"
@@ -92,18 +103,6 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           value={data.keep_alive}
           type="number"
           onChange={handleValueChange('keep_alive')}
-          margin="normal"
-        />
-        <TextValidator
-          validators={['required', 'isNumber', 'minNumber:1', 'maxNumber:65535']}
-          errorMessages={['Max topic length is required', "Must be a number", "Must be greater than 0", "Max value is 65535"]}
-          name="max_topic_length"
-          label="Max Topic Length"
-          fullWidth
-          variant="outlined"
-          value={data.max_topic_length}
-          type="number"
-          onChange={handleValueChange('max_topic_length')}
           margin="normal"
         />
         <SelectValidator name="mqtt_format"

@@ -25,7 +25,7 @@ namespace emsesp {
 AsyncMqttClient * Mqtt::mqttClient_;
 
 // static parameters we make global
-std::string Mqtt::hostname_;
+std::string Mqtt::mqtt_base_;
 uint8_t     Mqtt::mqtt_qos_;
 bool        Mqtt::mqtt_retain_;
 uint32_t    Mqtt::publish_time_boiler_;
@@ -338,11 +338,31 @@ void Mqtt::on_publish(uint16_t packetId) {
     mqtt_messages_.pop_front(); // always remove from queue, regardless if there was a successful ACK
 }
 
+// called when MQTT settings have changed via the Web forms
+void Mqtt::reset_mqtt() {
+    if (!mqttClient_) {
+        return;
+    }
+
+    if (mqttClient_->connected()) {
+        mqttClient_->disconnect(); // force a disconnect
+    }
+}
+
 void Mqtt::start() {
     mqttClient_ = EMSESP::esp8266React.getMqttClient();
 
     // get the hostname, which we'll use to prefix to all topics
-    EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) { hostname_ = wifiSettings.hostname.c_str(); });
+    // EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) { hostname_ = wifiSettings.hostname.c_str(); });
+    // fetch MQTT settings, to see if MQTT is enabled
+    EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & mqttSettings) {
+        mqtt_enabled_            = mqttSettings.enabled;
+    });
+
+    // if MQTT disabled, quit
+    if (!mqtt_enabled_) {
+        return;
+    }
 
     // fetch MQTT settings
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & mqttSettings) {
@@ -355,14 +375,20 @@ void Mqtt::start() {
         mqtt_qos_                = mqttSettings.mqtt_qos;
         mqtt_retain_             = mqttSettings.mqtt_retain;
         mqtt_format_             = mqttSettings.mqtt_format;
-        mqtt_enabled_            = mqttSettings.enabled;
+        mqtt_base_               = mqttSettings.base.c_str();
     });
 
-    // if MQTT disabled, quit
-    if (!mqtt_enabled_ || initialized_) {
+    // create will_topic with the base prefixed. It has to be static because asyncmqttclient destroys the reference
+    static char will_topic[MQTT_TOPIC_MAX_SIZE];
+    snprintf_P(will_topic, MQTT_TOPIC_MAX_SIZE, PSTR("%s/status"), mqtt_base_.c_str());
+    mqttClient_->setWill(will_topic, 1, true, "offline"); // with qos 1, retain true
+
+    // if already initialized, don't do it again
+    if (initialized_) {
         return;
     }
     initialized_ = true;
+
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
@@ -383,13 +409,6 @@ void Mqtt::start() {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
     });
-
-    // create will_topic with the hostname prefixed. It has to be static because asyncmqttclient destroys the reference
-    static char will_topic[MQTT_TOPIC_MAX_SIZE];
-    strlcpy(will_topic, hostname_.c_str(), MQTT_TOPIC_MAX_SIZE);
-    strlcat(will_topic, "/", MQTT_TOPIC_MAX_SIZE);
-    strlcat(will_topic, "status", MQTT_TOPIC_MAX_SIZE);
-    mqttClient_->setWill(will_topic, 1, true, "offline"); // with qos 1, retain true
 
     mqttClient_->onMessage([this](char * topic, char * payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
         // receiving mqtt
@@ -450,6 +469,10 @@ bool Mqtt::get_publish_onchange(uint8_t device_type) {
         return true;
     }
     return false;
+}
+
+void Mqtt::set_base(std::string base) {
+    mqtt_base_ = base;
 }
 
 void Mqtt::set_qos(uint8_t mqtt_qos) {
@@ -547,7 +570,7 @@ void Mqtt::ha_status() {
 
     doc["name"]    = FJSON("EMS-ESP status");
     doc["uniq_id"] = FJSON("status");
-    doc["~"]       = System::hostname(); // ems-esp
+    doc["~"]       = mqtt_base_.c_str(); // ems-esp
     // doc["avty_t"]      = FJSON("~/status");
     doc["json_attr_t"] = FJSON("~/heartbeat");
     doc["stat_t"]      = FJSON("~/heartbeat");
@@ -566,7 +589,7 @@ void Mqtt::ha_status() {
 }
 
 // add sub or pub task to the queue.
-// a fully-qualified topic is created by prefixing the hostname, unless it's HA
+// a fully-qualified topic is created by prefixing the base, unless it's HA
 // returns a pointer to the message created
 std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, const std::string & topic, const std::string & payload, bool retain) {
     if (topic.empty()) {
@@ -579,9 +602,9 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
         // leave topic as it is
         message = std::make_shared<MqttMessage>(operation, topic, payload, retain);
     } else {
-        // prefix the hostname
+        // prefix the base
         std::string full_topic(100, '\0');
-        snprintf_P(&full_topic[0], full_topic.capacity() + 1, PSTR("%s/%s"), hostname_.c_str(), topic.c_str());
+        snprintf_P(&full_topic[0], full_topic.capacity() + 1, PSTR("%s/%s"), mqtt_base_.c_str(), topic.c_str());
         message = std::make_shared<MqttMessage>(operation, full_topic, payload, retain);
     }
 
@@ -783,7 +806,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     doc["uniq_id"] = entity;
 
     char state_t[50];
-    snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), hostname_.c_str(), entity);
+    snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), entity);
     doc["stat_t"] = state_t;
 
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
@@ -851,9 +874,9 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     // state topic
     char stat_t[MQTT_TOPIC_MAX_SIZE];
     if (suffix != nullptr) {
-        snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s_data%s"), hostname_.c_str(), device_name, uuid::read_flash_string(suffix).c_str());
+        snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s_data%s"), mqtt_base_.c_str(), device_name, uuid::read_flash_string(suffix).c_str());
     } else {
-        snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s_data"), hostname_.c_str(), device_name);
+        snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s_data"), mqtt_base_.c_str(), device_name);
     }
 
     // value template
