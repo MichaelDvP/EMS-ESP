@@ -8,7 +8,7 @@ on:
     #   - '*.*.*'
     paths:
     - 'CHANGELOG_LATEST.md'
-    workflow_dispatch:
+  workflow_dispatch:
     branches: [ dev ]
 jobs:
         
@@ -69,4 +69,3 @@ jobs:
             ./build/firmware/*.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
