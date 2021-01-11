@@ -350,17 +350,18 @@ void System::send_heartbeat() {
         doc["status"] = FJSON("disconnected");
     }
 
-    doc["rssi"]        = rssi;
-    doc["uptime"]      = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
-    doc["uptime_sec"]  = uuid::get_uptime_sec();
-    doc["mqttfails"]   = Mqtt::publish_fails();
-    doc["rx_received"] = EMSESP::rxservice_.telegram_count();
-    doc["tx_sent"]     = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
-    doc["rx_quality"]  = EMSESP::rxservice_.quality();
-    doc["tx_quality"]  = EMSESP::txservice_.quality();
-    doc["tx_fails"]    = EMSESP::txservice_.telegram_fail_count();
-    doc["rx_fails"]    = EMSESP::rxservice_.telegram_error_count();
-    doc["freemem"]     = free_memory;
+    doc["rssi"]         = rssi;
+    doc["uptime"]       = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    doc["uptime_sec"]   = uuid::get_uptime_sec();
+    doc["mqtt_fails"]   = Mqtt::publish_fails();
+    doc["rx_received"]  = EMSESP::rxservice_.telegram_count();
+    doc["tx_sent"]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
+    // doc["rx_quality"]  = EMSESP::rxservice_.quality();
+    // doc["tx_quality"]  = EMSESP::txservice_.quality();
+    doc["tx_fails"]     = EMSESP::txservice_.telegram_fail_count();
+    doc["rx_fails"]     = EMSESP::rxservice_.telegram_error_count();
+    doc["dallas_fails"] = EMSESP::sensor_fails();
+    doc["freemem"]      = free_memory;
 #if defined(ESP8266)
     doc["fragmem"] = frag_memory;
 #endif

@@ -95,6 +95,7 @@ class SystemStatusForm extends Component<SystemStatusFormProps, SystemStatusForm
               </ListItem>
             </Fragment>)
         }
+        <Divider variant="inset" component="li" />
         <ListItem>
           <ListItemAvatar>
             <Avatar>
