@@ -29,6 +29,7 @@ class DummySettings {
     uint8_t  mqtt_qos                = 0;
     bool     mqtt_retain             = false;
     bool     enabled                 = true; // MQTT
+    String   base                    = "ems-esp";
     String   hostname                = "ems-esp";
     String   jwtSecret               = "ems-esp";
     String   ssid                    = "ems-esp";
