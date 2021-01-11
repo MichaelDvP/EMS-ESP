@@ -39,6 +39,7 @@
 {195, DeviceType::BOILER, F("Condens 5000i"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 {203, DeviceType::BOILER, F("Logamax U122/Cerapur"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 {208, DeviceType::BOILER, F("Logamax Plus/GB192/Condens GC9000"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
+{211, DeviceType::BOILER, F("EasyControl Adapter"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 {234, DeviceType::BOILER, F("Logamax Plus GB122"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 {206, DeviceType::BOILER, F("Ecomline Excellent"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 
@@ -52,7 +53,6 @@
 {169, DeviceType::CONTROLLER, F("BC40"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {190, DeviceType::CONTROLLER, F("BC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {194, DeviceType::CONTROLLER, F("BC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
-{207, DeviceType::CONTROLLER, F("Sense II/CS200"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x10
 {209, DeviceType::CONTROLLER, F("ErP"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {218, DeviceType::CONTROLLER, F("M200/RFM200"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x50
 {224, DeviceType::CONTROLLER, F("9000i"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
@@ -63,6 +63,7 @@
 // Thermostat - not currently supporting write operations, like the Easy/100 types - 0x18
 {202, DeviceType::THERMOSTAT, F("Logamatic TC100/Moduline Easy"), DeviceFlags::EMS_DEVICE_FLAG_EASY | DeviceFlags::EMS_DEVICE_FLAG_NO_WRITE}, // 0x18, cannot write
 {203, DeviceType::THERMOSTAT, F("EasyControl CT200"), DeviceFlags::EMS_DEVICE_FLAG_EASY | DeviceFlags::EMS_DEVICE_FLAG_NO_WRITE}, // 0x18, cannot write
+{207, DeviceType::THERMOSTAT, F("Sense II/CS200"), DeviceFlags::EMS_DEVICE_FLAG_EASY | DeviceFlags::EMS_DEVICE_FLAG_NO_WRITE}, // 0x10
 
 // Thermostat - Buderus/Nefit/Bosch specific - 0x17 / 0x10 / 0x18 / 0x19
 { 67, DeviceType::THERMOSTAT, F("RC30"), DeviceFlags::EMS_DEVICE_FLAG_RC30_1},// 0x10 - based on RC35
