@@ -338,17 +338,6 @@ void Mqtt::on_publish(uint16_t packetId) {
     mqtt_messages_.pop_front(); // always remove from queue, regardless if there was a successful ACK
 }
 
-// called when MQTT settings have changed via the Web forms
-void Mqtt::reset_mqtt() {
-    if (!mqttClient_) {
-        return;
-    }
-
-    if (mqttClient_->connected()) {
-        mqttClient_->disconnect(); // force a disconnect
-    }
-}
-
 void Mqtt::start() {
     mqttClient_ = EMSESP::esp8266React.getMqttClient();
 
@@ -469,10 +458,6 @@ bool Mqtt::get_publish_onchange(uint8_t device_type) {
         return true;
     }
     return false;
-}
-
-void Mqtt::set_base(std::string base) {
-    mqtt_base_ = base;
 }
 
 void Mqtt::set_qos(uint8_t mqtt_qos) {

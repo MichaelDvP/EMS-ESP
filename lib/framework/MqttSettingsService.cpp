@@ -196,7 +196,6 @@ void MqttSettings::read(MqttSettings & settings, JsonObject & root) {
 
 StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & settings) {
     MqttSettings newSettings = {};
-    bool         changed     = false;
 
     newSettings.enabled        = root["enabled"] | FACTORY_MQTT_ENABLED;
     newSettings.host           = root["host"] | FACTORY_MQTT_HOST;
@@ -219,55 +218,35 @@ StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & setting
     newSettings.mqtt_qos                = root["mqtt_qos"] | EMSESP_DEFAULT_MQTT_QOS;
     newSettings.mqtt_retain             = root["mqtt_retain"] | EMSESP_DEFAULT_MQTT_RETAIN;
 
-    if (newSettings.base != settings.base) {
-        emsesp::EMSESP::mqtt_.set_base(newSettings.base.c_str());
-        changed = true;
-    }
-
     if (newSettings.mqtt_qos != settings.mqtt_qos) {
         emsesp::EMSESP::mqtt_.set_qos(newSettings.mqtt_qos);
-        changed = true;
     }
-
     if (newSettings.mqtt_format != settings.mqtt_format) {
         emsesp::EMSESP::mqtt_.set_format(newSettings.mqtt_format);
-        changed = true;
     }
-
     if (newSettings.mqtt_retain != settings.mqtt_retain) {
         emsesp::EMSESP::mqtt_.set_retain(newSettings.mqtt_retain);
-        changed = true;
     }
-
     if (newSettings.publish_time_boiler != settings.publish_time_boiler) {
         emsesp::EMSESP::mqtt_.set_publish_time_boiler(newSettings.publish_time_boiler);
-        changed = true;
     }
     if (newSettings.publish_time_thermostat != settings.publish_time_thermostat) {
         emsesp::EMSESP::mqtt_.set_publish_time_thermostat(newSettings.publish_time_thermostat);
-        changed = true;
     }
     if (newSettings.publish_time_solar != settings.publish_time_solar) {
         emsesp::EMSESP::mqtt_.set_publish_time_solar(newSettings.publish_time_solar);
-        changed = true;
     }
     if (newSettings.publish_time_mixer != settings.publish_time_mixer) {
         emsesp::EMSESP::mqtt_.set_publish_time_mixer(newSettings.publish_time_mixer);
-        changed = true;
     }
     if (newSettings.publish_time_other != settings.publish_time_other) {
         emsesp::EMSESP::mqtt_.set_publish_time_other(newSettings.publish_time_other);
-        changed = true;
     }
     if (newSettings.publish_time_sensor != settings.publish_time_sensor) {
         emsesp::EMSESP::mqtt_.set_publish_time_sensor(newSettings.publish_time_sensor);
-        changed = true;
     }
 
-    if (changed) {
-        // emsesp::EMSESP::mqtt_.reset_publish_fails(); // reset fail counter back to 0
-        emsesp::EMSESP::mqtt_.reset_mqtt();
-    }
+    emsesp::EMSESP::mqtt_.reset_publish_fails(); // reset fail counter back to 0
 
     settings = newSettings;
 

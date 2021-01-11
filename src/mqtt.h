@@ -71,7 +71,6 @@ class Mqtt {
     void set_publish_time_mixer(uint16_t publish_time);
     void set_publish_time_other(uint16_t publish_time);
     void set_publish_time_sensor(uint16_t publish_time);
-    void set_base(std::string base);
     void set_qos(uint8_t mqtt_qos);
     void set_retain(bool mqtt_retain);
     void set_format(uint8_t mqtt_format);
@@ -141,8 +140,6 @@ class Mqtt {
     static void reset_publish_fails() {
         mqtt_publish_fails_ = 0;
     }
-
-    static void reset_mqtt();
 
     static uint8_t mqtt_format() {
         return mqtt_format_;

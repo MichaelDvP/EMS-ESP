@@ -270,7 +270,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         // create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
         // create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
     } else if (part == 1) {
-        part = 2; // no more parts
+        part = 2;
         if (!export_values_ww(json, true)) { // append ww values
             return;
         }
@@ -303,7 +303,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("wWStarts"), nullptr, F_(wWStarts), nullptr, json);
         create_value_json(root, F("wWWorkM"), nullptr, F_(wWWorkM), nullptr, json);
     } else if (part == 2) {
-        part = 0;
+        part = 0; // no more parts
         if (!export_values_info(json, true)) { // append info values
             return;
         }
@@ -711,12 +711,21 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         char s[5];
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
         json["serviceCode"] = s;
-    } else { // if (serviceCode_[0] != '\0') {
-        json["serviceCode"] = serviceCode_;
+    } else { 
+        if (serviceCode_[0] == 0xF0) { 
+            json["serviceCode"] = FJSON("~H");
+        } else {
+            json["serviceCode"] = serviceCode_;
+        }
     }
 
     if (Helpers::hasValue(serviceCodeNumber_)) {
         json["serviceCodeNumber"] = serviceCodeNumber_;
+        // if (serviceCode_[0] == 0xF0) { 
+        //     json["serviceCode"] = FJSON("~H");
+        // } else {
+        //     json["serviceCode"] = serviceCode_;
+        // }
     }
 
     if (lastCode_[0] != '\0') {
@@ -894,7 +903,6 @@ void Boiler::publish_values(JsonObject & json, bool force) {
     if (export_values_ww(json_data)) {
         Mqtt::publish(F("boiler_data_ww"), json_data);
     }
-
     json_data.clear();
 
     if (export_values_info(json_data)) {
