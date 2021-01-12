@@ -86,6 +86,13 @@ class EMSESPStatusForm extends Component<EMSESPStatusFormProps> {
                   <TableCell align="right">{data.tx_quality}&nbsp;%
                   </TableCell>
                 </TableRow>
+                <TableRow>
+                  <TableCell >
+                    Dallas sensor fails
+                  </TableCell>
+                  <TableCell align="right">{data.dallas_fails}
+                  </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
