@@ -395,10 +395,10 @@ void System::measure_analog() {
     if (!measure_last_ || (uint32_t)(uuid::get_uptime() - measure_last_) >= SYSTEM_MEASURE_ANALOG_INTERVAL) {
         measure_last_ = uuid::get_uptime();
 #if defined(ESP8266)
-        uint16_t a = analogRead(A0); // 10 bit 3,2V
+        // uint16_t a = analogRead(A0); // 10 bit 3,2V
+        uint16_t a = ((analogRead(A0) * 27) / 8); // scale to esp32
 #elif defined(ESP32)
-        // uint16_t a = analogRead(36) * 3 / 10; // 10 bit 1V
-        uint16_t a = analogRead(36); // 10 bit with resistors 220k-100k
+        uint16_t a = analogRead(36); // 12 bit, 3,3V
 #else
         uint16_t a = 0; // standalone
 #endif

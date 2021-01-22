@@ -192,7 +192,7 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
     JsonObject                                     json = doc.to<JsonObject>();
     if (part == 0) {
         if (export_values_main(json)) {
-            create_value_json(root, F("time"), nullptr, F_(time), nullptr, json);
+            create_value_json(root, F("dateTime"), nullptr, F_(time), nullptr, json);
             create_value_json(root, F("errorcode"), nullptr, F_(error), nullptr, json);
             create_value_json(root, F("lastcode"), nullptr, F_(lastCode), nullptr, json);
             create_value_json(root, F("display"), nullptr, F_(display), nullptr, json);
@@ -327,7 +327,7 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 
     // Clock time
     if (datetime_.size()) {
-        rootThermostat["time"] = datetime_;
+        rootThermostat["dateTime"] = datetime_;
     }
 
     if (Helpers::hasValue(errorNumber_)) {
@@ -846,7 +846,7 @@ void Thermostat::register_mqtt_ha_config() {
     ids.add("ems-esp-thermostat");
     Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/thermostat/config"), doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(time), device_type(), "time", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(time), device_type(), "dateTime", nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(error), device_type(), "errorcode", nullptr, nullptr);
 
     uint8_t model = this->model();
