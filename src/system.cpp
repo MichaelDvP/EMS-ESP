@@ -396,9 +396,9 @@ void System::measure_analog() {
         measure_last_ = uuid::get_uptime();
 #if defined(ESP8266)
         // uint16_t a = analogRead(A0); // 10 bit 3,2V
-        uint16_t a = ((analogRead(A0) * 27) / 8); // scale to esp32
+        uint16_t a = ((analogRead(A0) * 27) / 8); // scale to esp32 result in mV
 #elif defined(ESP32)
-        uint16_t a = analogRead(36); // 12 bit, 3,3V
+        uint16_t a = analogRead(36); // arduino scale mV
 #else
         uint16_t a = 0; // standalone
 #endif

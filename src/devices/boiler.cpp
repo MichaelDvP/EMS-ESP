@@ -147,30 +147,30 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnWorkMin), device_type(), "burnWorkMin", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatWorkMin), device_type(), "heatWorkMin", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(UBAuptime), device_type(), "UBAuptime", F_(min), nullptr);
-    // information
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(upTimeControl), device_type(), "upTimeControl", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(upTimeCompHeating), device_type(), "upTimeCompHeating", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(upTimeCompCooling), device_type(), "upTimeCompCooling", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(upTimeCompWw), device_type(), "upTimeCompWw", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatingStarts), device_type(), "heatingStarts", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(coolingStarts), device_type(), "coolingStarts_", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wWStarts2), device_type(), "wWStarts2", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgConsTotal), device_type(), "nrgConsTotal", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(auxElecHeatNrgConsTotal), device_type(), "auxElecHeatNrgConsTotal_", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(auxElecHeatNrgConsHeating), device_type(), "auxElecHeatNrgConsHeating", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(auxElecHeatNrgConsDHW), device_type(), "auxElecHeatNrgConsDHW", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgConsCompTotal), device_type(), "nrgConsCompTotal", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgConsCompHeating), device_type(), "nrgConsCompHeating", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgConsCompWw), device_type(), "nrgConsCompWw", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgConsCompCooling), device_type(), "nrgConsCompCooling", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppTotal), device_type(), "nrgSuppTotal_", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppHeating), device_type(), "nrgSuppHeating", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppWw), device_type(), "nrgSuppWw", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(nrgSuppCooling), device_type(), "nrgSuppCooling", F_(kwh), nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceMessage), device_type(), "maintenanceMessage", nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance), device_type(), "maintenance", nullptr, nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceTime), device_type(), "maintenanceTime", F_(hours), nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceDate), device_type(), "maintenanceDate", nullptr, nullptr);
+    // information
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeControl), device_type(), "upTimeControl", F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeCompHeating), device_type(), "upTimeCompHeating", F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeCompCooling), device_type(), "upTimeCompCooling", F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeCompWw), device_type(), "upTimeCompWw", F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(heatingStarts), device_type(), "heatingStarts", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(coolingStarts), device_type(), "coolingStarts_", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(wWStarts2), device_type(), "wWStarts2", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgConsTotal), device_type(), "nrgConsTotal", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxElecHeatNrgConsTotal), device_type(), "auxElecHeatNrgConsTotal_", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxElecHeatNrgConsHeating), device_type(), "auxElecHeatNrgConsHeating", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxElecHeatNrgConsDHW), device_type(), "auxElecHeatNrgConsDHW", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgConsCompTotal), device_type(), "nrgConsCompTotal", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgConsCompHeating), device_type(), "nrgConsCompHeating", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgConsCompWw), device_type(), "nrgConsCompWw", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgConsCompCooling), device_type(), "nrgConsCompCooling", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgSuppTotal), device_type(), "nrgSuppTotal_", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgSuppHeating), device_type(), "nrgSuppHeating", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgSuppWw), device_type(), "nrgSuppWw", F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgSuppCooling), device_type(), "nrgSuppCooling", F_(kwh), nullptr);
     mqtt_ha_config_ = true; // done
 }
 
