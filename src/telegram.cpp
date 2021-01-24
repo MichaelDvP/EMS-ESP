@@ -278,6 +278,11 @@ void TxService::send() {
         return;
     }
 
+    if (delayed_send_ > 0 && uuid::get_uptime() < (delayed_send_ + 2000)) {
+        return;
+    }
+    delayed_send_ = 0;
+
     // if we're in read-only mode (tx_mode 0) forget the Tx call
     if (tx_mode() != 0) {
         send_telegram(tx_telegrams_.front());
@@ -418,13 +423,13 @@ void TxService::add(const uint8_t  operation,
     LOG_DEBUG(F("[DEBUG] New Tx [#%d] telegram, length %d"), tx_telegram_id_, message_length);
 #endif
 
-    // if the queue is full, make room but removing the last one
+    // if the queue is full, make room but removing the oldest one
     if (tx_telegrams_.size() >= MAX_TX_TELEGRAMS) {
         tx_telegrams_.pop_front();
     }
 
-    if (front) {
-        tx_telegrams_.emplace_front(tx_telegram_id_++, std::move(telegram), false); // add to back of queue
+    if (front || (operation == Telegram::Operation::TX_WRITE)) {
+        tx_telegrams_.emplace_front(tx_telegram_id_++, std::move(telegram), false); // add to front of queue
     } else {
         tx_telegrams_.emplace_back(tx_telegram_id_++, std::move(telegram), false); // add to back of queue
     }
@@ -612,6 +617,8 @@ uint16_t TxService::post_send_query() {
         // read_request(telegram_last_post_send_query_, dest, 0); // no offset
         LOG_DEBUG(F("Sending post validate read, type ID 0x%02X to dest 0x%02X"), post_typeid, dest);
         set_post_send_query(0); // reset
+        // delay the request if we have different type_id for post_send_query
+        delayed_send_ = (this->telegram_last_->type_id == post_typeid) ? 0 : uuid::get_uptime();
     }
 
     return post_typeid;
