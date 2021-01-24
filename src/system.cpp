@@ -44,7 +44,6 @@ uint8_t     System::led_gpio_       = 0;
 uint16_t    System::analog_         = 0;
 bool        System::analog_enabled_ = false;
 bool        System::syslog_enabled_ = false;
-std::string System::hostname_;
 
 // send on/off to a gpio pin
 // value: true = HIGH, false = LOW
@@ -248,8 +247,6 @@ void System::init() {
     other_init();
 
     syslog_init(); // init SysLog
-
-    EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & settings) { hostname(settings.hostname.c_str()); });
 
     EMSESP::init_tx(); // start UART
 }
@@ -870,7 +867,6 @@ bool System::check_upgrade() {
                     mqttSettings.enabled        = mqtt["enabled"];
                     mqttSettings.keepAlive      = FACTORY_MQTT_KEEP_ALIVE;
                     mqttSettings.cleanSession   = FACTORY_MQTT_CLEAN_SESSION;
-                    // mqttSettings.maxTopicLength = FACTORY_MQTT_MAX_TOPIC_LENGTH;
 
                     return StateUpdateResult::CHANGED;
                 },
@@ -991,7 +987,6 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["client_id"]               = settings.clientId;
         node["keep_alive"]              = settings.keepAlive;
         node["clean_session"]           = Helpers::render_boolean(s, settings.cleanSession);
-        // node["max_topic_length"]        = settings.maxTopicLength;
         node["publish_time_boiler"]     = settings.publish_time_boiler;
         node["publish_time_thermostat"] = settings.publish_time_thermostat;
         node["publish_time_solar"]      = settings.publish_time_solar;
@@ -1066,7 +1061,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     node["fragmem"] = ESP.getHeapFragmentation();
 #endif
 
-/*
+/* Use call system settings for all settings
     node = json.createNestedObject("Settings");
 
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
@@ -1121,7 +1116,6 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node["#read requests sent"]   = EMSESP::txservice_.telegram_read_count();
         node["#write requests sent"]  = EMSESP::txservice_.telegram_write_count();
         node["#incomplete telegrams"] = EMSESP::rxservice_.telegram_error_count();
-        // node["#tx fails"]             = TxService::MAXIMUM_TX_RETRIES, EMSESP::txservice_.telegram_fail_count();
         node["#tx fails"]             = EMSESP::txservice_.telegram_fail_count();
         node["rx line quality"]       = EMSESP::rxservice_.quality();
         node["tx line quality"]       = EMSESP::txservice_.quality();
