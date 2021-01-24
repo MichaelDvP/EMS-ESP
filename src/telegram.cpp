@@ -272,22 +272,17 @@ void TxService::send() {
         return;
     }
 
-    // if there's nothing in the queue to transmit, send back a poll and quit
-    if (tx_telegrams_.empty()) {
+    // if there's nothing in the queue to transmit or sending should be delayed, send back a poll and quit
+    if (tx_telegrams_.empty() || (delayed_send_ && uuid::get_uptime() < (delayed_send_ + 2000))) {
         send_poll();
-        return;
-    }
-
-    if (delayed_send_ > 0 && uuid::get_uptime() < (delayed_send_ + 2000)) {
         return;
     }
     delayed_send_ = 0;
 
     // if we're in read-only mode (tx_mode 0) forget the Tx call
-    if (tx_mode() != 0) {
+    if (tx_mode()) {
         send_telegram(tx_telegrams_.front());
     }
-
 
     tx_telegrams_.pop_front(); // remove the telegram from the queue
 }
