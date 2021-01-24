@@ -711,17 +711,15 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         char s[5];
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
         json["serviceCode"] = s;
-    } else { 
-        if (serviceCode_[0] == 0xF0) { 
-            json["serviceCode"] = FJSON("~H");
-        } else {
-            json["serviceCode"] = serviceCode_;
-        }
+    } else if (serviceCode_[0] == 0xF0) {
+        json["serviceCode"] = FJSON("~H");
+    } else {
+        json["serviceCode"] = serviceCode_;
     }
 
     if (Helpers::hasValue(serviceCodeNumber_)) {
         json["serviceCodeNumber"] = serviceCodeNumber_;
-        // if (serviceCode_[0] == 0xF0) { 
+        // if (serviceCode_[0] == 0xF0) {
         //     json["serviceCode"] = FJSON("~H");
         // } else {
         //     json["serviceCode"] = serviceCode_;

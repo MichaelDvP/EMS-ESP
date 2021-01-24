@@ -78,8 +78,6 @@ void Mqtt::subscribe(const uint8_t device_type, const std::string & topic, mqtt_
         return;
     }
     // register in our libary with the callback function.
-    // We store both the original topic and the fully-qualified one
-    // mqtt_subfunctions_.emplace_back(device_type, std::move(topic), std::move(message->topic), std::move(cb));
     mqtt_subfunctions_.emplace_back(device_type, std::move(topic), std::move(cb));
 }
 
