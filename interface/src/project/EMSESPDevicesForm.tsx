@@ -32,7 +32,7 @@ import {
 
 import { RestFormProps, FormButton } from "../components";
 
-import { EMSESPDevices, EMSESPDeviceData, Device, Sensor } from "./EMSESPtypes";
+import { EMSESPDevices, EMSESPDeviceData, Device } from "./EMSESPtypes";
 
 import { ENDPOINT_ROOT } from "../api";
 
