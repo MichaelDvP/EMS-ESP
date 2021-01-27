@@ -75,6 +75,9 @@ void DallasSensor::loop() {
             } else {
                 // no sensors found
                 // LOG_ERROR(F("Bus reset failed")); // uncomment for debug
+                if (sensors_.size()) {
+                    sensorfails_++;
+                }
             }
             last_activity_ = time_now;
         }
@@ -83,9 +86,11 @@ void DallasSensor::loop() {
             // LOG_DEBUG(F("Scanning for sensors")); // uncomment for debug
             bus_.reset_search();
             state_ = State::SCANNING;
+            sensorfails_++;
         } else if (time_now - last_activity_ > READ_TIMEOUT_MS) {
             LOG_WARNING(F("Dallas sensor read timeout"));
             state_ = State::IDLE;
+            sensorfails_++;
         }
     } else if (state_ == State::SCANNING) {
         if (time_now - last_activity_ > SCAN_TIMEOUT_MS) {

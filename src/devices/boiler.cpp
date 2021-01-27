@@ -1329,12 +1329,12 @@ void Boiler::process_UBAMaintenanceData(std::shared_ptr<const Telegram> telegram
         return;
     }
     // first byte: Maintenance messages (0 = none, 1 = by operating hours, 2 = by date)
-    telegram->read_value(maintenanceType_, 0);
-    telegram->read_value(maintenanceTime_, 1);
+    changed_ |= telegram->read_value(maintenanceType_, 0);
+    changed_ |= telegram->read_value(maintenanceTime_, 1);
     uint8_t day   = telegram->message_data[2];
     uint8_t month = telegram->message_data[3];
     uint8_t year  = telegram->message_data[4];
-    if (day > 0 && month > 0 && year > 0) {
+    if (day > 0 && month > 0) {
         snprintf_P(maintenanceDate_, sizeof(maintenanceDate_), PSTR("%02d.%02d.%04d"), day, month, year + 2000);
     }
 }
