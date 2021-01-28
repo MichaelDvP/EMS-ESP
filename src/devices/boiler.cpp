@@ -885,11 +885,10 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(maintenanceTime_)) {
         json["maintenanceTime"] = maintenanceTime_ * 100;
     }
- 
+
     if (maintenanceDate_[0] != '\0') {
         json["maintenanceDate"] = maintenanceDate_;
     }
-
 
     return (json.size());
 }

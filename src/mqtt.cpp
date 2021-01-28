@@ -345,18 +345,6 @@ void Mqtt::on_publish(uint16_t packetId) {
 void Mqtt::start() {
     mqttClient_ = EMSESP::esp8266React.getMqttClient();
 
-    // get the hostname, which we'll use to prefix to all topics
-    // EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) { hostname_ = wifiSettings.hostname.c_str(); });
-    // fetch MQTT settings, to see if MQTT is enabled
-    EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & mqttSettings) {
-        mqtt_enabled_            = mqttSettings.enabled;
-    });
-
-    // if MQTT disabled, quit
-    if (!mqtt_enabled_) {
-        return;
-    }
-
     // fetch MQTT settings
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & mqttSettings) {
         publish_time_boiler_     = mqttSettings.publish_time_boiler * 1000; // convert to milliseconds
@@ -368,16 +356,12 @@ void Mqtt::start() {
         mqtt_qos_                = mqttSettings.mqtt_qos;
         mqtt_retain_             = mqttSettings.mqtt_retain;
         mqtt_format_             = mqttSettings.mqtt_format;
+        mqtt_enabled_            = mqttSettings.enabled;
         mqtt_base_               = mqttSettings.base.c_str();
     });
 
-    // create will_topic with the base prefixed. It has to be static because asyncmqttclient destroys the reference
-    static char will_topic[MQTT_TOPIC_MAX_SIZE];
-    snprintf_P(will_topic, MQTT_TOPIC_MAX_SIZE, PSTR("%s/status"), mqtt_base_.c_str());
-    mqttClient_->setWill(will_topic, 1, true, "offline"); // with qos 1, retain true
-
-    // if already initialized, don't do it again
-    if (initialized_) {
+    // if MQTT disabled, quit
+    if (!mqtt_enabled_ || initialized_) {
         return;
     }
     initialized_ = true;
@@ -402,6 +386,11 @@ void Mqtt::start() {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
     });
+
+    // create will_topic with the base prefixed. It has to be static because asyncmqttclient destroys the reference
+    static char will_topic[MQTT_TOPIC_MAX_SIZE];
+    snprintf_P(will_topic, MQTT_TOPIC_MAX_SIZE, PSTR("%s/status"), mqtt_base_.c_str());
+    mqttClient_->setWill(will_topic, 1, true, "offline"); // with qos 1, retain true
 
     mqttClient_->onMessage([this](char * topic, char * payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
         // receiving mqtt

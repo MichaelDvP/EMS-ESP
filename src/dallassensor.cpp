@@ -65,6 +65,12 @@ void DallasSensor::loop() {
     uint32_t time_now = uuid::get_uptime();
 
     if (state_ == State::IDLE) {
+#if defined(ESP32)
+        if (time_now - last_activity_ >= READ_INTERVAL_MS - 10) {
+            pinMode(27, OUTPUT);
+            digitalWrite(27, 1);
+        }
+#endif
         if (time_now - last_activity_ >= READ_INTERVAL_MS) {
             // LOG_DEBUG(F("Read sensor temperature")); // uncomment for debug
             if (!bus_.idle()) {
@@ -74,19 +80,22 @@ void DallasSensor::loop() {
                 YIELD;
                 bus_.skip();
                 bus_.write(CMD_CONVERT_TEMP, parasite_ ? 1 : 0);
-                state_   = State::READING;
-                scantry_ = 0;
+                state_     = State::READING;
+                scanretry_ = 0;
             } else {
                 // no sensors found
                 if (sensors_.size()) {
                     sensorfails_++;
-                    if (++scantry_ > 5) { // every 30 sec
-                        scantry_ = 0;
+                    if (++scanretry_ > 5) { // every 30 sec
+                        scanretry_ = 0;
                         LOG_ERROR(F("Bus reset failed"));
                         for (auto & sensor : sensors_) {
                             sensor.temperature_c = EMS_VALUE_SHORT_NOTSET;
                         }
                     }
+#if defined(ESP32)
+                    digitalWrite(27, 0);
+#endif
                 }
             }
             last_activity_ = time_now;
