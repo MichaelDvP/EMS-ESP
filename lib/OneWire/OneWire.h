@@ -75,12 +75,14 @@ class OneWire {
     }
     void begin(uint8_t pin);
 
-    // check bus idle, also done in rest
+    /*/ check bus idle, also done in reset()
 #ifdef ARDUINO_ARCH_ESP32
     uint8_t IRAM_ATTR idle(void);
 #else
     uint8_t idle(void);
 #endif
+    */
+
     // Perform a 1-Wire reset cycle. Returns 1 if a device responds
     // with a presence pulse.  Returns 0 if there is no device or the
     // bus is shorted or otherwise held low for more than 250uS
