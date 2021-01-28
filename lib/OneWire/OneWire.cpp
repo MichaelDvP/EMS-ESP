@@ -155,6 +155,28 @@ void OneWire::begin(uint8_t pin) {
 #endif
 }
 
+// check bus idle, also done in rest
+#ifdef ARDUINO_ARCH_ESP32
+uint8_t IRAM_ATTR OneWire::idle(void) {
+#else
+uint8_t OneWire::idle(void) {
+#endif
+    IO_REG_TYPE mask           IO_REG_MASK_ATTR = bitmask;
+    volatile IO_REG_TYPE * reg IO_REG_BASE_ATTR = baseReg;
+    uint8_t                    retries = 125;
+
+    noInterrupts();
+    DIRECT_MODE_INPUT(reg, mask);
+    interrupts();
+    // wait until the wire is high
+    do {
+        if (--retries == 0)
+            return 0;
+        delayMicroseconds(2);
+    } while (!DIRECT_READ(reg, mask));
+    return 1;
+}
+
 // Perform the onewire reset function.  We will wait up to 250uS for
 // the bus to come high, if it doesn't then it is broken or shorted
 // and we return a 0;

@@ -67,18 +67,25 @@ void DallasSensor::loop() {
     if (state_ == State::IDLE) {
         if (time_now - last_activity_ >= READ_INTERVAL_MS) {
             // LOG_DEBUG(F("Read sensor temperature")); // uncomment for debug
+            if (!bus_.idle()) {
+                LOG_ERROR(F("Bus not idle"));
+            }
             if (bus_.reset() || parasite_) {
                 YIELD;
                 bus_.skip();
                 bus_.write(CMD_CONVERT_TEMP, parasite_ ? 1 : 0);
-                state_ = State::READING;
+                state_   = State::READING;
+                scantry_ = 0;
             } else {
                 // no sensors found
                 if (sensors_.size()) {
                     sensorfails_++;
-                    LOG_ERROR(F("Bus reset failed"));
-                    for (auto & sensor : sensors_) {
-                        sensor.temperature_c = EMS_VALUE_SHORT_NOTSET;
+                    if (++scantry_ > 5) { // every 30 sec
+                        scantry_ = 0;
+                        LOG_ERROR(F("Bus reset failed"));
+                        for (auto & sensor : sensors_) {
+                            sensor.temperature_c = EMS_VALUE_SHORT_NOTSET;
+                        }
                     }
                 }
             }
