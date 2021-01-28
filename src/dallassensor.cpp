@@ -74,9 +74,12 @@ void DallasSensor::loop() {
                 state_ = State::READING;
             } else {
                 // no sensors found
-                // LOG_ERROR(F("Bus reset failed")); // uncomment for debug
                 if (sensors_.size()) {
                     sensorfails_++;
+                    LOG_ERROR(F("Bus reset failed"));
+                    for (auto & sensor : sensors_) {
+                        sensor.temperature_c = EMS_VALUE_SHORT_NOTSET;
+                    }
                 }
             }
             last_activity_ = time_now;
@@ -86,7 +89,6 @@ void DallasSensor::loop() {
             // LOG_DEBUG(F("Scanning for sensors")); // uncomment for debug
             bus_.reset_search();
             state_ = State::SCANNING;
-            sensorfails_++;
         } else if (time_now - last_activity_ > READ_TIMEOUT_MS) {
             LOG_WARNING(F("Dallas sensor read timeout"));
             state_ = State::IDLE;
@@ -96,6 +98,7 @@ void DallasSensor::loop() {
         if (time_now - last_activity_ > SCAN_TIMEOUT_MS) {
             LOG_ERROR(F("Dallas sensor scan timeout"));
             state_ = State::IDLE;
+            sensorfails_++;
         } else {
             uint8_t addr[ADDR_LEN] = {0};
 
