@@ -348,6 +348,9 @@ std::string Helpers::data_to_hex(const uint8_t * data, const uint8_t length) {
 // works with only positive numbers
 uint32_t Helpers::hextoint(const char * hex) {
     uint32_t val = 0;
+    if (hex[0] == '0' && hex[1] == 'x') {
+        hex += 2;
+    }
     while (*hex) {
         // get current character then increment
         char byte = *hex++;

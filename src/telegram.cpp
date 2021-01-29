@@ -270,7 +270,7 @@ void TxService::send() {
     }
 
     // if there's nothing in the queue to transmit or sending should be delayed, send back a poll and quit
-    if (tx_telegrams_.empty() || (delayed_send_ && uuid::get_uptime() < (delayed_send_ + 2000))) {
+    if (tx_telegrams_.empty() || (delayed_send_ && uuid::get_uptime() < (delayed_send_ + POST_SEND_DELAY))) {
         send_poll();
         return;
     }
