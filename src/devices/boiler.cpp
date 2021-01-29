@@ -1750,24 +1750,27 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {
-    std::string s(12, '\0');
-    if (Helpers::value2string(value, s)) {
-        if (s == "reset") {
-            LOG_INFO(F("Reset boiler maintenance message"));
-            write_command(0x05, 0x08, 0xFF, 0x1C);
-            return true;
-        }
+    uint8_t num;
+    if (Helpers::value2enum(value, num, {F("off"), F("time"), F("date")})) {
+        LOG_INFO(F("Setting maintenance type to %s"), value);
+        write_command(0x15, 0, num, 0x15);
+        return true;
     }
+
+    if (strncmp(value, "reset", 5) == 0) {
+        LOG_INFO(F("Reset boiler maintenance message"));
+        write_command(0x05, 0x08, 0xFF, 0x1C);
+        return true;
+    }
+
     if (strlen(value) == 10) { // date
         uint8_t day   = (value[0] - '0') * 10 + (value[1] - '0');
         uint8_t month = (value[3] - '0') * 10 + (value[4] - '0');
         uint8_t year  = (Helpers::atoint(&value[6]) - 2000);
-        if (day > 0 && day < 32 && month > 0 && month < 13 && year > 19) {
-            LOG_INFO(F("Setting maintenance to %02d.%02d.%04d"), day, month, year + 2000);
-            write_command(0x15, 2, day);
-            write_command(0x15, 3, month);
-            write_command(0x15, 4, year);
-            write_command(0x15, 0, 2, 0x15);
+        if (day > 0 && day < 32 && month > 0 && month < 13) {
+            LOG_INFO(F("Setting maintenance date to %02d.%02d.%04d"), day, month, year + 2000);
+            uint8_t data[5] = {2, maintenanceTime_, day, month, year};
+            write_command(0x15, 0, data, 5, 0x15);
         } else {
             LOG_WARNING(F("Setting maintenance: wrong format %d.%d.%d"), day, month, year + 2000);
             return false;
@@ -1776,21 +1779,15 @@ bool Boiler::set_maintenance(const char * value, const int8_t id) {
     }
 
     int hrs;
-    if (!Helpers::value2number(value, hrs)) {
-        LOG_WARNING(F("Setting maintenance: wrong format"));
-        return false;
+    if (Helpers::value2number(value, hrs)) {
+        if (hrs < 25600) {
+            LOG_INFO(F("Setting maintenance time %d hours"), hrs);
+            write_command(0x15, 0, 0x0100 + (hrs / 100), 0x15);
+            return true;
+        }
     }
-
-    if (hrs == 0) {
-        LOG_INFO(F("Setting maintenance off"));
-        write_command(0x15, 0, 0, 0x15); // off
-    } else {
-        LOG_INFO(F("Setting maintenance in %d hours"), hrs);
-        write_command(0x15, 1, (uint8_t)(hrs / 100));
-        write_command(0x15, 0, 1, 0x15);
-    }
-
-    return true;
+    LOG_WARNING(F("Setting maintenance: wrong format"));
+    return false;
 }
 
 } // namespace emsesp
