@@ -258,7 +258,9 @@ void TxService::start() {
 
 // sends a 1 byte poll which is our own device ID
 void TxService::send_poll() {
-    EMSuart::send_poll(ems_bus_id() ^ ems_mask());
+    if (tx_mode()) {
+        EMSuart::send_poll(ems_bus_id() ^ ems_mask());
+    }
 }
 
 // Process the next telegram on the Tx queue
@@ -276,7 +278,10 @@ void TxService::send() {
     }
     delayed_send_ = 0;
 
-    send_telegram(tx_telegrams_.front());
+    // if we're in read-only mode (tx_mode 0) forget the Tx call
+    if (tx_mode()) {
+        send_telegram(tx_telegrams_.front());
+    }
     tx_telegrams_.pop_front(); // remove the telegram from the queue
 }
 

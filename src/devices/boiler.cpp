@@ -1747,7 +1747,7 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {
-    std::string s(7, '\0');
+    std::string s(12, '\0');
     if (Helpers::value2string(value, s)) {
         if (s == "reset") {
             LOG_INFO(F("Reset boiler maintenance message"));
