@@ -481,7 +481,7 @@ bool Helpers::value2enum(const char * v, uint8_t & value, const std::vector<cons
     std::string str = toLower(v);
     for (value = 0; value < strs.size(); value++) {
         std::string str1 = uuid::read_flash_string(strs[value]);
-        if ((str1 == "off" && str == "false") || (str1 == "on" && str == "true") || (str == str1) || (v[0] == '0' + value)) {
+        if ((str1 == "off" && str == "false") || (str1 == "on" && str == "true") || (str == str1) || (v[0] == '0' + value && v[1] == '\0')) {
             return true;
         }
     }

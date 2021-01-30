@@ -260,6 +260,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("burnWorkMin"), nullptr, F_(burnWorkMin), nullptr, json);
         create_value_json(root, F("heatWorkMin"), nullptr, F_(heatWorkMin), nullptr, json);
         create_value_json(root, F("UBAuptime"), nullptr, F_(UBAuptime), nullptr, json);
+        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), (maintenanceType_ == 1) ? F_(hours) : nullptr, json);
     } else if (part == 1) {
         part = 2;
         if (!export_values_ww(json, true)) { // append ww values
@@ -318,16 +319,9 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("nrgSuppWw"), nullptr, F_(nrgSuppWw), F_(kwh), json);
         create_value_json(root, F("nrgSuppCooling"), nullptr, F_(nrgSuppCooling), F_(kwh), json);
         create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
-        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
-        create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
-        create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
-        /*
-        if (maintenanceType_ == 1) {
-            create_value_json(root, F("maintenance"), nullptr, F_(maintenance), F_(hours), json);
-        } else {
-            create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
-        }
-        */
+        // create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
+        // create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
+        // create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
     }
 }
 
@@ -711,7 +705,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         }
     }
 
-    /*/ Service Code & Service Code Number. Priority error - maintenance - workingcode
+    // Service Code & Service Code Number. Priority error - maintenance - workingcode
     if ((serviceCode_[0] >= '1' && serviceCode_[0] <= '9') || (serviceCode_[0] >= 'A' && serviceCode_[0] <= 'Z')) {
         json["serviceCode"] = serviceCode_;
     } else if (Helpers::hasValue(maintenanceMessage_) && maintenanceMessage_ > 0) {
@@ -724,16 +718,19 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         json["serviceCode"] = serviceCode_;
     }
 
-    if (Helpers::hasValue(maintenanceType_)) {
-        if (maintenanceType_ == 0) {
-            json["maintenance"] = FJSON("off");
-        } else if (maintenanceType_ == 1) {
-            json["maintenance"] = maintenanceTime_ * 100;
-        } else if (maintenanceType_ == 2) {
-            json["maintenance"] = maintenanceDate_;
-        }
+    if (Helpers::hasValue(serviceCodeNumber_)) {
+        json["serviceCodeNumber"] = serviceCodeNumber_;
     }
-*/
+
+    if (maintenanceType_ == 0) {
+        json["maintenance"] = FJSON("off");
+    } else if (maintenanceType_ == 1) {
+        json["maintenance"] = maintenanceTime_ * 100;
+    } else if (maintenanceType_ == 2) {
+        json["maintenance"] = maintenanceDate_;
+    }
+
+    /* only service code
     if (Helpers::hasValue(serviceCodeNumber_)) {
         json["serviceCodeNumber"] = serviceCodeNumber_;
         if (serviceCode_[0] == 0xF0) {
@@ -742,6 +739,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
             json["serviceCode"] = serviceCode_;
         }
     }
+    */
 
     if (lastCode_[0] != '\0') {
         json["lastCode"] = lastCode_;
@@ -867,14 +865,11 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
         json["nrgSuppCooling"] = nrgSuppCooling_;
     }
 
+    /* show always all maintenance values
     if (Helpers::hasValue(maintenanceMessage_)) {
-        // if (maintenanceMessage_ > 0) {
         char s[5];
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
-        json["maintenanceMessage"] = s;
-        // } else {
-        //    json["maintenanceMessage"] = " ";
-        // }
+        json["maintenanceMessage"] = maintenanceMessage_ ? s : " ";
     }
 
     if (Helpers::hasValue(maintenanceType_)) {
@@ -889,6 +884,7 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     if (maintenanceDate_[0] != '\0') {
         json["maintenanceDate"] = maintenanceDate_;
     }
+    */
 
     return (json.size());
 }
@@ -1288,11 +1284,12 @@ void Boiler::process_UBAFlags(std::shared_ptr<const Telegram> telegram) {
 #pragma GCC diagnostic pop
 
 // 0x1C
-// 08 00 1C 94 0B 0A 1D 31 08 00 80 00 00 00 -> message for 29.11.2020
-// 08 00 1C 94 0B 0A 1D 31 00 00 00 00 00 00 -> message reset
+// 08 00 1C 00 94 0B 0A 1D 31 08 00 80 00 00 00 -> message for 29.11.2020
+// 08 00 1C 00 94 0B 0A 1D 31 00 00 00 00 00 00 -> message reset
 void Boiler::process_UBAMaintenanceStatus(std::shared_ptr<const Telegram> telegram) {
     // 5. byte: Maintenance due (0 = no, 3 = yes, due to operating hours, 8 = yes, due to date)
     changed_ |= telegram->read_value(maintenanceMessage_, 5);
+    // first bytes: date of message: 94 0B 0A 1D 31 -> 29.11.2020 10:49 (year-month-hour-day-minute)
 }
 
 // 0x10, 0x11
@@ -1750,23 +1747,19 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {
-    uint8_t num;
-    if (Helpers::value2enum(value, num, {F("off"), F("time"), F("date")})) {
-        LOG_INFO(F("Setting maintenance type to %s"), value);
-        write_command(0x15, 0, num, 0x15);
-        return true;
-    }
-
-    if (strncmp(value, "reset", 5) == 0) {
-        LOG_INFO(F("Reset boiler maintenance message"));
-        write_command(0x05, 0x08, 0xFF, 0x1C);
-        return true;
+    std::string s(7, '\0');
+    if (Helpers::value2string(value, s)) {
+        if (s == "reset") {
+            LOG_INFO(F("Reset boiler maintenance message"));
+            write_command(0x05, 0x08, 0xFF, 0x1C);
+            return true;
+        }
     }
 
     if (strlen(value) == 10) { // date
         uint8_t day   = (value[0] - '0') * 10 + (value[1] - '0');
         uint8_t month = (value[3] - '0') * 10 + (value[4] - '0');
-        uint8_t year  = (Helpers::atoint(&value[6]) - 2000);
+        uint8_t year  = (uint8_t)(Helpers::atoint(&value[6]) - 2000);
         if (day > 0 && day < 32 && month > 0 && month < 13) {
             LOG_INFO(F("Setting maintenance date to %02d.%02d.%04d"), day, month, year + 2000);
             uint8_t data[5] = {2, maintenanceTime_, day, month, year};
@@ -1780,12 +1773,21 @@ bool Boiler::set_maintenance(const char * value, const int8_t id) {
 
     int hrs;
     if (Helpers::value2number(value, hrs)) {
-        if (hrs < 25600) {
+        if (hrs > 99 && hrs < 25600) {
             LOG_INFO(F("Setting maintenance time %d hours"), hrs);
-            write_command(0x15, 0, 0x0100 + (hrs / 100), 0x15);
+            uint8_t data[2] = {1, (uint8_t)(hrs / 100)};
+            write_command(0x15, 0, data, 2, 0x15);
             return true;
         }
     }
+
+    uint8_t num;
+    if (Helpers::value2enum(value, num, {F("off"), F("time"), F("date")})) {
+        LOG_INFO(F("Setting maintenance type to %s"), value);
+        write_command(0x15, 0, num, 0x15);
+        return true;
+    }
+
     LOG_WARNING(F("Setting maintenance: wrong format"));
     return false;
 }
