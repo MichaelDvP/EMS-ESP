@@ -1,7 +1,4 @@
 #include <WiFiSettingsService.h>
-#if defined(ESP32)
-#include <esp_bt.h>
-#endif
 
 WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(WiFiSettings::read, WiFiSettings::update, this, server, WIFI_SETTINGS_SERVICE_PATH, securityManager)
@@ -16,12 +13,7 @@ WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, Secur
     // Disable WiFi config persistance and auto reconnect
     WiFi.persistent(false);
     WiFi.setAutoReconnect(false);
-#if defined(ESP32)
-    // power saving for bus powering
-    // btStop();
-    esp_bt_controller_disable();
-    // Wifi power settings 2 - 19.5dBm, raw values 4/dBm (8-78)
-    // WiFi.setTxPower(WIFI_POWER_13dBm);
+#ifdef ESP32
     // Init the wifi driver on ESP32
     WiFi.mode(WIFI_MODE_MAX);
     WiFi.mode(WIFI_MODE_NULL);

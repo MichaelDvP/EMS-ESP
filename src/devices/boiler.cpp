@@ -147,6 +147,9 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnWorkMin), device_type(), "burnWorkMin", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatWorkMin), device_type(), "heatWorkMin", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(UBAuptime), device_type(), "UBAuptime", F_(min), nullptr);
+    // optional in info
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance), device_type(), "maintenance", nullptr, nullptr);
+
     // information
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeControl), device_type(), "upTimeControl", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(upTimeCompHeating), device_type(), "upTimeCompHeating", F_(min), nullptr);
@@ -260,6 +263,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("burnWorkMin"), nullptr, F_(burnWorkMin), nullptr, json);
         create_value_json(root, F("heatWorkMin"), nullptr, F_(heatWorkMin), nullptr, json);
         create_value_json(root, F("UBAuptime"), nullptr, F_(UBAuptime), nullptr, json);
+        // optional in info
         create_value_json(root, F("maintenance"), nullptr, F_(maintenance), (maintenanceType_ == 1) ? F_(hours) : nullptr, json);
     } else if (part == 1) {
         part = 2;
@@ -319,9 +323,9 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("nrgSuppWw"), nullptr, F_(nrgSuppWw), F_(kwh), json);
         create_value_json(root, F("nrgSuppCooling"), nullptr, F_(nrgSuppCooling), F_(kwh), json);
         create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
-        // create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
-        // create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
-        // create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
+        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), nullptr, json);
+        create_value_json(root, F("maintenanceTime"), nullptr, F_(maintenanceTime), F_(hours), json);
+        create_value_json(root, F("maintenanceDate"), nullptr, F_(maintenanceDate), nullptr, json);
     }
 }
 
@@ -366,11 +370,12 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
     }
 
     // Warm Water type
+    /*
     if (Helpers::hasValue(wWType_)) {
         char s[16];
         json["wWType"] = Helpers::render_enum(s, {F("off"), F("flow"), F("buffered flow"), F("buffer"), F("layered buffer")}, wWType_);
     }
-    /*
+    */
     if (wWType_ == 0) { // no json if not set
         json["wWType"] = FJSON("off");
     } else if (wWType_ == 1) {
@@ -382,7 +387,7 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
     } else if (wWType_ == 4) {
         json["wWType"] = FJSON("layered buffer");
     }
-    */
+
     // Warm Water charging type
     if (Helpers::hasValue(wWChargeType_, EMS_VALUE_BOOL)) {
         json["wWChargeType"] = wWChargeType_ ? FJSON("3-way valve") : FJSON("charge pump");
@@ -722,6 +727,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         json["serviceCodeNumber"] = serviceCodeNumber_;
     }
 
+    // maintenance compact verion in boiler, optional in boiler_info
     if (maintenanceType_ == 0) {
         json["maintenance"] = FJSON("off");
     } else if (maintenanceType_ == 1) {
@@ -865,7 +871,7 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
         json["nrgSuppCooling"] = nrgSuppCooling_;
     }
 
-    /* show always all maintenance values
+    // show always all maintenance values
     if (Helpers::hasValue(maintenanceMessage_)) {
         char s[5];
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
@@ -884,7 +890,6 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     if (maintenanceDate_[0] != '\0') {
         json["maintenanceDate"] = maintenanceDate_;
     }
-    */
 
     return (json.size());
 }
