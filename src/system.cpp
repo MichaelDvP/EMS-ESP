@@ -54,12 +54,14 @@ bool System::command_pin(const char * value, const int8_t id) {
         return false;
     }
 
-    bool v = false;
+    bool        v  = false;
+    std::string v1 = {7, '\0'};
 #if defined(ESP32)
-    int v1 = 0;
-    if (id == 25 && Helpers::value2number(value, v1)) {
-        if (v1 >= 0 && v1 <= 255) {
-            dacWrite(id, v1);
+    int v2 = 0;
+    if (id == 25 && Helpers::value2number(value, v2)) {
+        if (v2 >= 0 && v2 <= 255) {
+            dacWrite(id, v12;
+            return true;
         }
     } else
 #endif
@@ -68,8 +70,13 @@ bool System::command_pin(const char * value, const int8_t id) {
         digitalWrite(id, v);
         LOG_INFO(F("GPIO %d set to %s"), id, v ? "HIGH" : "LOW");
         return true;
-    } else if (value[0] == '-' && value[1] == '1') {
-        pinMode(id, INPUT);
+    } else if (Helpers::value2string(value, v1)) {
+        if (v1 == "input" || v1 == "in" || v1 == "-1") {
+            pinMode(id, INPUT);
+            v = digitalRead(id);
+            LOG_INFO(F("GPIO %d set input, state %s"), id, v ? "HIGH" : "LOW");
+            return true;
+        }
     }
 
     return false;
@@ -335,12 +342,6 @@ void System::send_heartbeat() {
         return;
     }
 
-    uint32_t free_memory = free_mem();
-
-#if defined(ESP8266)
-    uint8_t frag_memory = ESP.getHeapFragmentation();
-#endif
-
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
     uint8_t ems_status = EMSESP::bus_status();
@@ -358,17 +359,15 @@ void System::send_heartbeat() {
     doc["mqtt_fails"]   = Mqtt::publish_fails();
     doc["rx_received"]  = EMSESP::rxservice_.telegram_count();
     doc["tx_sent"]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
-    // doc["rx_quality"]  = EMSESP::rxservice_.quality();
-    // doc["tx_quality"]  = EMSESP::txservice_.quality();
     doc["tx_fails"]     = EMSESP::txservice_.telegram_fail_count();
     doc["rx_fails"]     = EMSESP::rxservice_.telegram_error_count();
     doc["dallas_fails"] = EMSESP::sensor_fails();
-    doc["freemem"]      = free_memory;
+    doc["freemem"]      = free_mem();
 #if defined(ESP8266)
-    doc["fragmem"] = frag_memory;
+    doc["fragmem"] = ESP.getHeapFragmentation();
 #endif
     if (analog_enabled_) {
-        doc["adc"]  = analog_;
+        doc["adc"] = analog_;
 #if defined(ESP8266)
         doc["io2"]  = digitalRead(2);
         doc["io4"]  = digitalRead(4);

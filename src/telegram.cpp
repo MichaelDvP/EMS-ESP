@@ -258,6 +258,7 @@ void TxService::start() {
 
 // sends a 1 byte poll which is our own device ID
 void TxService::send_poll() {
+    //LOG_DEBUG(F("Ack %02X"),ems_bus_id() ^ ems_mask());
     if (tx_mode()) {
         EMSuart::send_poll(ems_bus_id() ^ ems_mask());
     }
@@ -282,6 +283,7 @@ void TxService::send() {
     if (tx_mode()) {
         send_telegram(tx_telegrams_.front());
     }
+
     tx_telegrams_.pop_front(); // remove the telegram from the queue
 }
 
@@ -607,10 +609,9 @@ uint16_t TxService::post_send_query() {
         uint8_t offset          = (this->telegram_last_->type_id == post_typeid) ? ((this->telegram_last_->offset / 26) * 26) : 0;
         uint8_t message_data[1] = {EMS_MAX_TELEGRAM_LENGTH}; // request all data, 32 bytes
         this->add(Telegram::Operation::TX_READ, dest, post_typeid, offset, message_data, 1, true);
-        // read_request(telegram_last_post_send_query_, dest, 0); // no offset
         LOG_DEBUG(F("Sending post validate read, type ID 0x%02X to dest 0x%02X"), post_typeid, dest);
         set_post_send_query(0); // reset
-        // delay the request if we have different type_id for post_send_query
+        // delay the request if we have a different type_id for post_send_query
         delayed_send_ = (this->telegram_last_->type_id == post_typeid) ? 0 : (uuid::get_uptime() + POST_SEND_DELAY);
     }
 
