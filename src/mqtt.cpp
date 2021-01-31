@@ -369,6 +369,10 @@ void Mqtt::start() {
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
+        if (!connecting_) {
+            mqttClient_->connect();
+            return;
+        }
         connecting_ = false;
         if (reason == AsyncMqttClientDisconnectReason::TCP_DISCONNECTED) {
             LOG_INFO(F("MQTT disconnected: TCP"));
@@ -385,10 +389,7 @@ void Mqtt::start() {
         if (reason == AsyncMqttClientDisconnectReason::MQTT_NOT_AUTHORIZED) {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
-        mqttClient_->disconnect();
-        mqttClient_->connect();
-        // mqtt_messages_.clear();
-        // mqtt_message_id_ = 0;
+        mqtt_messages_.clear();
     });
 
     // create will_topic with the base prefixed. It has to be static because asyncmqttclient destroys the reference
