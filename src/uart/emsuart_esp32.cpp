@@ -57,13 +57,11 @@ void EMSuart::emsuart_recvTask(void * para) {
  * UART interrupt, on break read the fifo and put the whole telegram to ringbuffer
  */
 void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
-    // static uint8_t rxbuf[EMS_MAXBUFFERSIZE];
-    // static uint8_t length;
     portENTER_CRITICAL(&mux);
     if (EMS_UART.int_st.brk_det) {
         EMS_UART.int_clr.brk_det = 1; // clear flag
-        uint8_t length           = 0;
         uint8_t rxbuf[EMS_MAXBUFFERSIZE];
+        uint8_t length = 0;
         while (EMS_UART.status.rxfifo_cnt) {
             uint8_t rx = EMS_UART.fifo.rw_byte; // read all bytes from fifo
             if (length < EMS_MAXBUFFERSIZE) {
@@ -127,8 +125,8 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
     EMS_UART.int_ena.val             = 0;          // disable all intr.
     EMS_UART.int_clr.val             = 0xFFFFFFFF; // clear all intr. flags
     EMS_UART.idle_conf.tx_brk_num    = 10;         // breaklength 10 bit
-    EMS_UART.idle_conf.rx_idle_thrhd = 256;
-    EMS_UART.auto_baud.glitch_filt   = 192;
+    // EMS_UART.idle_conf.rx_idle_thrhd = 256;
+    // EMS_UART.auto_baud.glitch_filt   = 192;
     drop_next_rx                     = true;
 #if (EMSUART_UART != UART_NUM_2)
     EMS_UART.conf0.rxfifo_rst        = 1; // flush fifos, remove for UART2

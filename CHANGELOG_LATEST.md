@@ -19,7 +19,7 @@
 - mqtt max. topic length fixed to 128
 - thermostat `time` to `datetime`
 - adc scaled to mV output
-- split boiler mqtt to `data`, `date_ww`, `data_info`
+- split boiler mqtt to `data`, `data_ww`, `data_info`
 
 ### Removed
 
