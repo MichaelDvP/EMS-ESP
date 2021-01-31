@@ -464,6 +464,7 @@ class AsyncWebServer {
     void _attachHandler(AsyncWebServerRequest *request);
     void _rewriteRequest(AsyncWebServerRequest *request);
 
+    
     AsyncCallbackWebHandler& on(String uri, ArRequestHandlerFunction onRequest);
     AsyncCallbackWebHandler& on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest);
     AsyncCallbackWebHandler& on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload);

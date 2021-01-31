@@ -197,17 +197,17 @@ void AsyncWebServer::reset(){
 }
 
 AsyncCallbackWebHandler& AsyncWebServer::on(String uri, ArRequestHandlerFunction onRequest){
-  return on(uri.c_str(), onRequest);
+  on(uri.c_str(), onRequest);
 }
 
 AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest){
-  return on(uri.c_str(), method, onRequest);
+  on(uri.c_str(), method, onRequest);
 }
 
 AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload){
-  return on(uri.c_str(), method, onRequest, onUpload);
+  on(uri.c_str(), method, onRequest, onUpload);
 }
 
 AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload, ArBodyHandlerFunction onBody){
-  return on(uri.c_str(), method, onRequest, onUpload, onBody);
+  on(uri.c_str(), method, onRequest, onUpload, onBody);
 }

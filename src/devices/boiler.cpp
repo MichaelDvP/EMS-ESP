@@ -370,22 +370,9 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
     }
 
     // Warm Water type
-    /*
     if (Helpers::hasValue(wWType_)) {
         char s[16];
         json["wWType"] = Helpers::render_enum(s, {F("off"), F("flow"), F("buffered flow"), F("buffer"), F("layered buffer")}, wWType_);
-    }
-    */
-    if (wWType_ == 0) { // no json if not set
-        json["wWType"] = FJSON("off");
-    } else if (wWType_ == 1) {
-        json["wWType"] = FJSON("flow");
-    } else if (wWType_ == 2) {
-        json["wWType"] = FJSON("buffered flow");
-    } else if (wWType_ == 3) {
-        json["wWType"] = FJSON("buffer");
-    } else if (wWType_ == 4) {
-        json["wWType"] = FJSON("layered buffer");
     }
 
     // Warm Water charging type
@@ -403,11 +390,7 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
         if (wWCircPumpMode_ == 7) {
             json["wWCircPumpMode"] = FJSON("continuous");
         } else {
-            char buffer[2];
-            buffer[0] = (wWCircPumpMode_ % 10) + '0';
-            buffer[1] = '\0';
-            strlcpy(s, buffer, 7);
-            strlcat(s, "x3min", 7);
+            snprintf_P(s, sizeof(s), PSTR("%dx3min"), wWCircPumpMode_);
             json["wWCircPumpMode"] = s;
         }
     }
