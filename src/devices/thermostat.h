@@ -126,13 +126,14 @@ class Thermostat : public EMSdevice {
     static std::string mode_tostring(uint8_t mode);
 
     virtual void publish_values(JsonObject & json, bool force);
-    virtual bool export_values(JsonObject & json);
+    virtual bool export_values(JsonObject & json, int8_t id = -1);
     virtual void device_info_web(JsonArray & root, uint8_t & part);
     virtual bool updated_values();
 
   private:
     static uuid::log::Logger logger_;
 
+    bool export_values_all(JsonObject & json);
     void add_commands();
     bool export_values_main(JsonObject & doc);
     bool export_values_hc(std::shared_ptr<Thermostat::HeatingCircuit> hc, JsonObject & doc);

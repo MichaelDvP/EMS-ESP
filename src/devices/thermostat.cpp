@@ -268,7 +268,7 @@ bool Thermostat::updated_values() {
     return false;
 }
 
-bool Thermostat::export_values(JsonObject & json) {
+bool Thermostat::export_values_all(JsonObject & json) {
     bool has_value = export_values_main(json);
     for (const auto & hc : heating_circuits_) {
         JsonObject json_hc;
@@ -278,6 +278,24 @@ bool Thermostat::export_values(JsonObject & json) {
         has_value |= export_values_hc(hc, json_hc);
     }
     return has_value;
+}
+
+bool Thermostat::export_values(JsonObject & json, int8_t id) {
+    if (id == -1) {
+        return export_values_all(json);
+    } else if (id == 0) {
+        return export_values_main(json);
+    } else {
+        std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(id);
+        if (hc != nullptr) {
+            JsonObject json_hc;
+            char       hc_name[10]; // hc{1-4}
+            snprintf_P(hc_name, 10, PSTR("hc%d"), hc->hc_num());
+            json_hc = json.createNestedObject(hc_name);
+            return export_values_hc(hc, json_hc);
+        }
+    }
+    return false;
 }
 
 // publish values via MQTT

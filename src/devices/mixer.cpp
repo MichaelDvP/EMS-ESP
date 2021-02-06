@@ -184,8 +184,13 @@ void Mixer::register_mqtt_ha_config() {
     mqtt_ha_config_ = true; // done
 }
 
-bool Mixer::export_values(JsonObject & json) {
-    return export_values_format(Mqtt::Format::NESTED, json);
+bool Mixer::export_values(JsonObject & json, int8_t id) {
+    if (id == -1) {
+        return export_values_format(Mqtt::Format::NESTED, json);
+    } else if ((type() == Type::HC && id == hc_) || (type() == Type::WWC && id == hc_ + 7)) {
+        return export_values_format(Mqtt::Format::NESTED, json);
+    }
+    return false;
 }
 
 // creates JSON doc from values
