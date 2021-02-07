@@ -133,7 +133,6 @@ class Thermostat : public EMSdevice {
   private:
     static uuid::log::Logger logger_;
 
-    bool export_values_all(JsonObject & json);
     void add_commands();
     bool export_values_main(JsonObject & doc);
     bool export_values_hc(std::shared_ptr<Thermostat::HeatingCircuit> hc, JsonObject & doc);
