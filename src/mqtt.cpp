@@ -369,8 +369,8 @@ void Mqtt::start() {
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
+        mqttClient_->connect();
         if (!connecting_) {
-            mqttClient_->connect();
             return;
         }
         connecting_ = false;
