@@ -24,17 +24,17 @@
 
 namespace emsesp {
 
-os_event_t            EMSuart::recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
-EMSuart::EMSRxBuf_t * EMSuart::pEMSRxBuf;
-EMSuart::EMSRxBuf_t * EMSuart::paEMSRxBuf[EMS_MAXBUFFERS];
-uint8_t               EMSuart::emsRxBufIdx  = 0;
-uint8_t               EMSuart::tx_mode_     = 0xFF;
-bool                  EMSuart::drop_next_rx = true;
-uint8_t               EMSuart::emsTxBuf[EMS_MAXBUFFERSIZE];
-uint8_t               EMSuart::emsTxBufIdx = 0;
-uint8_t               EMSuart::emsTxBufLen = 0;
-uint32_t              EMSuart::emsTxWait;
-bool                  EMSuart::sending_ = false;
+typedef struct {
+    uint8_t length;
+    uint8_t buffer[EMS_MAXBUFFERSIZE];
+} EMSRxBuf_t;
+
+os_event_t   recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
+EMSRxBuf_t * pEMSRxBuf;
+EMSRxBuf_t * paEMSRxBuf[EMS_MAXBUFFERS];
+uint8_t      emsRxBufIdx  = 0;
+uint8_t      tx_mode_     = 0xFF;
+bool         drop_next_rx = true;
 
 //
 // Main interrupt handler
@@ -43,34 +43,26 @@ bool                  EMSuart::sending_ = false;
 void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
 
     if (USIR(EMSUART_UART) & (1 << UIBD)) { // BREAK detection = End of EMS data block
-        USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
         USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCTXI));  // reset tx-brk
-        if (sending_) { // timer tx_mode is interrupted by <brk>
-            sending_     = false;
-            drop_next_rx = true;
-        }
-        uint8_t length = 0;
-        uint8_t uart_buffer[EMS_MAXBUFFERSIZE];
+        USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
+        pEMSRxBuf->length = 0;
         while ((USS(EMSUART_UART) >> USRXC) & 0x0FF) { // read fifo into buffer
             uint8_t rx = USF(EMSUART_UART);
-            if (length < EMS_MAXBUFFERSIZE) {
-                if (length || rx) { // skip a leading zero
-                    uart_buffer[length++] = rx;
+            if (pEMSRxBuf->length < EMS_MAXBUFFERSIZE) {
+                if (pEMSRxBuf->length || rx) { // skip a leading zero
+                    pEMSRxBuf->buffer[pEMSRxBuf->length++] = rx;
                 }
             } else {
                 drop_next_rx = true;
             }
         }
-
-        if (!drop_next_rx) {
-            if (uart_buffer[length - 1]) { // check if last byte is break
-                length++;
-            }
-            pEMSRxBuf->length = length;
-            os_memcpy((void *)pEMSRxBuf->buffer, (void *)&uart_buffer, pEMSRxBuf->length); // copy data into transfer buffer, including the BRK 0x00 at the end
-            system_os_post(EMSUART_recvTaskPrio, 0, 0);                                    // call emsuart_recvTask() at next opportunity
+        if (pEMSRxBuf->buffer[pEMSRxBuf->length - 1]) { // check if last byte is break
+            pEMSRxBuf->length++;
         }
-
+        // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
+        if (!drop_next_rx && (pEMSRxBuf->length > 4 || pEMSRxBuf->length == 2)) {
+            system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
+        }
         drop_next_rx = false;
     }
 }
@@ -83,31 +75,8 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
 void ICACHE_FLASH_ATTR EMSuart::emsuart_recvTask(os_event_t * events) {
     EMSRxBuf_t * pCurrent = pEMSRxBuf;
     pEMSRxBuf             = paEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
-    uint8_t length        = pCurrent->length;                           // number of bytes including the BRK at the end
-    pCurrent->length      = 0;
 
-    // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
-    if (length > 4 || length == 2) {
-        EMSESP::incoming_telegram((uint8_t *)pCurrent->buffer, length - 1);
-    }
-}
-
-// ISR to Fire when Timer is triggered
-void ICACHE_RAM_ATTR EMSuart::emsuart_tx_timer_intr_handler() {
-    if (!sending_) {
-        return;
-    }
-    emsTxBufIdx++;
-    if (emsTxBufIdx < emsTxBufLen) {
-        USF(EMSUART_UART) = emsTxBuf[emsTxBufIdx];
-        timer1_write(emsTxWait);
-    } else if (emsTxBufIdx == emsTxBufLen) {
-        USC0(EMSUART_UART) |= (1 << UCTXI); // set <BRK>
-        timer1_write(EMSUART_TX_BRK_TIMER);
-    } else {
-        USC0(EMSUART_UART) &= ~(1 << UCTXI); // reset <BRK>
-        sending_ = false;
-    }
+    EMSESP::incoming_telegram((uint8_t *)pCurrent->buffer, pCurrent->length - 1);
 }
 
 /*
@@ -172,9 +141,6 @@ void ICACHE_FLASH_ATTR EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gp
     ETS_UART_INTR_ATTACH(emsuart_rx_intr_handler, nullptr);
     drop_next_rx = true;
 
-    // for sending with large delay in EMS+ mode we use a timer interrupt
-    timer1_attachInterrupt(emsuart_tx_timer_intr_handler);
-
     restart();
 }
 
@@ -185,8 +151,6 @@ void ICACHE_FLASH_ATTR EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gp
 void ICACHE_FLASH_ATTR EMSuart::stop() {
     USIE(EMSUART_UART) = 0;
     USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCTXI)); // clear BRK bit
-    timer1_disable();
-    sending_ = false;
 }
 
 /*
@@ -196,16 +160,6 @@ void ICACHE_FLASH_ATTR EMSuart::restart() {
     if (USIR(EMSUART_UART) & ((1 << UIBD))) {
         USIC(EMSUART_UART) = (1 << UIBD); // INT clear the <brk> detect interrupt
         drop_next_rx       = true;
-    }
-    if (tx_mode_ > 100) {
-        emsTxWait = 5 * EMSUART_TX_BIT_TIME * (tx_mode_ - 90);
-    } else {
-        emsTxWait = 5 * EMSUART_TX_BIT_TIME * (tx_mode_ + 10); // bittimes wait to next bytes
-    }
-    emsTxBufIdx = 0;
-    emsTxBufLen = 0;
-    if (tx_mode_ >= 5) {
-        timer1_enable(TIM_DIV16, TIM_EDGE, TIM_SINGLE);
     }
     USIE(EMSUART_UART) = (1 << UIBD); // enable brk interrupt
 }
@@ -227,23 +181,6 @@ uint16_t ICACHE_FLASH_ATTR EMSuart::transmit(uint8_t * buf, uint8_t len) {
         return EMS_TX_STATUS_ERR; // nothing or to much to send
     }
     if (tx_mode_ == 0) {
-        return EMS_TX_STATUS_OK;
-    }
-
-    // timer controlled modes with extra delay
-    if (tx_mode_ >= 5) {
-        sending_ = true;
-        for (uint8_t i = 0; i < len; i++) {
-            emsTxBuf[i] = buf[i];
-        }
-        USF(EMSUART_UART) = buf[0]; // send first byte
-        emsTxBufIdx       = 0;
-        emsTxBufLen       = len;
-        if (tx_mode_ > 100 && len > 1) {
-            timer1_write(EMSUART_TX_WAIT_REPLY); // large delay after first byte
-        } else {
-            timer1_write(emsTxWait);
-        }
         return EMS_TX_STATUS_OK;
     }
 

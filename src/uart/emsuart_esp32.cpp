@@ -28,15 +28,10 @@
 
 namespace emsesp {
 
-RingbufHandle_t EMSuart::buf_handle   = NULL;
-portMUX_TYPE    EMSuart::mux          = portMUX_INITIALIZER_UNLOCKED;
-hw_timer_t *    EMSuart::timer        = NULL;
-bool            EMSuart::drop_next_rx = true;
-uint8_t         EMSuart::tx_mode_     = 0xFF;
-uint8_t         EMSuart::emsTxBuf[EMS_MAXBUFFERSIZE];
-uint8_t         EMSuart::emsTxBufIdx = 0;
-uint8_t         EMSuart::emsTxBufLen = 0;
-uint32_t        EMSuart::emsTxWait;
+RingbufHandle_t buf_handle   = NULL;
+portMUX_TYPE    mux          = portMUX_INITIALIZER_UNLOCKED;
+bool            drop_next_rx = true;
+uint8_t         tx_mode_     = 0xFF;
 
 /*
 * Task to handle the incoming data
@@ -65,10 +60,15 @@ void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         while (EMS_UART.status.rxfifo_cnt) {
             uint8_t rx = EMS_UART.fifo.rw_byte; // read all bytes from fifo
             if (length < EMS_MAXBUFFERSIZE) {
-                rxbuf[length++] = rx;
+                if (length || rx) { // skip a leading zero
+                    rxbuf[length++] = rx;
+                }
             } else {
                 drop_next_rx = true; // we have a overflow
             }
+        }
+        if (rxbuf[length - 1]) { // check if last byte is break
+            length++;
         }
         if ((!drop_next_rx) && ((length == 2) || (length > 4))) {
             int baseType = 0;
@@ -76,28 +76,6 @@ void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         }
         drop_next_rx = false;
     }
-    portEXIT_CRITICAL(&mux);
-}
-
-void IRAM_ATTR EMSuart::emsuart_tx_timer_intr_handler() {
-    if (emsTxBufLen == 0) {
-        return;
-    }
-    portENTER_CRITICAL(&mux);
-    if (emsTxBufIdx < emsTxBufLen) {
-        EMS_UART.fifo.rw_byte = emsTxBuf[emsTxBufIdx];
-        if (emsTxBufIdx == 1) {
-            timerAlarmWrite(timer, emsTxWait, true);
-        }
-    } else if (emsTxBufIdx == emsTxBufLen) {
-        EMS_UART.conf0.txd_inv = 1;
-        timerAlarmWrite(timer, EMSUART_TX_BRK_TIMER, true);
-    } else if (emsTxBufIdx == emsTxBufLen + 1) {
-        EMS_UART.conf0.txd_inv = 0;
-        emsTxBufLen            = 0;
-        timerAlarmDisable(timer);
-    }
-    emsTxBufIdx++;
     portEXIT_CRITICAL(&mux);
 }
 
@@ -146,13 +124,6 @@ void EMSuart::stop() {
     portENTER_CRITICAL(&mux);
     EMS_UART.int_ena.val   = 0; // disable all intr.
     EMS_UART.conf0.txd_inv = 0; // stop break
-    if (timer) {
-        if (emsTxBufLen > 0) {
-            timerAlarmDisable(timer);
-        }
-        timerEnd(timer);
-        timer = NULL;
-    }
     portEXIT_CRITICAL(&mux);
 };
 
@@ -166,21 +137,10 @@ void EMSuart::restart() {
         drop_next_rx             = true; // and drop first frame
     }
     EMS_UART.int_ena.brk_det = 1; // activate only break
-    emsTxBufIdx              = 0;
-    emsTxBufLen              = 0;
-    if (tx_mode_ > 100) {
-        emsTxWait = EMSUART_TX_BIT_TIME * (tx_mode_ - 90);
-    } else {
-        emsTxWait = EMSUART_TX_BIT_TIME * (tx_mode_ + 10);
-    }
     if (tx_mode_ == EMS_TXMODE_NEW) {
         EMS_UART.conf0.txd_brk = 1;
     } else {
         EMS_UART.conf0.txd_brk = 0;
-    }
-    if (tx_mode_ >= 5) {
-        timer = timerBegin(2, 80, true);                                    // timer prescale to 1 us, countup
-        timerAttachInterrupt(timer, &emsuart_tx_timer_intr_handler, true); // Timer with edge interrupt
     }
     portEXIT_CRITICAL(&mux);
 
@@ -204,21 +164,6 @@ uint16_t EMSuart::transmit(const uint8_t * buf, const uint8_t len) {
     }
 
     if (tx_mode_ == 0) {
-        return EMS_TX_STATUS_OK;
-    }
-
-    if (tx_mode_ > 5) { // timer controlled modes
-        for (uint8_t i = 0; i < len; i++) {
-            emsTxBuf[i] = buf[i];
-        }
-        emsTxBufIdx = 0;
-        emsTxBufLen = len;
-        if (tx_mode_ > 100 && len > 1) {
-            timerAlarmWrite(timer, EMSUART_TX_WAIT_REPLY, true);
-        } else {
-            timerAlarmWrite(timer, emsTxWait, true); // start with autoreload
-        }
-        timerAlarmEnable(timer);
         return EMS_TX_STATUS_OK;
     }
 

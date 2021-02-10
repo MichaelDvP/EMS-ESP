@@ -48,10 +48,6 @@
 // LEGACY
 #define EMSUART_TX_BIT_TIME 104                             // bit time @9600 baud
 
-// Timer controlled modes
-#define EMSUART_TX_BRK_TIMER (EMSUART_TX_BIT_TIME * 10 + 28) // 10.25 bit times
-#define EMSUART_TX_WAIT_REPLY 100000                         // delay 100ms after first byte
-
 // EMS 1.0
 #define EMSUART_TX_BUSY_WAIT (EMSUART_TX_BIT_TIME / 8)                       // 13
 #define EMSUART_TX_TIMEOUT (20 * EMSUART_TX_BIT_TIME / EMSUART_TX_BUSY_WAIT)
@@ -79,22 +75,12 @@ class EMSuart {
     static void     start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t tx_gpio);
     static void     send_poll(const uint8_t data);
     static void     stop();
-    static void     restart();
     static uint16_t transmit(const uint8_t * buf, const uint8_t len);
 
   private:
     static void            emsuart_recvTask(void * para);
     static void IRAM_ATTR  emsuart_rx_intr_handler(void * para);
-    static void IRAM_ATTR  emsuart_tx_timer_intr_handler();
-    static RingbufHandle_t buf_handle;
-    static portMUX_TYPE    mux;
-    static hw_timer_t *    timer;
-    static bool            drop_next_rx;
-    static uint8_t         tx_mode_;
-    static uint8_t         emsTxBuf[EMS_MAXBUFFERSIZE];
-    static uint8_t         emsTxBufIdx;
-    static uint8_t         emsTxBufLen;
-    static uint32_t        emsTxWait;
+    static void            restart();
 };
 
 } // namespace emsesp

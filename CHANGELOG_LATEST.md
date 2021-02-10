@@ -3,6 +3,7 @@
 ### Added
 - Boiler WB Greenstar 8000
 - Thermostat RC20 device 66
+- id to info to show only heatingcircuits
 
 ### Fixed
 - telegrams matched to masterthermostat 0x18
