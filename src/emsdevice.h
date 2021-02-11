@@ -198,6 +198,10 @@ class EMSdevice {
     // device flags: The lower 4 bits hold the unique identifier, the upper 4 bits are used for specific flags
     static constexpr uint8_t EMS_DEVICE_FLAG_NONE = 0;
 
+    // Boiler
+    static constexpr uint8_t EMS_DEVICE_FLAG_EMS  = 1;
+    static constexpr uint8_t EMS_DEVICE_FLAG_PLUS = 2;
+
     // Solar Module
     static constexpr uint8_t EMS_DEVICE_FLAG_SM10  = 1;
     static constexpr uint8_t EMS_DEVICE_FLAG_SM100 = 2;

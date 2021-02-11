@@ -42,7 +42,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
             && ((actual_master_thermostat == EMSESP_DEFAULT_MASTER_THERMOSTAT) || (device_id < actual_master_thermostat)))) {
         EMSESP::actual_master_thermostat(device_id);
         actual_master_thermostat = device_id;
-        reserve_mem(25); // reserve some space for the telegram registries, to avoid memory fragmentation
+        // reserve_mem(15); // reserve some space for the telegram registries, to avoid memory fragmentation
 
         // common telegram handlers
         register_telegram_type(EMS_TYPE_RCOutdoorTemp, F("RCOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_RCOutdoorTemp(t); });
@@ -375,15 +375,8 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 
         // Language
         if (Helpers::hasValue(ibaLanguage_)) {
-            if (ibaLanguage_ == 0) {
-                rootThermostat["language"] = FJSON("German");
-            } else if (ibaLanguage_ == 1) {
-                rootThermostat["language"] = FJSON("Dutch");
-            } else if (ibaLanguage_ == 2) {
-                rootThermostat["language"] = FJSON("French");
-            } else if (ibaLanguage_ == 3) {
-                rootThermostat["language"] = FJSON("Italian");
-            }
+            char s[10];
+            rootThermostat["language"] = Helpers::render_enum(s, {F("German"), F("Dutch"), F("French"), F("Italian")}, ibaLanguage_);
         }
 
         // Offset clock

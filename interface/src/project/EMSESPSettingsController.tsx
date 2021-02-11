@@ -63,9 +63,9 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 onChange={handleValueChange('tx_mode')}
                 margin="normal">
                 <MenuItem value={0}>0 - Off</MenuItem>
-                <MenuItem value={1}>1 - EMS</MenuItem>
-                <MenuItem value={2}>2 - HT3</MenuItem>
-                <MenuItem value={3}>3 - EMS+</MenuItem>
+                <MenuItem value={1}>1 - Default</MenuItem>
+                <MenuItem value={2}>2 - EMS+</MenuItem>
+                <MenuItem value={3}>3 - HT3</MenuItem>
                 <MenuItem value={4}>4 - Hardware</MenuItem>
             </SelectValidator>
             <SelectValidator name="ems_bus_id"
