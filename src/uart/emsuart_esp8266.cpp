@@ -30,8 +30,8 @@ typedef struct {
 } EMSRxBuf_t;
 
 os_event_t   recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
-EMSRxBuf_t * pEMSRxBuf;
-EMSRxBuf_t * paEMSRxBuf[EMS_MAXBUFFERS];
+EMSRxBuf_t   aEMSRxBuf[EMS_MAXBUFFERS];
+EMSRxBuf_t * pEMSRxBuf    = &aEMSRxBuf[0];
 uint8_t      emsRxBufIdx  = 0;
 uint8_t      tx_mode_     = 0xFF;
 bool         drop_next_rx = true;
@@ -74,7 +74,7 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
  */
 void ICACHE_FLASH_ATTR EMSuart::emsuart_recvTask(os_event_t * events) {
     EMSRxBuf_t * pCurrent = pEMSRxBuf;
-    pEMSRxBuf             = paEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
+    pEMSRxBuf             = &aEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
 
     EMSESP::incoming_telegram((uint8_t *)pCurrent->buffer, pCurrent->length - 1);
 }
@@ -89,13 +89,6 @@ void ICACHE_FLASH_ATTR EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gp
         return;
     }
     tx_mode_ = tx_mode;
-    // allocate and preset EMS Receive buffers
-    for (int i = 0; i < EMS_MAXBUFFERS; i++) {
-        EMSRxBuf_t * p = (EMSRxBuf_t *)malloc(sizeof(EMSRxBuf_t));
-        p->length      = 0;
-        paEMSRxBuf[i]  = p;
-    }
-    pEMSRxBuf = paEMSRxBuf[0]; // reset EMS Rx Buffer
 
     ETS_UART_INTR_ATTACH(nullptr, nullptr);
 

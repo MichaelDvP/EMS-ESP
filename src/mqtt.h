@@ -181,11 +181,11 @@ class Mqtt {
 #elif defined(ESP32)
     static constexpr size_t MAX_MQTT_MESSAGES = 100; // size of queue
 #else
-    static constexpr size_t MAX_MQTT_MESSAGES = 18; // size of queue
+    static constexpr size_t MAX_MQTT_MESSAGES = 15; // size of queue
 #endif
 
-    static constexpr uint32_t MQTT_PUBLISH_WAIT      = 100; // delay between sending publishes, to account for large payloads
-    static constexpr uint8_t  MQTT_PUBLISH_MAX_RETRY = 3;   // max retries for giving up on publishing
+    static constexpr uint32_t MQTT_PUBLISH_WAIT      = 30; // delay between sending publishes, to account for large payloads
+    static constexpr uint8_t  MQTT_PUBLISH_MAX_RETRY = 2;   // max retries for giving up on publishing
 
     static std::shared_ptr<const MqttMessage> queue_message(const uint8_t operation, const std::string & topic, const std::string & payload, bool retain);
     static std::shared_ptr<const MqttMessage> queue_publish_message(const std::string & topic, const std::string & payload, bool retain);

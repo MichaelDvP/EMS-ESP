@@ -408,7 +408,7 @@ void Mqtt::start() {
     });
 
     // create space for command buffer, to avoid heap memory fragmentation
-    mqtt_subfunctions_.reserve(10);
+    mqtt_subfunctions_.reserve(50);
 }
 
 void Mqtt::set_publish_time_boiler(uint16_t publish_time) {
@@ -585,6 +585,7 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
 
     // if the queue is full, make room but removing the last one
     if (mqtt_messages_.size() >= MAX_MQTT_MESSAGES) {
+        LOG_INFO(F("Max. queue size, dropping one message"));
         mqtt_messages_.pop_front();
     }
     mqtt_messages_.emplace_back(mqtt_message_id_++, std::move(message));
