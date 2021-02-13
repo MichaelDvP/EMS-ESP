@@ -33,6 +33,8 @@ export interface EMSESPStatus {
   tx_sent: number;
   rx_quality: number;
   tx_quality: number;
+  rx_fails: number;
+  tx_fails: number;
   dallas_fails: number;
 }
 

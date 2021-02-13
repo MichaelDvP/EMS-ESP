@@ -67,9 +67,9 @@ class EMSESPStatusForm extends Component<EMSESPStatusFormProps> {
                 </TableRow>
                 <TableRow>
                   <TableCell >
-                    Rx line quality
+                    Rx fails (line quality)
                   </TableCell>
-                  <TableCell align="right">{data.rx_quality}&nbsp;%
+                  <TableCell align="right">{data.rx_fails} ({data.rx_quality}&nbsp;%)
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -81,9 +81,9 @@ class EMSESPStatusForm extends Component<EMSESPStatusFormProps> {
                 </TableRow>
                 <TableRow>
                   <TableCell >
-                    Tx line quality
+                    Tx fails (line quality)
                   </TableCell>
-                  <TableCell align="right">{data.tx_quality}&nbsp;%
+                  <TableCell align="right">{data.tx_fails} ({data.tx_quality}&nbsp;%)
                   </TableCell>
                 </TableRow>
                 <TableRow>

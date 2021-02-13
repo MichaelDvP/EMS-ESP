@@ -65,6 +65,8 @@ void WebStatusService::webStatusService(AsyncWebServerRequest * request) {
     root["tx_sent"]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
     root["rx_quality"]   = EMSESP::rxservice_.quality();
     root["tx_quality"]   = EMSESP::txservice_.quality();
+    root["rx_fails"]     = EMSESP::rxservice_.telegram_error_count();
+    root["tx_fails"]     = EMSESP::txservice_.telegram_fail_count();
     root["dallas_fails"] = EMSESP::sensor_fails();
 
     response->setLength();
