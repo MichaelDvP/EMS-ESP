@@ -45,22 +45,25 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
     if (USIR(EMSUART_UART) & (1 << UIBD)) { // BREAK detection = End of EMS data block
         USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCTXI));  // reset tx-brk
         USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
-        pEMSRxBuf->length = 0;
+        uint8_t length = 0;
+        uint8_t uart_buffer[EMS_MAXBUFFERSIZE];
         while ((USS(EMSUART_UART) >> USRXC) & 0x0FF) { // read fifo into buffer
             uint8_t rx = USF(EMSUART_UART);
-            if (pEMSRxBuf->length < EMS_MAXBUFFERSIZE) {
-                if (pEMSRxBuf->length || rx) { // skip a leading zero
-                    pEMSRxBuf->buffer[pEMSRxBuf->length++] = rx;
+            if (length < EMS_MAXBUFFERSIZE) {
+                if (length || rx) { // skip a leading zero
+                    uart_buffer[length++] = rx;
                 }
             } else {
                 drop_next_rx = true;
             }
         }
-        if (pEMSRxBuf->buffer[pEMSRxBuf->length - 1]) { // check if last byte is break
-            pEMSRxBuf->length++;
+        if (uart_buffer[length - 1]) { // check if last byte is break
+            length++;
         }
         // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
-        if (!drop_next_rx && (pEMSRxBuf->length > 4 || pEMSRxBuf->length == 2)) {
+        if (!drop_next_rx && (length > 4 || length == 2)) {
+            pEMSRxBuf->length = length;
+            os_memcpy((void *)pEMSRxBuf->buffer, (void *)&uart_buffer, pEMSRxBuf->length); // copy data into transfer buffer, including the BRK 0x00 at the end
             system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
         }
         drop_next_rx = false;

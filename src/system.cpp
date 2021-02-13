@@ -354,7 +354,7 @@ void System::send_heartbeat() {
     }
 
     doc["rssi"]         = rssi;
-    doc["uptime"]       = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    doc["uptime"]       = uuid::log::format_timestamp_s(uuid::get_uptime_ms(), 3);
     doc["uptime_sec"]   = uuid::get_uptime_sec();
     doc["mqtt_fails"]   = Mqtt::publish_fails();
     doc["rx_received"]  = EMSESP::rxservice_.telegram_count();
