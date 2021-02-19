@@ -35,13 +35,13 @@ void SystemStatus::systemStatus(AsyncWebServerRequest * request) {
     root["fs_used"]  = SPIFFS.usedBytes();
 #elif defined(ESP8266)
     FSInfo fs_info;
-    LittleFS.info(fs_info); // // proddy added
+    LittleFS.info(fs_info); // proddy added
     root["fs_total"] = fs_info.totalBytes;
     root["fs_used"]  = fs_info.usedBytes;
 #endif
 
-    root["uptime"]   = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3); // proddy added
-    root["free_mem"] = free_mem_percent;                                         // proddy added
+    root["uptime"]   = uuid::log::format_timestamp_s(uuid::get_uptime_ms(), 3) + " (" + ESP.getResetInfo().c_str() + ")"; // proddy added
+    root["free_mem"] = free_mem_percent; // proddy added
 
     response->setLength();
     request->send(response);

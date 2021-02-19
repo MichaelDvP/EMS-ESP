@@ -151,9 +151,9 @@ class EMSdevice {
     void toggle_fetch(uint16_t telegram_id, bool toggle);
     bool get_toggle_fetch(uint16_t telegram_id);
 
-    void reserve_mem(size_t n) {
-        telegram_functions_.reserve(n);
-    }
+    // void reserve_mem(size_t n) {
+    //     telegram_functions_.reserve(n);
+    // }
 
     static void create_value_json(JsonArray &                 root,
                                   const __FlashStringHelper * key,

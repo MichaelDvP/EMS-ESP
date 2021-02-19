@@ -43,9 +43,9 @@ bool         drop_next_rx = true;
 //
 void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
 
-    if (USIR(EMSUART_UART) & (1 << UIBD)) { // BREAK detection = End of EMS data block
+    if (USIR(EMSUART_UART) & (1 << UIBD)) {                    // BREAK detection = End of EMS data block
         USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCTXI));  // reset tx-brk
-        USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
+        USIC(EMSUART_UART) = (1 << UIBD);                      // INT clear the BREAK detect interrupt
         pEMSRxBuf->length = 0;
         while ((USS(EMSUART_UART) >> USRXC) & 0x0FF) { // read fifo into buffer
             uint8_t rx = USF(EMSUART_UART);
@@ -62,9 +62,9 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         }
         // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
         if (!drop_next_rx && (pEMSRxBuf->length > 4 || pEMSRxBuf->length == 2)) {
-            pCurrent  = pEMSRxBuf;
+            pCurrent  = pEMSRxBuf;                                  // current buffer to receive task
             pEMSRxBuf = &aEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
-            system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
+            system_os_post(EMSUART_recvTaskPrio, 0, 0);             // call emsuart_recvTask() at next opportunity
         }
         drop_next_rx = false;
     }
@@ -219,25 +219,10 @@ uint16_t ICACHE_FLASH_ATTR EMSuart::transmit(uint8_t * buf, uint8_t len) {
      * Logic for tx_mode of 1
      * based on code from https://github.com/proddy/EMS-ESP/issues/103 by @susisstrolch
      * 
-     * Logic:
-     * we emit the whole telegram, with Rx interrupt disabled, collecting busmaster response in FIFO.
-     * after sending the last char we poll the Rx status until either
-     * - size(Rx FIFO) == size(Tx-Telegram)
-     * - <BRK> is detected
-     * At end of receive we re-enable Rx-INT and send a Tx-BRK in loopback mode.
-     * 
-     * EMS-Bus error handling
-     * 1. Busmaster stops echoing on Tx w/o permission
-     * 2. Busmaster cancel telegram by sending a BRK
-     * 
-     * Case 1. is handled by a watchdog counter which is reset on each
-     * Tx attempt. The timeout should be 20x EMSUART_TX_BIT_TIME plus
-     * some smart guess for processing time on targeted EMS device.
-     * We set Status to EMS_TX_WTD_TIMEOUT and return
-     * 
-     * Case 2. is handled via a BRK chk during transmission.
-     * We set Status to EMS_TX_BRK_DETECT and return
-     * 
+     * Logic (modified by @MichaelDvP):
+     * wait after each byte for the master echo
+     * after last byte echo send a fixed break and leave. 
+     * The master echo will trigger the interrupt.
      */
 
     // send the bytes along the serial line

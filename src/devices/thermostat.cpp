@@ -184,6 +184,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
     }
     */
     EMSESP::send_read_request(0x12, device_id); // read last error (only published on errors)
+    EMSESP::send_read_request(0xA2, device_id); // actual errorCode (published on errors and very rarely)
 }
 
 // prepare data for Web UI
