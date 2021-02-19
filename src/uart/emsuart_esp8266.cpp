@@ -32,6 +32,7 @@ typedef struct {
 os_event_t   recvTaskQueue[EMSUART_recvTaskQueueLen]; // our Rx queue
 EMSRxBuf_t   aEMSRxBuf[EMS_MAXBUFFERS];
 EMSRxBuf_t * pEMSRxBuf    = &aEMSRxBuf[0];
+EMSRxBuf_t * pCurrent     = pEMSRxBuf;
 uint8_t      emsRxBufIdx  = 0;
 uint8_t      tx_mode_     = 0xFF;
 bool         drop_next_rx = true;
@@ -45,8 +46,6 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
     if (USIR(EMSUART_UART) & (1 << UIBD)) { // BREAK detection = End of EMS data block
         USC0(EMSUART_UART) &= ~((1 << UCBRK) | (1 << UCTXI));  // reset tx-brk
         USIC(EMSUART_UART) = (1 << UIBD); // INT clear the BREAK detect interrupt
-        // uint8_t length = 0;
-        // uint8_t Rxbuf[EMS_MAXBUFFERSIZE];
         pEMSRxBuf->length = 0;
         while ((USS(EMSUART_UART) >> USRXC) & 0x0FF) { // read fifo into buffer
             uint8_t rx = USF(EMSUART_UART);
@@ -63,8 +62,8 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         }
         // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
         if (!drop_next_rx && (pEMSRxBuf->length > 4 || pEMSRxBuf->length == 2)) {
-            // pEMSRxBuf->length = length;
-            // os_memcpy((void *)pEMSRxBuf->buffer, (void *)&Rxbuf, pEMSRxBuf->length); // copy data into transfer buffer, including the BRK 0x00 at the end
+            pCurrent  = pEMSRxBuf;
+            pEMSRxBuf = &aEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
             system_os_post(EMSUART_recvTaskPrio, 0, 0); // call emsuart_recvTask() at next opportunity
         }
         drop_next_rx = false;
@@ -77,8 +76,6 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
  * The full buffer is sent to EMSESP::incoming_telegram()
  */
 void ICACHE_FLASH_ATTR EMSuart::emsuart_recvTask(os_event_t * events) {
-    EMSRxBuf_t * pCurrent = pEMSRxBuf;
-    pEMSRxBuf             = &aEMSRxBuf[++emsRxBufIdx % EMS_MAXBUFFERS]; // next free EMS Receive buffer
 
     EMSESP::incoming_telegram((uint8_t *)pCurrent->buffer, pCurrent->length - 1);
 }
