@@ -341,6 +341,9 @@ void System::send_heartbeat() {
     if (rssi == -1) {
         return;
     }
+    if (!Mqtt::is_connecting()) {
+        return;
+    }
 
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
