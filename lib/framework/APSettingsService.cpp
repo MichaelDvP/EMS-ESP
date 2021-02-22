@@ -11,6 +11,10 @@ APSettingsService::APSettingsService(AsyncWebServer * server, FS * fs, SecurityM
 
 void APSettingsService::begin() {
     _fsPersistence.readFromFS();
+    struct rst_info *rtc_info = system_get_rst_info();
+    if (rtc_info->reason == REASON_EXT_SYS_RST && _state.provisionMode == AP_MODE_NEVER) {
+        _state.provisionMode = AP_MODE_DISCONNECTED;
+    }
     reconfigureAP();
 }
 
