@@ -123,6 +123,36 @@ char * Helpers::smallitoa(char * result, const uint16_t value) {
     return result;
 }
 
+void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) {
+    if (bool_format() == BOOL_FORMAT_ONOFF) {
+        json[name] = value == EMS_VALUE_BOOL_ON ? "on" : "off";
+    } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
+        json[name] = value == EMS_VALUE_BOOL_ON ?  "true" : "false";
+    } else {
+        json[name] = value == EMS_VALUE_BOOL_ON? 1 : 0;
+    }
+}
+
+void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
+    if (no >= value.size()) {
+        json[name] = "";
+        return; // out of bounds
+    }
+    if (bool_format() == BOOL_FORMAT_NUMBERS) {
+        json[name] = no;
+        return;
+    }
+    json[name] = uuid::read_flash_string(value[no]);
+    if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
+        if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
+            json[name] = "false";
+        } else if (no == 1 && uuid::read_flash_string(value[1]) == "on") {
+            json[name] = "true";
+        }
+    }
+}
+
+
 // work out how to display booleans
 char * Helpers::render_boolean(char * result, bool value) {
     if (bool_format() == BOOL_FORMAT_ONOFF) {
@@ -136,7 +166,7 @@ char * Helpers::render_boolean(char * result, bool value) {
     return result;
 }
 
-// depending on format render a number or a string
+/*/ depending on format render a number or a string
 char * Helpers::render_enum(char * result, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
     if (no >= value.size()) {
         return nullptr; // out of bounds
@@ -155,6 +185,7 @@ char * Helpers::render_enum(char * result, const std::vector<const __FlashString
 
     return result;
 }
+*/ 
 
 // render for native char strings
 char * Helpers::render_value(char * result, const char * value, uint8_t format) {
@@ -165,7 +196,7 @@ char * Helpers::render_value(char * result, const char * value, uint8_t format) 
 // convert unsigned int (single byte) to text value and returns it
 // format: 255(0xFF)=boolean, 0=no formatting, otherwise divide by format
 char * Helpers::render_value(char * result, uint8_t value, uint8_t format) {
-    // special check if its a boolean
+    /*/ special check if its a boolean
     if (format == EMS_VALUE_BOOL) {
         if (value == EMS_VALUE_BOOL_OFF) {
             render_boolean(result, false);
@@ -176,7 +207,7 @@ char * Helpers::render_value(char * result, uint8_t value, uint8_t format) {
         }
         return result;
     }
-
+    */
     if (!hasValue(value)) {
         return nullptr;
     }

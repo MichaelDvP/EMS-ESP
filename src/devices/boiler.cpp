@@ -372,8 +372,9 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water type
     if (Helpers::hasValue(wWType_)) {
-        char s1[20];
-        json["wWType"] = Helpers::render_enum(s1, {F("off"), F("flow"), F("buffered flow"), F("buffer"), F("layered buffer")}, wWType_);
+        // char s1[20];
+        // json["wWType"] = Helpers::render_enum(s1, {F("off"), F("flow"), F("buffered flow"), F("buffer"), F("layered buffer")}, wWType_);
+        Helpers::json_enum(json, "wWType", {F("off"), F("flow"), F("buffered flow"), F("buffer"), F("layered buffer")}, wWType_);
     }
 
     // Warm Water charging type
@@ -383,7 +384,8 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water circulation pump available bool
     if (Helpers::hasValue(wWCircPump_, EMS_VALUE_BOOL)) {
-        json["wWCircPump"] = Helpers::render_value(s, wWCircPump_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWCircPump", wWCircPump_);
+        // json["wWCircPump"] = Helpers::render_value(s, wWCircPump_, EMS_VALUE_BOOL);
     }
 
     // Warm Water circulation pump freq
@@ -398,7 +400,8 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water circulation active bool
     if (Helpers::hasValue(wWCirc_, EMS_VALUE_BOOL)) {
-        json["wWCirc"] = Helpers::render_value(s, wWCirc_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWCirc", wWCirc_);
+        // json["wWCirc"] = Helpers::render_value(s, wWCirc_, EMS_VALUE_BOOL);
     }
 
     // Warm Water current temperature (intern)
@@ -428,42 +431,50 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water activated bool
     if (Helpers::hasValue(wWActivated_, EMS_VALUE_BOOL)) {
-        json["wWActivated"] = Helpers::render_value(s, wWActivated_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWActivated", wWActivated_);
+        // json["wWActivated"] = Helpers::render_value(s, wWActivated_, EMS_VALUE_BOOL);
     }
 
     // Warm Water one time charging bool
     if (Helpers::hasValue(wWOneTime_, EMS_VALUE_BOOL)) {
-        json["wWOneTime"] = Helpers::render_value(s, wWOneTime_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWOneTime", wWOneTime_);
+        // json["wWOneTime"] = Helpers::render_value(s, wWOneTime_, EMS_VALUE_BOOL);
     }
 
     // Warm Water disinfecting bool
     if (Helpers::hasValue(wWDisinfecting_, EMS_VALUE_BOOL)) {
-        json["wWDisinfecting"] = Helpers::render_value(s, wWDisinfecting_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWDisinfecting", wWDisinfecting_);
+        // json["wWDisinfecting"] = Helpers::render_value(s, wWDisinfecting_, EMS_VALUE_BOOL);
     }
 
     // Warm water charging bool
     if (Helpers::hasValue(wWCharging_, EMS_VALUE_BOOL)) {
-        json["wWCharging"] = Helpers::render_value(s, wWCharging_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWCharging", wWCharging_);
+        // json["wWCharging"] = Helpers::render_value(s, wWCharging_, EMS_VALUE_BOOL);
     }
 
     // Warm water recharge bool
     if (Helpers::hasValue(wWRecharging_, EMS_VALUE_BOOL)) {
-        json["wWRecharging"] = Helpers::render_value(s, wWRecharging_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWRecharging", wWRecharging_);
+        // json["wWRecharging"] = Helpers::render_value(s, wWRecharging_, EMS_VALUE_BOOL);
     }
 
     // Warm water temperature ok bool
     if (Helpers::hasValue(wWTempOK_, EMS_VALUE_BOOL)) {
-        json["wWTempOK"] = Helpers::render_value(s, wWTempOK_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWTempOK", wWTempOK_);
+        // json["wWTempOK"] = Helpers::render_value(s, wWTempOK_, EMS_VALUE_BOOL);
     }
 
     // Warm water active bool
     if (Helpers::hasValue(wWActive_, EMS_VALUE_BOOL)) {
-        json["wWActive"] = Helpers::render_value(s, wWActive_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWActive", wWActive_);
+        // json["wWActive"] = Helpers::render_value(s, wWActive_, EMS_VALUE_BOOL);
     }
 
     // Warm Water charging bool
     if (Helpers::hasValue(wWHeat_, EMS_VALUE_BOOL)) {
-        json["wWHeat"] = Helpers::render_value(s, wWHeat_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "wWHeat", wWHeat_);
+        // json["wWHeat"] = Helpers::render_value(s, wWHeat_, EMS_VALUE_BOOL);
     }
 
     // Warm Water pump set power %
@@ -473,12 +484,12 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm water mix temperature
     if (Helpers::hasValue(wwMixTemperature_)) {
-        json["wwMixTemperature"] = wwMixTemperature_ / 10;
+        json["wwMixTemperature"] = (float)wwMixTemperature_ / 10;
     }
 
     // Warm water buffer boiler temperature
     if (Helpers::hasValue(wwBufferTemperature_)) {
-        json["wwBufferTemperature"] = wwBufferTemperature_ / 10;
+        json["wwBufferTemperature"] = (float)wwBufferTemperature_ / 10;
     }
 
     // Warm Water # starts
@@ -502,16 +513,18 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 // creates JSON doc from values
 // returns false if empty
 bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
-    char s[10]; // for formatting strings
+    // char s[10]; // for formatting strings
 
     // Hot tap water bool
     if (Helpers::hasValue(heatingActive_, EMS_VALUE_BOOL)) {
-        json["heatingActive"] = Helpers::render_value(s, heatingActive_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "heatingActive", heatingActive_);
+        // json["heatingActive"] = Helpers::render_value(s, heatingActive_, EMS_VALUE_BOOL);
     }
 
     // Central heating bool
     if (Helpers::hasValue(tapwaterActive_, EMS_VALUE_BOOL)) {
-        json["tapwaterActive"] = Helpers::render_value(s, tapwaterActive_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "tapwaterActive", tapwaterActive_);
+        // json["tapwaterActive"] = Helpers::render_value(s, tapwaterActive_, EMS_VALUE_BOOL);
     }
 
     // Selected flow temperature deg
@@ -576,7 +589,8 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
 
     // Gas bool
     if (Helpers::hasValue(burnGas_, EMS_VALUE_BOOL)) {
-        json["burnGas"] = Helpers::render_value(s, burnGas_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "burnGas", burnGas_);
+        // json["burnGas"] = Helpers::render_value(s, burnGas_, EMS_VALUE_BOOL);
     }
 
     // Flame current uA
@@ -586,22 +600,26 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
 
     // Boiler pump bool
     if (Helpers::hasValue(heatPump_, EMS_VALUE_BOOL)) {
-        json["heatPump"] = Helpers::render_value(s, heatPump_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "heatPump", heatPump_);
+        //  json["heatPump"] = Helpers::render_value(s, heatPump_, EMS_VALUE_BOOL);
     }
 
     // Fan bool
     if (Helpers::hasValue(fanWork_, EMS_VALUE_BOOL)) {
-        json["fanWork"] = Helpers::render_value(s, fanWork_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "fanWork", fanWork_);
+        // json["fanWork"] = Helpers::render_value(s, fanWork_, EMS_VALUE_BOOL);
     }
 
     // Ignition bool
     if (Helpers::hasValue(ignWork_, EMS_VALUE_BOOL)) {
-        json["ignWork"] = Helpers::render_value(s, ignWork_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "ignWork", ignWork_);
+        // json["ignWork"] = Helpers::render_value(s, ignWork_, EMS_VALUE_BOOL);
     }
 
     // heating activated bool
     if (Helpers::hasValue(heatingActivated_, EMS_VALUE_BOOL)) {
-        json["heatingActivated"] = Helpers::render_value(s, heatingActivated_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "heatingActivated", heatingActivated_);
+        // json["heatingActivated"] = Helpers::render_value(s, heatingActivated_, EMS_VALUE_BOOL);
     }
 
     // Heating temperature setting on the boiler
@@ -863,9 +881,10 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     }
 
     if (Helpers::hasValue(maintenanceType_)) {
-        char s[7];
-        json["maintenance"] = Helpers::render_enum(s, {F("off"), F("time"), F("date")}, maintenanceType_);
-    }
+        // char s[7];
+        // json["maintenance"] = Helpers::render_enum(s, {F("off"), F("time"), F("date")}, maintenanceType_);
+        Helpers::json_enum(json, "maintenance", {F("off"), F("time"), F("date")}, maintenanceType_);
+     }
 
     if (Helpers::hasValue(maintenanceTime_)) {
         json["maintenanceTime"] = maintenanceTime_ * 100;

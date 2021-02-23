@@ -157,7 +157,7 @@ void Solar::register_mqtt_ha_config() {
 // creates JSON doc from values
 // returns false if empty
 bool Solar::export_values(JsonObject & json, int8_t id) {
-    char s[10]; // for formatting strings
+    // char s[10]; // for formatting strings
 
     if (Helpers::hasValue(collectorTemp_)) {
         json["collectorTemp"] = (float)collectorTemp_ / 10;
@@ -188,11 +188,13 @@ bool Solar::export_values(JsonObject & json, int8_t id) {
     }
 
     if (Helpers::hasValue(solarPump_, EMS_VALUE_BOOL)) {
-        json["solarPump"] = Helpers::render_value(s, solarPump_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "solarPump", solarPump_);
+        // json["solarPump"] = Helpers::render_value(s, solarPump_, EMS_VALUE_BOOL);
     }
 
     if (Helpers::hasValue(valveStatus_, EMS_VALUE_BOOL)) {
-        json["valveStatus"] = Helpers::render_value(s, valveStatus_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "valveStatus", valveStatus_);
+        // json["valveStatus"] = Helpers::render_value(s, valveStatus_, EMS_VALUE_BOOL);
     }
 
     if (Helpers::hasValue(pumpWorkMin_)) {
@@ -202,11 +204,13 @@ bool Solar::export_values(JsonObject & json, int8_t id) {
     }
 
     if (Helpers::hasValue(tankHeated_, EMS_VALUE_BOOL)) {
-        json["tankHeated"] = Helpers::render_value(s, tankHeated_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "tankHeated", tankHeated_);
+        // json["tankHeated"] = Helpers::render_value(s, tankHeated_, EMS_VALUE_BOOL);
     }
 
     if (Helpers::hasValue(collectorShutdown_, EMS_VALUE_BOOL)) {
-        json["collectorShutdown"] = Helpers::render_value(s, collectorShutdown_, EMS_VALUE_BOOL);
+        Helpers::json_boolean(json, "collectorShutdown", collectorShutdown_);
+        // json["collectorShutdown"] = Helpers::render_value(s, collectorShutdown_, EMS_VALUE_BOOL);
     }
 
     if (Helpers::hasValue(energyLastHour_)) {

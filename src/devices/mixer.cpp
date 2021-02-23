@@ -219,9 +219,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         if (Helpers::hasValue(flowSetTemp_)) {
             json_hc["flowSetTemp"] = flowSetTemp_;
         }
-        if (Helpers::hasValue(pumpStatus_)) {
-            char s[7];
-            json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
+        if (Helpers::hasValue(pumpStatus_, EMS_VALUE_BOOL)) {
+            Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
+            // char s[7];
+            // json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
         }
         if (Helpers::hasValue(status_)) {
             json_hc["valveStatus"] = status_;
@@ -244,9 +245,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     if (Helpers::hasValue(flowTemp_)) {
         json_hc["wwTemp"] = (float)flowTemp_ / 10;
     }
-    if (Helpers::hasValue(pumpStatus_)) {
-        char s[7];
-        json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
+    if (Helpers::hasValue(pumpStatus_, EMS_VALUE_BOOL)) {
+        Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
+        // char s[7];
+        // json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
     }
     if (Helpers::hasValue(status_)) {
         json_hc["tempStatus"] = status_;
@@ -312,11 +314,11 @@ void Mixer::process_IPMStatusMessage(std::shared_ptr<const Telegram> telegram) {
     // do we have a mixed circuit
     if (ismixed == 2) {
         changed_ |= telegram->read_value(flowTemp_, 3); // is * 10
-        changed_ |= telegram->read_value(flowSetTemp_, 5);
         changed_ |= telegram->read_value(status_, 2); // valve status
     }
 
     changed_ |= telegram->read_bitvalue(pumpStatus_, 1, 0); // pump is also in unmixed circuits
+    changed_ |= telegram->read_value(flowSetTemp_, 5);      // flowSetTemp is also in unmixed circuits, see #711
 }
 
 // Mixer on a MM10 - 0xAB
