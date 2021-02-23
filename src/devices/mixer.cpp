@@ -318,7 +318,7 @@ void Mixer::process_IPMStatusMessage(std::shared_ptr<const Telegram> telegram) {
     }
 
     changed_ |= telegram->read_bitvalue(pumpStatus_, 1, 0); // pump is also in unmixed circuits
-    changed_ |= telegram->read_value(flowSetTemp_, 5);      // flowSetTemp is also in unmixed circuits, see #711
+    changed_ |= telegram->read_value(flowSetTemp_, 5);      // flowSettemp is also in unmixed circuits, see #711
 }
 
 // Mixer on a MM10 - 0xAB
