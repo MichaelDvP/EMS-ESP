@@ -473,12 +473,12 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm water mix temperature
     if (Helpers::hasValue(wwMixTemperature_)) {
-        json["wwMixTemperature"] = wwMixTemperature_;
+        json["wwMixTemperature"] = wwMixTemperature_ / 10;
     }
 
     // Warm water buffer boiler temperature
     if (Helpers::hasValue(wwBufferTemperature_)) {
-        json["wwBufferTemperature"] = wwBufferTemperature_;
+        json["wwBufferTemperature"] = wwBufferTemperature_ / 10;
     }
 
     // Warm Water # starts
