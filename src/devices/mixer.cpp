@@ -219,11 +219,7 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         if (Helpers::hasValue(flowSetTemp_)) {
             json_hc["flowSetTemp"] = flowSetTemp_;
         }
-        if (Helpers::hasValue(pumpStatus_, EMS_VALUE_BOOL)) {
-            Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
-            // char s[7];
-            // json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
-        }
+        Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
         if (Helpers::hasValue(status_)) {
             json_hc["valveStatus"] = status_;
         }
@@ -245,11 +241,7 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     if (Helpers::hasValue(flowTemp_)) {
         json_hc["wwTemp"] = (float)flowTemp_ / 10;
     }
-    if (Helpers::hasValue(pumpStatus_, EMS_VALUE_BOOL)) {
-        Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
-        // char s[7];
-        // json_hc["pumpStatus"] = Helpers::render_value(s, pumpStatus_, EMS_VALUE_BOOL);
-    }
+    Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
     if (Helpers::hasValue(status_)) {
         json_hc["tempStatus"] = status_;
     }

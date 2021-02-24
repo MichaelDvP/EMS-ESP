@@ -124,18 +124,20 @@ char * Helpers::smallitoa(char * result, const uint16_t value) {
 }
 
 void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) {
+    if (value == EMS_VALUE_BOOL_NOTSET) {
+        return;
+    }
     if (bool_format() == BOOL_FORMAT_ONOFF) {
-        json[name] = value == EMS_VALUE_BOOL_ON ? "on" : "off";
+        json[name] = value == EMS_VALUE_BOOL_OFF ? "off" : "on";
     } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
-        json[name] = value == EMS_VALUE_BOOL_ON ?  "true" : "false";
+        json[name] = value == EMS_VALUE_BOOL_OFF ?  "false" : "true";
     } else {
-        json[name] = value == EMS_VALUE_BOOL_ON? 1 : 0;
+        json[name] = value == EMS_VALUE_BOOL_OFF? 0 : 1;
     }
 }
 
 void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
     if (no >= value.size()) {
-        json[name] = "";
         return; // out of bounds
     }
     if (bool_format() == BOOL_FORMAT_NUMBERS) {
