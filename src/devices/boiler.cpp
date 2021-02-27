@@ -454,14 +454,7 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
     }
 
     // Warm Water active time
-    if (Helpers::hasValue(wWWorkM_)) {
-        if (textformat) {
-            char slong[40];
-            json["wWWorkM"] = Helpers::render_value(slong, wWWorkM_, EMS_VALUE_TIME); // Warm Water active time (full text)
-        } else {
-            json["wWWorkM"] = wWWorkM_;
-        }
-    }
+    Helpers::json_time(json, "wWWorkM", wWWorkM_, textformat);
 
     return (json.size());
 }
@@ -562,10 +555,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     Helpers::json_boolean(json, "fanWork", fanWork_);
 
     // Ignition bool
-    if (Helpers::hasValue(ignWork_, EMS_VALUE_BOOL)) {
-        Helpers::json_boolean(json, "ignWork", ignWork_);
-        // json["ignWork"] = Helpers::render_value(s, ignWork_, EMS_VALUE_BOOL);
-    }
+    Helpers::json_boolean(json, "ignWork", ignWork_);
 
     // heating activated bool
     Helpers::json_boolean(json, "heatingActivated", heatingActivated_);
@@ -631,34 +621,13 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     }
 
     // Total burner operating time
-    if (Helpers::hasValue(burnWorkMin_)) {
-        if (textformat) {
-            char slong[40];
-            json["burnWorkMin"] = Helpers::render_value(slong, burnWorkMin_, EMS_VALUE_TIME);
-        } else {
-            json["burnWorkMin"] = burnWorkMin_;
-        }
-    }
+    Helpers::json_time(json, "burnWorkMin", burnWorkMin_, textformat);
 
     // Total heat operating time
-    if (Helpers::hasValue(heatWorkMin_)) {
-        if (textformat) {
-            char slong[40];
-            json["heatWorkMin"] = Helpers::render_value(slong, heatWorkMin_, EMS_VALUE_TIME);
-        } else {
-            json["heatWorkMin"] = heatWorkMin_;
-        }
-    }
+    Helpers::json_time(json, "heatWorkMin", heatWorkMin_, textformat);
 
     // Total UBA working time
-    if (Helpers::hasValue(UBAuptime_)) {
-        if (textformat) {
-            char slong[40];
-            json["UBAuptime"] = Helpers::render_value(slong, UBAuptime_, EMS_VALUE_TIME);
-        } else {
-            json["UBAuptime"] = UBAuptime_;
-        }
-    }
+    Helpers::json_time(json, "UBAuptime", UBAuptime_, textformat);
 
     // Service Code & Service Code Number. Priority error - maintenance - workingcode
     if ((serviceCode_[0] >= '1' && serviceCode_[0] <= '9') || (serviceCode_[0] >= 'A' && serviceCode_[0] <= 'Z')) {
@@ -707,44 +676,16 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
 // creates JSON doc from values,  returns false if empty
 bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     // Total heat operating time
-    if (Helpers::hasValue(upTimeControl_)) {
-        if (textformat) {
-            char slong[40];
-            json["upTimeControl"] = Helpers::render_value(slong, upTimeControl_ / 60, EMS_VALUE_TIME);
-        } else {
-            json["upTimeControl"] = upTimeControl_ / 60;
-        }
-    }
+    Helpers::json_time(json, "upTimeControl", upTimeControl_ / 60, textformat);
 
     // Operating time compressor heating
-    if (Helpers::hasValue(upTimeCompHeating_)) {
-        if (textformat) {
-            char slong[40];
-            json["upTimeCompHeating"] = Helpers::render_value(slong, upTimeCompHeating_ / 60, EMS_VALUE_TIME);
-        } else {
-            json["upTimeCompHeating"] = upTimeCompHeating_ / 60;
-        }
-    }
+    Helpers::json_time(json, "upTimeCompHeating", upTimeCompHeating_ / 60, textformat);
 
     // Operating time compressor cooling
-    if (Helpers::hasValue(upTimeCompCooling_)) {
-        if (textformat) {
-            char slong[40];
-            json["upTimeCompCooling"] = Helpers::render_value(slong, upTimeCompCooling_ / 60, EMS_VALUE_TIME);
-        } else {
-            json["upTimeCompCooling"] = upTimeCompCooling_ / 60;
-        }
-    }
+    Helpers::json_time(json, "pTimeCompCooling", upTimeCompCooling_ / 60, textformat);
 
     // Operating time compressor warm water
-    if (Helpers::hasValue(upTimeCompWw_)) {
-        if (textformat) {
-            char slong[40];
-            json["upTimeCompWw"] = Helpers::render_value(slong, upTimeCompWw_ / 60, EMS_VALUE_TIME);
-        } else {
-            json["upTimeCompWw"] = upTimeCompWw_ / 60;
-        }
-    }
+    Helpers::json_time(json, "upTimeCompWw", upTimeCompWw_ / 60, textformat);
 
     // Number of heating starts
     if (Helpers::hasValue(heatingStarts_)) {

@@ -123,19 +123,23 @@ char * Helpers::smallitoa(char * result, const uint16_t value) {
     return result;
 }
 
+// set a json value to boolean format
 void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) {
     if (value == EMS_VALUE_BOOL_NOTSET) {
         return;
     }
     if (bool_format() == BOOL_FORMAT_ONOFF) {
-        json[name] = value == EMS_VALUE_BOOL_OFF ? "off" : "on";
+        json[name] = (value != EMS_VALUE_BOOL_OFF) ? "on" : "off";
+    } else if (bool_format() == BOOL_FORMAT_ONOFF_KAP) {
+        json[name] = (value != EMS_VALUE_BOOL_OFF) ? "ON" : "OFF";
     } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
-        json[name] = value == EMS_VALUE_BOOL_OFF ?  "false" : "true";
+        json[name] = (value != EMS_VALUE_BOOL_OFF); // ? true : false;
     } else {
-        json[name] = value == EMS_VALUE_BOOL_OFF? 0 : 1;
+        json[name] = (value != EMS_VALUE_BOOL_OFF) ? 1 : 0;
     }
 }
 
+// set a json value to enumerated strings or numbers
 void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
     if (no >= value.size()) {
         return; // out of bounds
@@ -147,11 +151,25 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
     json[name] = uuid::read_flash_string(value[no]);
     if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
         if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
-            json[name] = "false";
+            json[name] = false;
         } else if (no == 1 && uuid::read_flash_string(value[1]) == "on") {
-            json[name] = "true";
+            json[name] = true;
         }
     }
+}
+
+// set json value to time from uint32
+void Helpers::json_time(JsonObject & json, const char * name, const uint32_t value, const bool textformat) {
+    if (!hasValue(value)) {
+        return;
+    }
+    if (textformat) {
+        char s[40];
+        snprintf_P(s, 40, PSTR("%d days %d hours %d minutes"), (value / 1440), ((value % 1440) / 60), (value % 60));
+        json[name] = s;
+        return;
+    }
+    json[name] = value;
 }
 
 
@@ -159,6 +177,8 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
 char * Helpers::render_boolean(char * result, bool value) {
     if (bool_format() == BOOL_FORMAT_ONOFF) {
         strlcpy(result, value ? "on" : "off", 5);
+    } else if (bool_format() == BOOL_FORMAT_ONOFF_KAP) {
+        strlcpy(result, value ? "ON" : "OFF", 5);
     } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
         strlcpy(result, value ? "true" : "false", 7);
     } else {

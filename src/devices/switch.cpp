@@ -64,7 +64,7 @@ void Switch::publish_values(JsonObject & json, bool force) {
 
 // export values to JSON
 bool Switch::export_values(JsonObject & json, int8_t id) {
-    Helpers::json_boolean(json, "ctivated", activated_);
+    Helpers::json_boolean(json, "activated", activated_);
 
     if (Helpers::hasValue(flowTemp_)) {
         json["flowTemp"] = (float)flowTemp_ / 10;

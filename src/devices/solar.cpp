@@ -84,8 +84,8 @@ void Solar::device_info_web(JsonArray & root, uint8_t & part) {
     create_value_json(root, F("energyLastHour"), nullptr, F_(energyLastHour), F_(wh), json);
     create_value_json(root, F("energyToday"), nullptr, F_(energyToday), F_(wh), json);
     create_value_json(root, F("energyTotal"), nullptr, F_(energyTotal), F_(kwh), json);
-    create_value_json(root, F("pumpWorkMin"), nullptr, F_(pumpWorkMin), F_(min), json);
-    create_value_json(root, F("pumpWorkMintxt"), nullptr, F_(pumpWorkMintxt), F_(min), json);
+    // create_value_json(root, F("pumpWorkMin"), nullptr, F_(pumpWorkMin), F_(min), json);
+    create_value_json(root, F("pumpWorkMintxt"), nullptr, F_(pumpWorkMintxt), nullptr, json);
 }
 
 // publish values via MQTT
@@ -191,10 +191,9 @@ bool Solar::export_values(JsonObject & json, int8_t id) {
 
     Helpers::json_boolean(json, "valveStatus", valveStatus_);
 
+    Helpers::json_time(json, "pumpWorkMintxt", pumpWorkMin_, true);
     if (Helpers::hasValue(pumpWorkMin_)) {
         json["pumpWorkMin"] = pumpWorkMin_;
-        char slong[40];
-        json["pumpWorkMintxt"] = Helpers::render_value(slong, pumpWorkMin_, EMS_VALUE_TIME);
     }
 
     Helpers::json_boolean(json, "tankHeated", tankHeated_);

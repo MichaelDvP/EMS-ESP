@@ -221,7 +221,7 @@ uint16_t ICACHE_FLASH_ATTR EMSuart::transmit(uint8_t * buf, uint8_t len) {
      * 
      * Logic (modified by @MichaelDvP):
      * wait after each byte for the master echo
-     * after last byte echo send a fixed break and leave. 
+     * after last byte echo send a fixed break and leave.
      * The master echo will trigger the interrupt.
      */
 

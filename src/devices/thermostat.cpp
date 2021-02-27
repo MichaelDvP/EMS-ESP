@@ -324,12 +324,14 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
         }
     }
 
+    // DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
     JsonObject                                     json_data = doc.to<JsonObject>();
 
     // get the thermostat data.
     // we're in HA or CUSTOM, send out the complete topic with all the data
     if (export_values(json_data)) {
+        // doc.shrinkToFit();
         Mqtt::publish(F("thermostat_data"), json_data);
     }
 }
