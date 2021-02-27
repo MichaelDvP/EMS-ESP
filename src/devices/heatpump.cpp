@@ -49,12 +49,14 @@ bool Heatpump::export_values(JsonObject & json, int8_t id) {
 
 void Heatpump::device_info_web(JsonArray & root, uint8_t & part) {
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
-    JsonObject                                     json = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // JsonObject                                     json = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    JsonObject          json = doc.to<JsonObject>();
     if (!export_values(json)) {
         return; // empty
     }
-
+    doc.shrinkToFit();
     create_value_json(root, F("airHumidity"), nullptr, F_(airHumidity), F_(percent), json);
     create_value_json(root, F("dewTemperature"), nullptr, F_(dewTemperature), F_(degrees), json);
 }
@@ -69,9 +71,12 @@ void Heatpump::publish_values(JsonObject & json, bool force) {
         }
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
-    JsonObject                                     json_data = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // JsonObject                                     json_data = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    JsonObject          json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
+        doc.shrinkToFit();
         Mqtt::publish(F("heatpump_data"), doc.as<JsonObject>());
     }
 }

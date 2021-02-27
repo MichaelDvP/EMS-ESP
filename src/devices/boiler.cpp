@@ -219,14 +219,16 @@ void Boiler::register_mqtt_ha_config_ww() {
 // send stuff to the Web UI
 void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
-    JsonObject                                     json = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
+    // JsonObject                                     json = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+    JsonObject          json = doc.to<JsonObject>();
     if (part == 0) {
         part = 1; // we have another part
         if (!export_values_main(json, true)) {
             return; // empty
         }
-
+        doc.shrinkToFit();
         create_value_json(root, F("heatingActive"), nullptr, F_(heatingActive), nullptr, json);
         create_value_json(root, F("tapwaterActive"), nullptr, F_(tapwaterActive), nullptr, json);
         create_value_json(root, F("serviceCode"), nullptr, F_(serviceCode), nullptr, json);
@@ -273,6 +275,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         if (!export_values_ww(json, true)) { // append ww values
             return;
         }
+        doc.shrinkToFit();
         // ww
         create_value_json(root, F("wWSelTemp"), nullptr, F_(wWSelTemp), F_(degrees), json);
         create_value_json(root, F("wWSetTemp"), nullptr, F_(wWSetTemp), F_(degrees), json);
@@ -304,6 +307,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         if (!export_values_info(json, true)) { // append info values
             return;
         }
+        doc.shrinkToFit();
         create_value_json(root, F("upTimeControl"), nullptr, F_(upTimeControl), nullptr, json);
         create_value_json(root, F("upTimeCompHeating"), nullptr, F_(upTimeCompHeating), nullptr, json);
         create_value_json(root, F("upTimeCompCooling"), nullptr, F_(upTimeCompCooling), nullptr, json);

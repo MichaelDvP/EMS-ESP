@@ -64,12 +64,14 @@ Solar::Solar(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
 // print to web
 void Solar::device_info_web(JsonArray & root, uint8_t & part) {
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    // JsonObject                                      json = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_MEDIUM);
+    JsonObject          json = doc.to<JsonObject>();
     if (!export_values(json)) {
         return; // empty
     }
-
+    doc.shrinkToFit();
     create_value_json(root, F("collectorTemp"), nullptr, F_(collectorTemp), F_(degrees), json);
     create_value_json(root, F("tankBottomTemp"), nullptr, F_(tankBottomTemp), F_(degrees), json);
     create_value_json(root, F("tankBottomTemp2"), nullptr, F_(tankBottomTemp2), F_(degrees), json);
@@ -98,9 +100,12 @@ void Solar::publish_values(JsonObject & json, bool force) {
         }
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
-    JsonObject                                      json_payload = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> doc;
+    // JsonObject                                      json_payload = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_MEDIUM);
+    JsonObject          json_payload = doc.to<JsonObject>();
     if (export_values(json_payload)) {
+        doc.shrinkToFit();
         if (device_id() == 0x2A) {
             Mqtt::publish(F("ww_data"), doc.as<JsonObject>());
         } else {

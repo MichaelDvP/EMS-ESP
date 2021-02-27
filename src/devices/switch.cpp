@@ -37,9 +37,11 @@ Switch::Switch(uint8_t device_type, uint8_t device_id, uint8_t product_id, const
 
 // fetch the values into a JSON document for display in the web
 void Switch::device_info_web(JsonArray & root, uint8_t & part) {
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    //StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
     JsonObject                                     json = doc.to<JsonObject>();
     if (export_values(json)) {
+        doc.shrinkToFit();
         create_value_json(root, F("activated"), nullptr, F_(activated), nullptr, json);
         create_value_json(root, F("flowTemp"), nullptr, F_(flowTemp), F_(degrees), json);
         create_value_json(root, F("status"), nullptr, F_(status), nullptr, json);
@@ -55,9 +57,12 @@ void Switch::publish_values(JsonObject & json, bool force) {
         }
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
-    JsonObject                                     json_data = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // JsonObject                                     json_data = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    JsonObject          json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
+        doc.shrinkToFit();
         Mqtt::publish(F("switch_data"), doc.as<JsonObject>());
     }
 }
