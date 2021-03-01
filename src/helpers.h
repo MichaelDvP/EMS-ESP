@@ -28,7 +28,7 @@
 #define BOOL_FORMAT_ONOFF 1
 #define BOOL_FORMAT_TRUEFALSE 2
 #define BOOL_FORMAT_NUMBERS 3
-#define BOOL_FORMAT_ONOFF_KAP 4
+#define BOOL_FORMAT_ONOFF_CAP 4
 
 // #define FJSON(x) x
 #define FJSON(x) F(x)

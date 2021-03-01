@@ -130,7 +130,7 @@ void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) 
     }
     if (bool_format() == BOOL_FORMAT_ONOFF) {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? "on" : "off";
-    } else if (bool_format() == BOOL_FORMAT_ONOFF_KAP) {
+    } else if (bool_format() == BOOL_FORMAT_ONOFF_CAP) {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? "ON" : "OFF";
     } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
         json[name] = (value != EMS_VALUE_BOOL_OFF); // ? true : false;
@@ -177,7 +177,7 @@ void Helpers::json_time(JsonObject & json, const char * name, const uint32_t val
 char * Helpers::render_boolean(char * result, bool value) {
     if (bool_format() == BOOL_FORMAT_ONOFF) {
         strlcpy(result, value ? "on" : "off", 5);
-    } else if (bool_format() == BOOL_FORMAT_ONOFF_KAP) {
+    } else if (bool_format() == BOOL_FORMAT_ONOFF_CAP) {
         strlcpy(result, value ? "ON" : "OFF", 5);
     } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
         strlcpy(result, value ? "true" : "false", 7);
