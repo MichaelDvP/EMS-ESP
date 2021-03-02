@@ -45,6 +45,7 @@ uint8_t  System::led_gpio_       = 0;
 uint16_t System::analog_         = 0;
 bool     System::analog_enabled_ = false;
 bool     System::syslog_enabled_ = false;
+PButton  System::myPButton_;
 
 // send on/off to a gpio pin
 // value: true = HIGH, false = LOW
@@ -252,6 +253,41 @@ void System::other_init() {
 #endif
 }
 
+// button indefinite press
+void System::button_OnVLongPress(PButton & b) {
+    LOG_DEBUG(F("Button pressed - very long press"));
+    LOG_WARNING(F("Performing factory reset..."));
+    EMSESP::console_.loop();
+
+#ifndef EMSESP_STANDALONE
+    EMSuart::stop();
+#if defined(ESP8266)
+    LittleFS.format();
+#elif defined(ESP32)
+    SPIFFS.format();
+#endif
+    delay(500);
+    System::restart();
+#endif
+}
+
+
+// push button
+void System::button_init() {
+    if (!myPButton_.init(0, HIGH)) {
+        LOG_INFO(F("External multi-functional button not detected"));
+    } else {
+        LOG_INFO(F("External multi-functional button enabled"));
+    }
+    pinMode(4, OUTPUT);
+    digitalWrite(4, 0); // set D2 to low for easy connecting D2/D3
+
+    // myPButton_.onClick(BUTTON_Debounce, button_OnClick);
+    // myPButton_.onDblClick(BUTTON_DblClickDelay, button_OnDblClick);
+    // myPButton_.onLongPress(BUTTON_LongPressDelay, button_OnLongPress);
+    myPButton_.onVLongPress(BUTTON_VLongPressDelay, button_OnVLongPress);
+}
+
 // init stuff. This is called when settings are changed in the web
 void System::init() {
     led_init(); // init LED
@@ -259,6 +295,7 @@ void System::init() {
     other_init();
 
     syslog_init(); // init SysLog
+    button_init();
 
     EMSESP::init_tx(); // start UART
 }
@@ -299,6 +336,7 @@ void System::loop() {
     if (syslog_enabled_) {
         syslog_.loop();
     }
+    myPButton_.check(); // check button press
 
     led_monitor();  // check status and report back using the LED
     system_check(); // check system health
