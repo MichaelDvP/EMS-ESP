@@ -144,11 +144,14 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
     if (no >= value.size()) {
         return; // out of bounds
     }
+    // return as number
     if (bool_format() == BOOL_FORMAT_NUMBERS) {
         json[name] = no;
         return;
     }
+    // return text
     json[name] = uuid::read_flash_string(value[no]);
+    /* replace on/off by true/false, but mismatch to other strings in the enum
     if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
         if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
             json[name] = false;
@@ -156,11 +159,12 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
             json[name] = true;
         }
     }
+    */
 }
 
 // set json value to time from uint32
 void Helpers::json_time(JsonObject & json, const char * name, const uint32_t value, const bool textformat) {
-    if (!hasValue(value)) {
+    if (value == EMS_VALUE_ULONG_NOTSET || value == EMS_VALUE_ULONG_NOTSET / 60) {
         return;
     }
     if (textformat) {

@@ -75,7 +75,7 @@ bool Switch::export_values(JsonObject & json, int8_t id) {
         json["flowTemp"] = (float)flowTempHc_ / 10;
     }
 
-    if (Helpers::hasValue(flowTempHc_)) {
+    if (Helpers::hasValue(status_)) {
         json["status"] = status_;
     }
 

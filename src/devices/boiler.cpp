@@ -81,6 +81,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     EMSESP::send_read_request(0x10, device_id); // read last errorcode on start (only published on errors)
     EMSESP::send_read_request(0x11, device_id); // read last errorcode on start (only published on errors)
     EMSESP::send_read_request(0x15, device_id); // read maintenace data on start (only published on change)
+    EMSESP::send_read_request(0x1C, device_id); // read maintenace status on start (only published on change)
 }
 
 // create the config topics for Home Assistant MQTT Discovery
@@ -346,7 +347,6 @@ bool Boiler::export_values(JsonObject & json, int8_t id) {
 // creates JSON doc from values
 // returns false if empty
 bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
-    char s[10]; // for formatting strings
 
     // Warm Water comfort setting
     if (Helpers::hasValue(wWComfort_)) {
@@ -390,6 +390,7 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
         if (wWCircPumpMode_ == 7) {
             json["wWCircPumpMode"] = FJSON("continuous");
         } else {
+            char s[10];
             snprintf_P(s, sizeof(s), PSTR("%dx3min"), wWCircPumpMode_);
             json["wWCircPumpMode"] = s;
         }
@@ -466,7 +467,6 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 // creates JSON doc from values
 // returns false if empty
 bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
-    // char s[10]; // for formatting strings
 
     // Hot tap water bool
     Helpers::json_boolean(json, "heatingActive", heatingActive_);

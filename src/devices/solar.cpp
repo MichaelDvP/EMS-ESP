@@ -167,7 +167,6 @@ void Solar::register_mqtt_ha_config() {
 // returns false if empty
 // TODO cylinder pump status (PS5)
 bool Solar::export_values(JsonObject & json, int8_t id) {
-    // char s[10]; // for formatting strings
 
     // collector array temperature (TS1)
     if (Helpers::hasValue(collectorTemp_)) {

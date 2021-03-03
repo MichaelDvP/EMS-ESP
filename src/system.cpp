@@ -51,7 +51,7 @@ PButton  System::myPButton_;
 // value: true = HIGH, false = LOW
 // http://ems-esp/api?device=system&cmd=pin&data=1&id=2
 bool System::command_pin(const char * value, const int8_t id) {
-    if (id < 0) {
+    if (id < 1) { // pin 0 used for PButton
         return false;
     }
 
@@ -994,6 +994,7 @@ bool System::check_upgrade() {
 // export all settings to JSON text
 // http://ems-esp/api?device=system&cmd=settings
 // value and id are ignored
+// output with true/false, ignore boolean format
 bool System::command_settings(const char * value, const int8_t id, JsonObject & json) {
 #ifdef EMSESP_STANDALONE
     json["test"] = "testing system info command";
@@ -1003,8 +1004,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["ssid"]    = settings.ssid;
         // node["password"]         = settings.password;
         node["hostname"]         = settings.hostname;
-        Helpers::json_boolean(node, "static_ip_config", settings.staticIPConfig);
-        // node["static_ip_config"] = settings.staticIPConfig;
+        // Helpers::json_boolean(node, "static_ip_config", settings.staticIPConfig);
+        node["static_ip_config"] = settings.staticIPConfig;
         JsonUtils::writeIP(node, "local_ip", settings.localIP);
         JsonUtils::writeIP(node, "gateway_ip", settings.gatewayIP);
         JsonUtils::writeIP(node, "subnet_mask", settings.subnetMask);
@@ -1024,8 +1025,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
 
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
         JsonObject node  = json.createNestedObject("MQTT");
-        Helpers::json_boolean(node, "enabled", settings.enabled);
-        // node["enabled"]  = settings.enabled;
+        // Helpers::json_boolean(node, "enabled", settings.enabled);
+        node["enabled"]  = settings.enabled;
         node["host"]     = settings.host;
         node["port"]     = settings.port;
         node["username"] = settings.username;
@@ -1033,8 +1034,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["base"]                    = settings.base;
         node["client_id"]               = settings.clientId;
         node["keep_alive"]              = settings.keepAlive;
-        Helpers::json_boolean(node, "clean_session", settings.cleanSession);
-        // node["clean_session"]           = settings.cleanSession;
+        // Helpers::json_boolean(node, "clean_session", settings.cleanSession);
+        node["clean_session"]           = settings.cleanSession;
         node["publish_time_boiler"]     = settings.publish_time_boiler;
         node["publish_time_thermostat"] = settings.publish_time_thermostat;
         node["publish_time_solar"]      = settings.publish_time_solar;
@@ -1043,14 +1044,14 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["publish_time_sensor"]     = settings.publish_time_sensor;
         node["mqtt_format"]             = settings.mqtt_format;
         node["mqtt_qos"]                = settings.mqtt_qos;
-        Helpers::json_boolean(node, "mqtt_retain", settings.mqtt_retain);
-        // node["mqtt_retain"]             = settings.mqtt_retain;
+        // Helpers::json_boolean(node, "mqtt_retain", settings.mqtt_retain);
+        node["mqtt_retain"]             = settings.mqtt_retain;
     });
 
     EMSESP::esp8266React.getNTPSettingsService()->read([&](NTPSettings & settings) {
         JsonObject node   = json.createNestedObject("NTP");
-        Helpers::json_boolean(node, "enabled", settings.enabled);
-        // node["enabled"]   = settings.enabled;
+        // Helpers::json_boolean(node, "enabled", settings.enabled);
+        node["enabled"]   = settings.enabled;
         node["server"]    = settings.server;
         node["tz_label"]  = settings.tzLabel;
         node["tz_format"] = settings.tzFormat;
@@ -1058,8 +1059,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
 
     EMSESP::esp8266React.getOTASettingsService()->read([&](OTASettings & settings) {
         JsonObject node = json.createNestedObject("OTA");
-        Helpers::json_boolean(node, "enabled", settings.enabled);
-        // node["enabled"] = settings.enabled;
+        // Helpers::json_boolean(node, "enabled", settings.enabled);
+        node["enabled"] = settings.enabled;
         node["port"]    = settings.port;
         // node["password"] = settings.password;
     });
@@ -1068,29 +1069,29 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         JsonObject node              = json.createNestedObject("Settings");
         node["tx_mode"]              = settings.tx_mode;
         node["ems_bus_id"]           = settings.ems_bus_id;
-        Helpers::json_boolean(node, "syslog_enabled", settings.syslog_enabled);
-        // node["syslog_enabled"]       = settings.syslog_enabled;
+        // Helpers::json_boolean(node, "syslog_enabled", settings.syslog_enabled);
+        node["syslog_enabled"]       = settings.syslog_enabled;
         node["syslog_level"]         = settings.syslog_level;
         node["syslog_mark_interval"] = settings.syslog_mark_interval;
         node["syslog_host"]          = settings.syslog_host;
         node["master_thermostat"]    = settings.master_thermostat;
-        Helpers::json_boolean(node, "shower_timer", settings.shower_timer);
-        Helpers::json_boolean(node, "shower_alert", settings.shower_alert);
-        // node["shower_timer"]         = settings.shower_timer;
-        // node["shower_alert"]         = settings.shower_alert;
+        // Helpers::json_boolean(node, "shower_timer", settings.shower_timer);
+        // Helpers::json_boolean(node, "shower_alert", settings.shower_alert);
+        node["shower_timer"]         = settings.shower_timer;
+        node["shower_alert"]         = settings.shower_alert;
         node["rx_gpio"]              = settings.rx_gpio;
         node["tx_gpio"]              = settings.tx_gpio;
         node["dallas_gpio"]          = settings.dallas_gpio;
-        Helpers::json_boolean(node, "dallas_parasite", settings.dallas_parasite);
-        // node["dallas_parasite"]      = settings.dallas_parasite;
+        // Helpers::json_boolean(node, "dallas_parasite", settings.dallas_parasite);
+        node["dallas_parasite"]      = settings.dallas_parasite;
         node["led_gpio"]             = settings.led_gpio;
-        Helpers::json_boolean(node, "hide_led", settings.hide_led);
-        // node["hide_led"]             = settings.hide_led;
-        Helpers::json_boolean(node, "api_enabled", settings.api_enabled);
-        // node["api_enabled"]          = settings.api_enabled;
+        // Helpers::json_boolean(node, "hide_led", settings.hide_led);
+        node["hide_led"]             = settings.hide_led;
+        // Helpers::json_boolean(node, "api_enabled", settings.api_enabled);
+        node["api_enabled"]          = settings.api_enabled;
         node["bool_format"]          = settings.bool_format;
-        Helpers::json_boolean(node, "analog_enabled", settings.analog_enabled);
-        // node["analog_enabled"]       = settings.analog_enabled;
+        // Helpers::json_boolean(node, "analog_enabled", settings.analog_enabled);
+        node["analog_enabled"]       = settings.analog_enabled;
     });
 
 #endif
