@@ -131,13 +131,14 @@ void Mqtt::loop() {
         process_queue();
     }
 
-    if (!mqtt_messages_.empty()) {
-        return;
-    }
-
     // dallas publish on change
     if (!publish_time_sensor_) {
         EMSESP::publish_sensor_values(false);
+    }
+
+    // scheduled messages only if queue empty
+    if (!mqtt_messages_.empty()) {
+        return;
     }
 
     // create publish messages for each of the EMS device values, adding to queue, only one device per loop

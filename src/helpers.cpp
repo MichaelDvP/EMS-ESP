@@ -192,27 +192,6 @@ char * Helpers::render_boolean(char * result, bool value) {
     return result;
 }
 
-/*/ depending on format render a number or a string
-char * Helpers::render_enum(char * result, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
-    if (no >= value.size()) {
-        return nullptr; // out of bounds
-    }
-
-    strcpy(result, uuid::read_flash_string(value[no]).c_str());
-    if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
-        if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
-            strlcpy(result, "false", 7);
-        } else if (no == 1 && uuid::read_flash_string(value[1]) == "on") {
-            strlcpy(result, "true", 6);
-        }
-    } else if (bool_format() == BOOL_FORMAT_NUMBERS) {
-        itoa(result, no);
-    }
-
-    return result;
-}
-*/ 
-
 // render for native char strings
 char * Helpers::render_value(char * result, const char * value, uint8_t format) {
     strcpy(result, value);
@@ -220,20 +199,8 @@ char * Helpers::render_value(char * result, const char * value, uint8_t format) 
 }
 
 // convert unsigned int (single byte) to text value and returns it
-// format: 255(0xFF)=boolean, 0=no formatting, otherwise divide by format
+// format: 0=no formatting, otherwise divide by format
 char * Helpers::render_value(char * result, uint8_t value, uint8_t format) {
-    /*/ special check if its a boolean
-    if (format == EMS_VALUE_BOOL) {
-        if (value == EMS_VALUE_BOOL_OFF) {
-            render_boolean(result, false);
-        } else if (value == EMS_VALUE_BOOL_NOTSET) {
-            return nullptr;
-        } else {
-            render_boolean(result, true); // assume on. could have value 0x01 or 0xFF
-        }
-        return result;
-    }
-    */
     if (!hasValue(value)) {
         return nullptr;
     }

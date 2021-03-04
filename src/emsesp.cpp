@@ -880,9 +880,7 @@ void EMSESP::send_write_request(const uint16_t type_id,
                                 uint8_t *      message_data,
                                 const uint8_t  message_length,
                                 const uint16_t validate_typeid) {
-    txservice_.add(Telegram::Operation::TX_WRITE, dest, type_id, offset, message_data, message_length, true);
-
-    txservice_.set_post_send_query(validate_typeid); // store which type_id to send Tx read after a write
+    txservice_.add(Telegram::Operation::TX_WRITE, dest, type_id, offset, message_data, message_length, validate_typeid, true);
 }
 
 void EMSESP::send_write_request(const uint16_t type_id, const uint8_t dest, const uint8_t offset, const uint8_t value) {

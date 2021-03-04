@@ -45,7 +45,6 @@ class Helpers {
     static char * render_value(char * result, const int16_t value, const uint8_t format);
     static char * render_value(char * result, const char * value, uint8_t format);
     static char * render_boolean(char * result, bool value);
-    // static char * render_enum(char * result, const std::vector<const __FlashStringHelper *> & value, const uint8_t no);
     static void json_boolean(JsonObject & json, const char * name, uint8_t value);
     static void json_enum(JsonObject & json, const char * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no);
     static void json_time(JsonObject & json, const char * name, const uint32_t value, const bool textformat);

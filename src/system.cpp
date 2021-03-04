@@ -271,7 +271,6 @@ void System::button_OnVLongPress(PButton & b) {
 #endif
 }
 
-
 // push button
 void System::button_init() {
     if (!myPButton_.init(0, HIGH)) {

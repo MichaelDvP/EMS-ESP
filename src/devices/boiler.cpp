@@ -152,6 +152,7 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatWorkMin), device_type(), "heatWorkMin", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(UBAuptime), device_type(), "UBAuptime", F_(min), nullptr);
     // optional in info
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenanceMessage), device_type(), "maintenanceMessage", nullptr, nullptr);
     // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance), device_type(), "maintenance", nullptr, nullptr);
 
     // information
@@ -270,7 +271,8 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("heatWorkMin"), nullptr, F_(heatWorkMin), nullptr, json);
         create_value_json(root, F("UBAuptime"), nullptr, F_(UBAuptime), nullptr, json);
         // optional in info
-        create_value_json(root, F("maintenance"), nullptr, F_(maintenance), (maintenanceType_ == 1) ? F_(hours) : nullptr, json);
+        // create_value_json(root, F("maintenanceMessage"), nullptr, F_(maintenanceMessage), nullptr, json);
+        // create_value_json(root, F("maintenance"), nullptr, F_(maintenance), (maintenanceType_ == 1) ? F_(hours) : nullptr, json);
     } else if (part == 1) {
         part = 2;
         if (!export_values_ww(json, true)) { // append ww values
@@ -766,7 +768,7 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
         json["nrgSuppCooling"] = nrgSuppCooling_;
     }
 
-    // show always all maintenance values
+    // show always all maintenance values like v3
     if (Helpers::hasValue(maintenanceMessage_)) {
         char s[5];
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
@@ -1260,10 +1262,12 @@ bool Boiler::set_flow_temp(const char * value, const int8_t id) {
     }
 
     LOG_INFO(F("Setting boiler flow temperature to %d C"), v);
-    // some boiler have it in 0x1A, some in 0x35, but both telegrams are sometimes writeonly
-    write_command(0x35, 3, v);
-    write_command(EMS_TYPE_UBASetPoints, 0, v, EMS_TYPE_UBASetPoints);
-    // write_command(0x35, 3, v, 0x35);
+    if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
+        write_command(EMS_TYPE_UBAParameterWWPlus, 6, v, EMS_TYPE_UBAParameterWWPlus);
+    } else {
+        write_command(EMS_TYPE_UBAFlags, 3, v, 0x34);                          // for i9000, see #397
+        write_command(EMS_TYPE_UBAParameterWW, 2, v, EMS_TYPE_UBAParameterWW); // read seltemp back
+    }
 
     return true;
 }
