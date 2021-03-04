@@ -135,6 +135,11 @@ void Mqtt::loop() {
         return;
     }
 
+    // dallas publish on change
+    if (!publish_time_sensor_) {
+        EMSESP::publish_sensor_values(false);
+    }
+
     // create publish messages for each of the EMS device values, adding to queue, only one device per loop
     if (publish_time_boiler_ && (currentMillis - last_publish_boiler_ > publish_time_boiler_)) {
         last_publish_boiler_ = (currentMillis / publish_time_boiler_) * publish_time_boiler_;
@@ -161,9 +166,9 @@ void Mqtt::loop() {
         EMSESP::publish_other_values();
     } else
 
-    if (currentMillis - last_publish_sensor_ > publish_time_sensor_) {
+    if (publish_time_sensor_ && (currentMillis - last_publish_sensor_ > publish_time_sensor_)) {
         last_publish_sensor_ = (currentMillis / publish_time_sensor_) * publish_time_sensor_;
-        EMSESP::publish_sensor_values(publish_time_sensor_ != 0);
+        EMSESP::publish_sensor_values(true);
     }
 }
 
@@ -392,7 +397,14 @@ void Mqtt::start() {
         if (reason == AsyncMqttClientDisconnectReason::MQTT_NOT_AUTHORIZED) {
             LOG_INFO(F("MQTT disconnected: Not authorized"));
         }
-        mqtt_messages_.clear();
+        // remove message with pending ack
+        if (!mqtt_messages_.empty()) {
+            auto mqtt_message = mqtt_messages_.front();
+            if (mqtt_message.packet_id_ != 0) {
+                mqtt_messages_.pop_front();
+            }
+        }
+        // mqtt_messages_.clear();
     });
 
     // create will_topic with the base prefixed. It has to be static because asyncmqttclient destroys the reference

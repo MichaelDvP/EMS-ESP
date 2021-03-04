@@ -681,7 +681,8 @@ bool EMSESP::process_telegram(std::shared_ptr<const Telegram> telegram) {
                 found       = emsdevice->handle_telegram(telegram);
                 // if we correctly processes the telegram follow up with sending it via MQTT if needed
                 if (found && Mqtt::connected()) {
-                    if ((mqtt_.get_publish_onchange(emsdevice->device_type()) && emsdevice->updated_values()) || telegram->type_id == publish_id_) {
+                    if ((mqtt_.get_publish_onchange(emsdevice->device_type()) && emsdevice->updated_values())
+                        || (telegram->type_id == publish_id_ && telegram->dest == txservice_.ems_bus_id())) {
                         if (telegram->type_id == publish_id_) {
                             publish_id_ = 0;
                         }
