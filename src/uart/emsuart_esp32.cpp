@@ -28,10 +28,10 @@
 
 namespace emsesp {
 
-RingbufHandle_t buf_handle   = NULL;
-portMUX_TYPE    mux          = portMUX_INITIALIZER_UNLOCKED;
-bool            drop_next_rx = true;
-uint8_t         tx_mode_     = 0xFF;
+RingbufHandle_t buf_handle_   = NULL;
+portMUX_TYPE    mux_          = portMUX_INITIALIZER_UNLOCKED;
+bool            drop_next_rx_ = true;
+uint8_t         tx_mode_      = 0xFF;
 
 /*
 * Task to handle the incoming data
@@ -39,11 +39,11 @@ uint8_t         tx_mode_     = 0xFF;
 void EMSuart::emsuart_recvTask(void * para) {
     while (1) {
         size_t    item_size;
-        uint8_t * telegram     = (uint8_t *)xRingbufferReceive(buf_handle, &item_size, portMAX_DELAY);
+        uint8_t * telegram     = (uint8_t *)xRingbufferReceive(buf_handle_, &item_size, portMAX_DELAY);
         uint8_t   telegramSize = item_size;
         if (telegram) {
             EMSESP::incoming_telegram(telegram, telegramSize);
-            vRingbufferReturnItem(buf_handle, (void *)telegram);
+            vRingbufferReturnItem(buf_handle_, (void *)telegram);
         }
     }
 }
@@ -52,7 +52,7 @@ void EMSuart::emsuart_recvTask(void * para) {
  * UART interrupt, on break read the fifo and put the whole telegram to ringbuffer
  */
 void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
-    portENTER_CRITICAL(&mux);
+    portENTER_CRITICAL(&mux_);
     if (EMS_UART.int_st.brk_det) {
         EMS_UART.int_clr.brk_det = 1; // clear flag
         uint8_t rxbuf[EMS_MAXBUFFERSIZE];
@@ -60,23 +60,23 @@ void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
         while (EMS_UART.status.rxfifo_cnt) {
             uint8_t rx = EMS_UART.fifo.rw_byte; // read all bytes from fifo
             if (length < EMS_MAXBUFFERSIZE) {
-                if (length || rx) { // skip a leading zero
+                if (length || rx) { // skip leading zero
                     rxbuf[length++] = rx;
                 }
             } else {
-                drop_next_rx = true; // we have a overflow
+                drop_next_rx_ = true; // we have a overflow
             }
         }
         if (rxbuf[length - 1]) { // check if last byte is break
             length++;
         }
-        if ((!drop_next_rx) && ((length == 2) || (length > 4))) {
+        if ((!drop_next_rx_) && ((length == 2) || (length > 4))) {
             int baseType = 0;
-            xRingbufferSendFromISR(buf_handle, rxbuf, length - 1, &baseType);
+            xRingbufferSendFromISR(buf_handle_, rxbuf, length - 1, &baseType);
         }
-        drop_next_rx = false;
+        drop_next_rx_ = false;
     }
-    portEXIT_CRITICAL(&mux);
+    portEXIT_CRITICAL(&mux_);
 }
 
 /*
@@ -89,7 +89,7 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
         return;
     }
     tx_mode_ = tx_mode;
-    portENTER_CRITICAL(&mux);
+    portENTER_CRITICAL(&mux_);
     uart_config_t uart_config = {
         .baud_rate = EMSUART_BAUD,
         .data_bits = UART_DATA_8_BITS,
@@ -103,17 +103,17 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
     EMS_UART.int_ena.val             = 0;          // disable all intr.
     EMS_UART.int_clr.val             = 0xFFFFFFFF; // clear all intr. flags
     EMS_UART.idle_conf.tx_brk_num    = 10;         // breaklength 10 bit
+    drop_next_rx_                    = true;
     // EMS_UART.idle_conf.rx_idle_thrhd = 256;
     // EMS_UART.auto_baud.glitch_filt   = 192;
-    drop_next_rx                     = true;
 #if (EMSUART_UART != UART_NUM_2)
-    EMS_UART.conf0.rxfifo_rst        = 1; // flush fifos, remove for UART2
-    EMS_UART.conf0.txfifo_rst        = 1;
+    EMS_UART.conf0.rxfifo_rst = 1; // flush fifos, remove for UART2
+    EMS_UART.conf0.txfifo_rst = 1;
 #endif
-    buf_handle                       = xRingbufferCreate(128, RINGBUF_TYPE_NOSPLIT);
+    buf_handle_ = xRingbufferCreate(128, RINGBUF_TYPE_NOSPLIT);
     uart_isr_register(EMSUART_UART, emsuart_rx_intr_handler, NULL, ESP_INTR_FLAG_IRAM, NULL);
-    xTaskCreate(emsuart_recvTask, "emsuart_recvTask", 2048, NULL, configMAX_PRIORITIES - 1, NULL);
-    portEXIT_CRITICAL(&mux);
+    xTaskCreate(emsuart_recvTask, "emsuart_recvTask", 2048, NULL, configMAX_PRIORITIES - 3, NULL);
+    portEXIT_CRITICAL(&mux_);
     restart();
 }
 
@@ -121,28 +121,23 @@ void EMSuart::start(const uint8_t tx_mode, const uint8_t rx_gpio, const uint8_t 
  * Stop, disable interrupt
  */
 void EMSuart::stop() {
-    portENTER_CRITICAL(&mux);
-    EMS_UART.int_ena.val   = 0; // disable all intr.
-    EMS_UART.conf0.txd_inv = 0; // stop break
-    portEXIT_CRITICAL(&mux);
+    portENTER_CRITICAL(&mux_);
+    EMS_UART.int_ena.val = 0; // disable all intr.
+    portEXIT_CRITICAL(&mux_);
 };
 
 /*
  * Restart uart and make mode dependent configs.
  */
 void EMSuart::restart() {
-    portENTER_CRITICAL(&mux);
+    portENTER_CRITICAL(&mux_);
     if (EMS_UART.int_raw.brk_det) {      // we received a break in the meantime
         EMS_UART.int_clr.brk_det = 1;    // clear flag
-        drop_next_rx             = true; // and drop first frame
+        drop_next_rx_            = true; // and drop first frame
     }
     EMS_UART.int_ena.brk_det = 1; // activate only break
-    if (tx_mode_ == EMS_TXMODE_NEW) {
-        EMS_UART.conf0.txd_brk = 1;
-    } else {
-        EMS_UART.conf0.txd_brk = 0;
-    }
-    portEXIT_CRITICAL(&mux);
+    EMS_UART.conf0.txd_brk   = (tx_mode_ == EMS_TXMODE_HW) ? 1 : 0;
+    portEXIT_CRITICAL(&mux_);
 
 }
 
@@ -167,7 +162,7 @@ uint16_t EMSuart::transmit(const uint8_t * buf, const uint8_t len) {
         return EMS_TX_STATUS_OK;
     }
 
-    if (tx_mode_ == EMS_TXMODE_NEW) { // hardware controlled modes
+    if (tx_mode_ == EMS_TXMODE_HW) { // hardware controlled mode
         for (uint8_t i = 0; i < len; i++) {
             EMS_UART.fifo.rw_byte = buf[i];
         }
