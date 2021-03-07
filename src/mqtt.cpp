@@ -378,7 +378,6 @@ void Mqtt::start() {
     mqttClient_->onConnect([this](bool sessionPresent) { on_connect(); });
 
     mqttClient_->onDisconnect([this](AsyncMqttClientDisconnectReason reason) {
-        mqttClient_->connect();
         if (!connecting_) {
             return;
         }
@@ -811,12 +810,15 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
         if (settings.bool_format == BOOL_FORMAT_ONOFF) {
             doc[F("payload_on")]  = FJSON("on");
             doc[F("payload_off")] = FJSON("off");
+        } else if (settings.bool_format == BOOL_FORMAT_ONOFF_CAP) {
+            doc[F("payload_on")]  = FJSON("ON");
+            doc[F("payload_off")] = FJSON("OFF");
         } else if (settings.bool_format == BOOL_FORMAT_TRUEFALSE) {
-            doc[F("payload_on")]  = FJSON("true");
-            doc[F("payload_off")] = FJSON("false");
+            doc[F("payload_on")]  = true;
+            doc[F("payload_off")] = false;
         } else {
-            doc[F("payload_on")]  = FJSON("1");
-            doc[F("payload_off")] = FJSON("0");
+            doc[F("payload_on")]  = 1;
+            doc[F("payload_off")] = 0;
         }
     });
 

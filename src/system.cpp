@@ -377,7 +377,8 @@ void System::send_heartbeat() {
         return;
     }
 
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_HA_CONFIG);
 
     uint8_t ems_status = EMSESP::bus_status();
     if (ems_status == EMSESP::BUS_STATUS_TX_ERRORS) {
@@ -397,9 +398,12 @@ void System::send_heartbeat() {
     doc["tx_fails"]     = EMSESP::txservice_.telegram_fail_count();
     doc["rx_fails"]     = EMSESP::rxservice_.telegram_error_count();
     doc["dallas_fails"] = EMSESP::sensor_fails();
-    doc["freemem"]      = free_mem();
+    doc["freemem"]      = ESP.getFreeHeap();
 #if defined(ESP8266)
-    doc["fragmem"] = ESP.getHeapFragmentation();
+    doc["max_alloc_heap"] = ESP.getMaxFreeBlockSize();
+    doc["fragmem"]        = ESP.getHeapFragmentation();
+#elif defined(ESP32)
+    doc["max_alloc_heap"] = ESP.getMaxAllocHeap())
 #endif
     if (analog_enabled_) {
         doc["adc"] = analog_;
@@ -420,7 +424,7 @@ void System::send_heartbeat() {
         doc["io26"]  = digitalRead(26);
 #endif
     }
-
+    doc.shrinkToFit();
     Mqtt::publish(F("heartbeat"), doc.as<JsonObject>()); // send to MQTT with retain off. This will add to MQTT queue.
 }
 
