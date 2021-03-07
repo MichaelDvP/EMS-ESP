@@ -60,7 +60,9 @@ static String generateClientId() {
 #define FACTORY_MQTT_CLEAN_SESSION true
 #endif
 
-#define EMSESP_DEFAULT_MQTT_FORMAT 2 // nested
+#define EMSESP_DEFAULT_BOOL_FORMAT 1   // on / off
+#define EMSESP_DEFAULT_DALLAS_FORMAT 2 // Number
+#define EMSESP_DEFAULT_MQTT_FORMAT 2   // nested
 #define EMSESP_DEFAULT_MQTT_QOS 0
 #define EMSESP_DEFAULT_MQTT_RETAIN false
 #define EMSESP_DEFAULT_PUBLISH_TIME 10
@@ -92,7 +94,9 @@ class MqttSettings {
     uint16_t publish_time_mixer;
     uint16_t publish_time_other;
     uint16_t publish_time_sensor;
+    uint8_t  dallas_format;
     uint8_t  mqtt_format; // 1=single, 2=nested, 3=ha, 4=custom
+    uint8_t  bool_format;
     uint8_t  mqtt_qos;
     bool     mqtt_retain;
 

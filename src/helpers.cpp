@@ -17,10 +17,9 @@
  */
 
 #include "helpers.h"
+#include "mqtt.h"
 
 namespace emsesp {
-
-uint8_t Helpers::bool_format_ = BOOL_FORMAT_ONOFF; // on/off
 
 // like itoa but for hex, and quicker
 // note: only for single byte hex values
@@ -128,11 +127,12 @@ void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) 
     if (value == EMS_VALUE_BOOL_NOTSET) {
         return;
     }
-    if (bool_format() == BOOL_FORMAT_ONOFF) {
+    uint8_t bool_format_ = Mqtt::bool_format();
+    if (bool_format_ == BOOL_FORMAT_ONOFF) {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? "on" : "off";
-    } else if (bool_format() == BOOL_FORMAT_ONOFF_CAP) {
+    } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? "ON" : "OFF";
-    } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
+    } else if (bool_format_ == BOOL_FORMAT_TRUEFALSE) {
         json[name] = (value != EMS_VALUE_BOOL_OFF); // ? true : false;
     } else {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? 1 : 0;
@@ -145,14 +145,14 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
         return; // out of bounds
     }
     // return as number
-    if (bool_format() == BOOL_FORMAT_NUMBERS) {
+    if (Mqtt::bool_format() == BOOL_FORMAT_10) {
         json[name] = no;
         return;
     }
     // return text
     json[name] = uuid::read_flash_string(value[no]);
     /* replace on/off by true/false, but mismatch to other strings in the enum
-    if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
+    if (Mqtt::bool_format() == BOOL_FORMAT_TRUEFALSE) {
         if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
             json[name] = false;
         } else if (no == 1 && uuid::read_flash_string(value[1]) == "on") {
@@ -179,11 +179,12 @@ void Helpers::json_time(JsonObject & json, const char * name, const uint32_t val
 
 // work out how to display booleans
 char * Helpers::render_boolean(char * result, bool value) {
-    if (bool_format() == BOOL_FORMAT_ONOFF) {
+    uint8_t bool_format_ = Mqtt::bool_format();
+    if (bool_format_ == BOOL_FORMAT_ONOFF) {
         strlcpy(result, value ? "on" : "off", 5);
-    } else if (bool_format() == BOOL_FORMAT_ONOFF_CAP) {
+    } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {
         strlcpy(result, value ? "ON" : "OFF", 5);
-    } else if (bool_format() == BOOL_FORMAT_TRUEFALSE) {
+    } else if (bool_format_ == BOOL_FORMAT_TRUEFALSE) {
         strlcpy(result, value ? "true" : "false", 7);
     } else {
         strlcpy(result, value ? "1" : "0", 2);

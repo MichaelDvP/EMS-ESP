@@ -35,6 +35,8 @@ uint32_t    Mqtt::publish_time_mixer_;
 uint32_t    Mqtt::publish_time_other_;
 uint32_t    Mqtt::publish_time_sensor_;
 uint8_t     Mqtt::mqtt_format_;
+uint8_t     Mqtt::dallas_format_;
+uint8_t     Mqtt::bool_format_;
 bool        Mqtt::mqtt_enabled_;
 
 std::vector<Mqtt::MQTTSubFunction> Mqtt::mqtt_subfunctions_;
@@ -485,6 +487,14 @@ void Mqtt::set_format(uint8_t mqtt_format) {
     mqtt_format_ = mqtt_format;
 }
 
+void Mqtt::dallas_format(uint8_t dallas_format){
+    dallas_format_ = dallas_format;
+}
+
+void Mqtt::bool_format(uint8_t bool_format){
+    bool_format_ = bool_format;
+}
+
 // MQTT onConnect - when a connect is established
 void Mqtt::on_connect() {
     if (connecting_) { // prevent duplicating connections
@@ -806,21 +816,19 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), entity);
     doc["stat_t"] = state_t;
 
-    EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        if (settings.bool_format == BOOL_FORMAT_ONOFF) {
-            doc[F("payload_on")]  = FJSON("on");
-            doc[F("payload_off")] = FJSON("off");
-        } else if (settings.bool_format == BOOL_FORMAT_ONOFF_CAP) {
-            doc[F("payload_on")]  = FJSON("ON");
-            doc[F("payload_off")] = FJSON("OFF");
-        } else if (settings.bool_format == BOOL_FORMAT_TRUEFALSE) {
-            doc[F("payload_on")]  = true;
-            doc[F("payload_off")] = false;
-        } else {
-            doc[F("payload_on")]  = 1;
-            doc[F("payload_off")] = 0;
-        }
-    });
+    if (bool_format_ == BOOL_FORMAT_ONOFF) {
+        doc[F("payload_on")]  = FJSON("on");
+        doc[F("payload_off")] = FJSON("off");
+    } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {
+        doc[F("payload_on")]  = FJSON("ON");
+        doc[F("payload_off")] = FJSON("OFF");
+    } else if (bool_format_ == BOOL_FORMAT_TRUEFALSE) {
+        doc[F("payload_on")]  = true;
+        doc[F("payload_off")] = false;
+    } else {
+        doc[F("payload_on")]  = 1;
+        doc[F("payload_off")] = 0;
+    }
 
     JsonObject dev = doc.createNestedObject("dev");
     JsonArray  ids = dev.createNestedArray("ids");

@@ -45,17 +45,6 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           margin="normal"
         />
         <TextValidator
-          validators={['required', 'isPath']}
-          errorMessages={['Base is required', 'Not a valid path']}
-          name="base"
-          label="Base"
-          fullWidth
-          variant="outlined"
-          value={data.base}
-          onChange={handleValueChange('base')}
-          margin="normal"
-        />
-        <TextValidator
           validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:65535']}
           errorMessages={['Port is required', "Must be a number", "Must be greater than 0 ", "Max value is 65535"]}
           name="port"
@@ -65,6 +54,17 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           value={data.port}
           type="number"
           onChange={handleValueChange('port')}
+          margin="normal"
+        />
+        <TextValidator
+          validators={['required', 'isPath']}
+          errorMessages={['Base is required', "Not a valid Path"]}
+          name="base"
+          label="Base"
+          fullWidth
+          variant="outlined"
+          value={data.base}
+          onChange={handleValueChange('base')}
           margin="normal"
         />
         <TextField
@@ -106,17 +106,6 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           onChange={handleValueChange('keep_alive')}
           margin="normal"
         />
-        <SelectValidator name="mqtt_format"
-          label="Format"
-          value={data.mqtt_format}
-          fullWidth
-          variant="outlined"
-          onChange={handleValueChange('mqtt_format')}
-          margin="normal">
-          <MenuItem value={1}>Single</MenuItem>
-          <MenuItem value={2}>Nested</MenuItem>
-          <MenuItem value={3}>Home Assistant</MenuItem>
-        </SelectValidator>
         <SelectValidator name="mqtt_qos"
           label="QoS"
           value={data.mqtt_qos}
@@ -124,7 +113,7 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           variant="outlined"
           onChange={handleValueChange('mqtt_qos')}
           margin="normal">
-          <MenuItem value={0}>0</MenuItem>
+          <MenuItem value={0}>0 (default)</MenuItem>
           <MenuItem value={1}>1</MenuItem>
           <MenuItem value={2}>2</MenuItem>
         </SelectValidator>
@@ -148,6 +137,43 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           }
           label="Retain Flag"
         />
+        <br></br>
+        <Typography variant="h6" color="primary" >
+          Formatting
+        </Typography>
+        <SelectValidator name="mqtt_format"
+          label="Format"
+          value={data.mqtt_format}
+          fullWidth
+          variant="outlined"
+          onChange={handleValueChange('mqtt_format')}
+          margin="normal">
+          <MenuItem value={1}>Single</MenuItem>
+          <MenuItem value={2}>Nested</MenuItem>
+          <MenuItem value={3}>Home Assistant</MenuItem>
+        </SelectValidator>
+        <SelectValidator name="dallas_format"
+          label="Dallas Sensor Payload Grouping"
+          value={data.dallas_format}
+          fullWidth
+          variant="outlined"
+          onChange={handleValueChange('dallas_format')}
+          margin="normal">
+          <MenuItem value={1}>by Sensor ID</MenuItem>
+          <MenuItem value={2}>by Number</MenuItem>
+        </SelectValidator>
+        <SelectValidator name="bool_format"
+          label="Boolean Format"
+          value={data.bool_format}
+          fullWidth
+          variant="outlined"
+          onChange={handleValueChange('bool_format')}
+          margin="normal">
+          <MenuItem value={1}>"on"/"off"</MenuItem>
+          <MenuItem value={2}>true/false</MenuItem>
+          <MenuItem value={3}>1/0</MenuItem>
+          <MenuItem value={4}>"ON"/"OFF"</MenuItem>
+        </SelectValidator>
         <br></br>
         <Typography variant="h6" color="primary" >
           Publish Intervals

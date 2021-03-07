@@ -43,7 +43,6 @@
 #endif
 #define EMSESP_DEFAULT_DALLAS_PARASITE false
 #define EMSESP_DEFAULT_API_ENABLED false // turn off, because its insecure
-#define EMSESP_DEFAULT_BOOL_FORMAT 1     // on/off
 #define EMSESP_DEFAULT_ANALOG_ENABLED false
 
 // Default GPIO PIN definitions
@@ -87,7 +86,6 @@ class WebSettings {
     uint8_t  led_gpio;
     bool     hide_led;
     bool     api_enabled;
-    uint8_t  bool_format;
     bool     analog_enabled;
 
     static void              read(WebSettings & settings, JsonObject & root);

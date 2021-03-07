@@ -40,6 +40,8 @@ using uuid::console::Shell;
 
 #define MQTT_HA_PUBLISH_DELAY 50
 
+enum { BOOL_FORMAT_ONOFF = 1, BOOL_FORMAT_TRUEFALSE, BOOL_FORMAT_10, BOOL_FORMAT_ONOFF_CAP }; // matches Web UI settings
+
 namespace emsesp {
 
 using mqtt_subfunction_p = std::function<bool(const char * message)>;
@@ -73,11 +75,13 @@ class Mqtt {
     void set_publish_time_sensor(uint16_t publish_time);
     void set_qos(uint8_t mqtt_qos);
     void set_retain(bool mqtt_retain);
+    void dallas_format(uint8_t dallas_format);
+    void bool_format(uint8_t bool_format);
     void set_format(uint8_t mqtt_format);
     bool get_publish_onchange(uint8_t device_type);
 
     enum Operation { PUBLISH, SUBSCRIBE };
-
+    enum Dallas_Format : uint8_t { SENSORID = 1, NUMBER };
     enum Format : uint8_t { NONE = 0, SINGLE, NESTED, HA };
 
     static constexpr uint8_t MQTT_TOPIC_MAX_SIZE = 128; // note this should really match the user setting in mqttSettings.maxTopicLength
@@ -143,6 +147,14 @@ class Mqtt {
 
     static uint8_t mqtt_format() {
         return mqtt_format_;
+    }
+
+    static uint8_t dallas_format() {
+        return dallas_format_;
+    }
+
+    static uint8_t bool_format() {
+        return bool_format_;
     }
 
     static AsyncMqttClient * client() {
@@ -235,6 +247,8 @@ class Mqtt {
     static uint32_t    publish_time_other_;
     static uint32_t    publish_time_sensor_;
     static uint8_t     mqtt_format_;
+    static uint8_t     dallas_format_;
+    static uint8_t     bool_format_;
     static bool        mqtt_enabled_;
 };
 

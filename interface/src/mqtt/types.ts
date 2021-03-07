@@ -20,8 +20,8 @@ export interface MqttStatus {
 export interface MqttSettings {
   enabled: boolean;
   host: string;
-  base: string;
   port: number;
+  base: string;
   username: string;
   password: string;
   client_id: string;
@@ -33,7 +33,9 @@ export interface MqttSettings {
   publish_time_mixer: number;
   publish_time_other: number;
   publish_time_sensor: number;
+  dallas_format: number;
   mqtt_format: number;
+  bool_format: number;
   mqtt_qos: number;
   mqtt_retain: boolean;
 }

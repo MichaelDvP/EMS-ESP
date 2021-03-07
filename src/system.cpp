@@ -235,9 +235,7 @@ void System::start() {
 }
 
 void System::other_init() {
-    // set the boolean format used for rendering booleans
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        Helpers::bool_format(settings.bool_format);
         analog_enabled_ = settings.analog_enabled;
     });
 #ifdef ESP32
@@ -899,17 +897,19 @@ bool System::check_upgrade() {
 
             EMSESP::esp8266React.getMqttSettingsService()->update(
                 [&](MqttSettings & mqttSettings) {
-                    mqttSettings.host         = mqtt["ip"] | FACTORY_MQTT_HOST;
-                    mqttSettings.mqtt_format  = (mqtt["nestedjson"] ? Mqtt::Format::NESTED : Mqtt::Format::SINGLE);
-                    mqttSettings.mqtt_qos     = mqtt["qos"] | 0;
-                    mqttSettings.mqtt_retain  = mqtt["retain"];
-                    mqttSettings.username     = mqtt["user"] | "";
-                    mqttSettings.password     = mqtt["password"] | "";
-                    mqttSettings.port         = mqtt["port"] | FACTORY_MQTT_PORT;
-                    mqttSettings.clientId     = FACTORY_MQTT_CLIENT_ID;
-                    mqttSettings.enabled      = mqtt["enabled"];
-                    mqttSettings.keepAlive    = FACTORY_MQTT_KEEP_ALIVE;
-                    mqttSettings.cleanSession = FACTORY_MQTT_CLEAN_SESSION;
+                    mqttSettings.host          = mqtt["ip"] | FACTORY_MQTT_HOST;
+                    mqttSettings.mqtt_format   = mqtt["mqtt_format"] | Mqtt::Format::NESTED;
+                    mqttSettings.bool_format   = mqtt["bool_format"] | BOOL_FORMAT_ONOFF;
+                    mqttSettings.dallas_format = mqtt["dallas_format"] | Mqtt::Dallas_Format::NUMBER;
+                    mqttSettings.mqtt_qos      = mqtt["qos"] | 0;
+                    mqttSettings.mqtt_retain   = mqtt["retain"] | false;
+                    mqttSettings.username      = mqtt["user"] | "";
+                    mqttSettings.password      = mqtt["password"] | "";
+                    mqttSettings.port          = mqtt["port"] | FACTORY_MQTT_PORT;
+                    mqttSettings.clientId      = FACTORY_MQTT_CLIENT_ID;
+                    mqttSettings.enabled       = mqtt["enabled"];
+                    mqttSettings.keepAlive     = FACTORY_MQTT_KEEP_ALIVE;
+                    mqttSettings.cleanSession  = FACTORY_MQTT_CLEAN_SESSION;
 
                     return StateUpdateResult::CHANGED;
                 },
@@ -1041,6 +1041,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["publish_time_sensor"]     = settings.publish_time_sensor;
         node["mqtt_format"]             = settings.mqtt_format;
         node["mqtt_qos"]                = settings.mqtt_qos;
+        node["bool_format"]             = settings.bool_format;
+        node["dallas_format"]             = settings.dallas_format;
         // Helpers::json_boolean(node, "mqtt_retain", settings.mqtt_retain);
         node["mqtt_retain"] = settings.mqtt_retain;
     });
@@ -1086,7 +1088,6 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["hide_led"] = settings.hide_led;
         // Helpers::json_boolean(node, "api_enabled", settings.api_enabled);
         node["api_enabled"] = settings.api_enabled;
-        node["bool_format"] = settings.bool_format;
         // Helpers::json_boolean(node, "analog_enabled", settings.analog_enabled);
         node["analog_enabled"] = settings.analog_enabled;
     });
@@ -1141,7 +1142,6 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node["led_gpio"]          = settings.led_gpio;
         node["hide_led"]          = settings.hide_led;
         node["api_enabled"]       = settings.api_enabled;
-        node["bool_format"]       = settings.bool_format;
         node["analog_enabled"]    = settings.analog_enabled;
     });
 */

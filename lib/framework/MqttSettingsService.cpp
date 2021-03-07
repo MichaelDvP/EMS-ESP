@@ -188,9 +188,11 @@ void MqttSettings::read(MqttSettings & settings, JsonObject & root) {
     root["publish_time_mixer"]      = settings.publish_time_mixer;
     root["publish_time_other"]      = settings.publish_time_other;
     root["publish_time_sensor"]     = settings.publish_time_sensor;
+    root["bool_format"]             = settings.bool_format;
     root["mqtt_format"]             = settings.mqtt_format;
     root["mqtt_qos"]                = settings.mqtt_qos;
     root["mqtt_retain"]             = settings.mqtt_retain;
+    root["dallas_format"]           = settings.dallas_format;
 }
 
 StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & settings) {
@@ -212,12 +214,20 @@ StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & setting
     newSettings.publish_time_mixer      = root["publish_time_mixer"] | EMSESP_DEFAULT_PUBLISH_TIME;
     newSettings.publish_time_other      = root["publish_time_other"] | EMSESP_DEFAULT_PUBLISH_TIME;
     newSettings.publish_time_sensor     = root["publish_time_sensor"] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.bool_format             = root["bool_format"] | EMSESP_DEFAULT_BOOL_FORMAT;
+    newSettings.dallas_format           = root["dallas_format"] | EMSESP_DEFAULT_DALLAS_FORMAT;
     newSettings.mqtt_format             = root["mqtt_format"] | EMSESP_DEFAULT_MQTT_FORMAT;
     newSettings.mqtt_qos                = root["mqtt_qos"] | EMSESP_DEFAULT_MQTT_QOS;
     newSettings.mqtt_retain             = root["mqtt_retain"] | EMSESP_DEFAULT_MQTT_RETAIN;
 
     if (newSettings.mqtt_qos != settings.mqtt_qos) {
         emsesp::EMSESP::mqtt_.set_qos(newSettings.mqtt_qos);
+    }
+    if (newSettings.dallas_format != settings.dallas_format) {
+        emsesp::EMSESP::mqtt_.dallas_format(newSettings.dallas_format);
+    }
+    if (newSettings.bool_format != settings.bool_format) {
+        emsesp::EMSESP::mqtt_.bool_format(newSettings.bool_format);
     }
     if (newSettings.mqtt_format != settings.mqtt_format) {
         emsesp::EMSESP::mqtt_.set_format(newSettings.mqtt_format);
