@@ -1042,7 +1042,7 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node["mqtt_format"]             = settings.mqtt_format;
         node["mqtt_qos"]                = settings.mqtt_qos;
         node["bool_format"]             = settings.bool_format;
-        node["dallas_format"]             = settings.dallas_format;
+        node["dallas_format"]           = settings.dallas_format;
         // Helpers::json_boolean(node, "mqtt_retain", settings.mqtt_retain);
         node["mqtt_retain"] = settings.mqtt_retain;
     });
