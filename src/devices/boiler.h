@@ -141,7 +141,7 @@ class Boiler : public EMSdevice {
     uint8_t burnMaxPower_     = EMS_VALUE_UINT_NOTSET;
     int8_t  boilHystOff_      = EMS_VALUE_INT_NOTSET;
     int8_t  boilHystOn_       = EMS_VALUE_INT_NOTSET;
-    uint8_t burnMinPeriod_    = EMS_VALUE_UINT_NOTSET;
+    uint8_t burnMinCycleTime_ = EMS_VALUE_UINT_NOTSET;
     uint8_t pumpDelay_        = EMS_VALUE_UINT_NOTSET;
 
     // UBASetPoint

@@ -1056,7 +1056,7 @@ void EMSESP::loop() {
     system_.loop();       // does LED and checks system health, and syslog service
     rxservice_.loop();    // process any incoming Rx telegrams
     shower_.loop();       // check for shower on/off
-    dallassensor_.loop(); // this will also send out via MQTT
+    dallassensor_.loop(); // read dallas sensors
     publish_all_loop();   // See which topics need publishing to MQTT and queue them
     mqtt_.loop();         // sends out anything in the MQTT queue
     console_.loop();      // telnet/serial console

@@ -143,7 +143,7 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(pumpModMax), device_type(), "pumpModMax", F_(percent), F_(iconpercent));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(pumpModMin), device_type(), "pumpModMin", F_(percent), F_(iconpercent));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(pumpDelay), device_type(), "pumpDelay", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnMinPeriod), device_type(), "burnMinPeriod", F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnMinCycleTime), device_type(), "burnMinCycleTime", F_(min), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnMinPower), device_type(), "burnMinPower", F_(percent), F_(iconpercent));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(burnMaxPower), device_type(), "burnMaxPower", F_(percent), F_(iconpercent));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(boilHystOn), device_type(), "boilHystOn", F_(degrees), F_(iconwatertemp));
@@ -262,7 +262,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F("pumpModMax"), nullptr, F_(pumpModMax), F_(percent), json);
         create_value_json(root, F("pumpModMin"), nullptr, F_(pumpModMin), F_(percent), json);
         create_value_json(root, F("pumpDelay"), nullptr, F_(pumpDelay), F_(min), json);
-        create_value_json(root, F("burnMinPeriod"), nullptr, F_(burnMinPeriod), F_(min), json);
+        create_value_json(root, F("burnMinCycleTime"), nullptr, F_(burnMinCycleTime), F_(min), json);
         create_value_json(root, F("burnMinPower"), nullptr, F_(burnMinPower), F_(percent), json);
         create_value_json(root, F("burnMaxPower"), nullptr, F_(burnMaxPower), F_(percent), json);
         create_value_json(root, F("boilHystOn"), nullptr, F_(boilHystOn), F_(degrees), json);
@@ -590,8 +590,8 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     }
 
     // Boiler burner min period min
-    if (Helpers::hasValue(burnMinPeriod_)) {
-        json["burnMinPeriod"] = burnMinPeriod_;
+    if (Helpers::hasValue(burnMinCycleTime_)) {
+        json["burnMinCycleTime"] = burnMinCycleTime_;
     }
 
     // Boiler burner min power %
@@ -946,7 +946,7 @@ void Boiler::process_UBAParameters(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(burnMinPower_, 3);
     changed_ |= telegram->read_value(boilHystOff_, 4);
     changed_ |= telegram->read_value(boilHystOn_, 5);
-    changed_ |= telegram->read_value(burnMinPeriod_, 6);
+    changed_ |= telegram->read_value(burnMinCycleTime_, 6);
     changed_ |= telegram->read_value(pumpDelay_, 8);
     changed_ |= telegram->read_value(pumpModMax_, 9);
     changed_ |= telegram->read_value(pumpModMin_, 10);
@@ -1068,11 +1068,11 @@ void Boiler::process_UBAMonitorSlowPlus(std::shared_ptr<const Telegram> telegram
 void Boiler::process_UBAParametersPlus(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(heatingActivated_, 0);
     changed_ |= telegram->read_value(heatingTemp_, 1);
-    changed_ |= telegram->read_value(burnMaxPower_, 6);
-    changed_ |= telegram->read_value(burnMinPower_, 7);
+    changed_ |= telegram->read_value(burnMaxPower_, 4);
+    changed_ |= telegram->read_value(burnMinPower_, 5);
     changed_ |= telegram->read_value(boilHystOff_, 8);
     changed_ |= telegram->read_value(boilHystOn_, 9);
-    changed_ |= telegram->read_value(burnMinPeriod_, 10);
+    changed_ |= telegram->read_value(burnMinCycleTime_, 10);
     // changed_ |= telegram->read_value(pumpModMax_, 13); // guess
     // changed_ |= telegram->read_value(pumpModMin_, 14); // guess
 }
@@ -1321,7 +1321,7 @@ bool Boiler::set_min_power(const char * value, const int8_t id) {
 
     LOG_INFO(F("Setting boiler min power to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
-        write_command(EMS_TYPE_UBAParametersPlus, 7, v, EMS_TYPE_UBAParametersPlus);
+        write_command(EMS_TYPE_UBAParametersPlus, 5, v, EMS_TYPE_UBAParametersPlus);
     } else {
         write_command(EMS_TYPE_UBAParameters, 3, v, EMS_TYPE_UBAParameters);
     }
@@ -1339,7 +1339,7 @@ bool Boiler::set_max_power(const char * value, const int8_t id) {
 
     LOG_INFO(F("Setting boiler max power to %d %%"), v);
     if (get_toggle_fetch(EMS_TYPE_UBAParametersPlus)) {
-        write_command(EMS_TYPE_UBAParametersPlus, 6, v, EMS_TYPE_UBAParametersPlus);
+        write_command(EMS_TYPE_UBAParametersPlus, 4, v, EMS_TYPE_UBAParametersPlus);
     } else {
         write_command(EMS_TYPE_UBAParameters, 2, v, EMS_TYPE_UBAParameters);
     }
