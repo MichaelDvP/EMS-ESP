@@ -105,7 +105,10 @@ void Heatpump::register_mqtt_ha_config() {
     dev["mdl"]     = this->name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-heatpump");
-    Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/heatpump/config"), doc.as<JsonObject>()); // publish the config payload with retain flag
+
+    std::string topic(128, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/heatpump/config"),Mqtt::base().c_str());
+    Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(airHumidity), device_type(), "airHumidity", F_(percent), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dewTemperature), device_type(), "dewTemperature", F_(degrees), nullptr);

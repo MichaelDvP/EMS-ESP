@@ -139,7 +139,10 @@ void Solar::register_mqtt_ha_config() {
     dev["mdl"]     = name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-solar");
-    Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/solar/config"), doc.as<JsonObject>()); // publish the config payload with retain flag
+
+    std::string topic(128, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/solar/config"),Mqtt::base().c_str());
+    Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorTemp), device_type(), "collectorTemp", F_(degrees), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorMaxTemp), device_type(), "collectorMaxTemp", F_(degrees), nullptr);

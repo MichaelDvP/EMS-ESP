@@ -833,7 +833,10 @@ void Thermostat::register_mqtt_ha_config() {
     dev["mdl"]     = name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-thermostat");
-    Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/thermostat/config"), doc.as<JsonObject>()); // publish the config payload with retain flag
+
+    std::string topic(128, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/thermostat/config"),Mqtt::base().c_str());
+    Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(time), device_type(), "dateTime", nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(error), device_type(), "errorcode", nullptr, nullptr);
@@ -920,8 +923,8 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-thermostat");
 
-    std::string topic(100, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/climate/ems-esp/thermostat_hc%d/config"), hc_num);
+    std::string topic(128, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/climate/&s/thermostat_hc%d/config"), Mqtt::base().c_str(), hc_num);
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     // enable the a special "thermostat_hc<n>" topic to take both mode strings and floats for each of the heating circuits

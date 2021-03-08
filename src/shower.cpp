@@ -172,7 +172,10 @@ void Shower::send_MQTT_discovery_config() {
         JsonObject dev     = doc.createNestedObject("dev");
         JsonArray ids      = dev.createNestedArray("ids");
         ids.add("ems-esp-boiler");
-        Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/shower_data/config"), doc.as<JsonObject>());
+
+        std::string topic(128, '\0');
+        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/shower/config"),Mqtt::base().c_str());
+        Mqtt::publish_ha(topic, doc.as<JsonObject>());
 
         Mqtt::register_mqtt_ha_binary_sensor(F("Shower Active"), EMSdevice::DeviceType::BOILER, "shower_active");
 

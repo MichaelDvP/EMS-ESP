@@ -595,7 +595,9 @@ void Mqtt::ha_status() {
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp");
 
-    Mqtt::publish_ha(F("homeassistant/sensor/ems-esp/status/config"), doc.as<JsonObject>()); // publish the config payload with retain flag
+    std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/status/config"),Mqtt::base().c_str());
+    Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 }
 
 // add sub or pub task to the queue.
@@ -838,9 +840,8 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     snprintf_P(ha_device, sizeof(ha_device), PSTR("ems-esp-%s"), EMSdevice::device_type_2_device_name(device_type).c_str());
     ids.add(ha_device);
 
-    char topic[MQTT_TOPIC_MAX_SIZE];
-    snprintf_P(topic, sizeof(topic), PSTR("homeassistant/binary_sensor/ems-esp/%s/config"), entity);
-
+    std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/binary_sensor/%s/%s/config"), Mqtt::base().c_str(), entity);
     publish_ha(topic, doc.as<JsonObject>());
 }
 
@@ -876,10 +877,6 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     std::string uniq(50, '\0');
     snprintf_P(&uniq[0], uniq.capacity() + 1, PSTR("%s_%s"), device_name, new_entity);
     std::replace(uniq.begin(), uniq.end(), '.', '_');
-
-    // topic
-    char topic[MQTT_TOPIC_MAX_SIZE];
-    snprintf_P(topic, sizeof(topic), PSTR("homeassistant/sensor/ems-esp/%s/config"), uniq.c_str());
 
     // state topic
     char stat_t[MQTT_TOPIC_MAX_SIZE];
@@ -921,6 +918,8 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     JsonArray  ids = dev.createNestedArray("ids");
     ids.add(ha_device);
 
+    std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/%s/config"), Mqtt::base().c_str(), uniq.c_str());
     publish_ha(topic, doc.as<JsonObject>());
 }
 

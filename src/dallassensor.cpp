@@ -409,8 +409,8 @@ void DallasSensor::publish_values(const bool force) {
                 JsonArray  ids = dev.createNestedArray("ids");
                 ids.add("ems-esp");
 
-                std::string topic(100, '\0');
-                snprintf_P(&topic[0], 100, PSTR("homeassistant/sensor/ems-esp/dallas_%s/config"),sensor.code().c_str());
+                std::string topic(128, '\0');
+                snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/dallas_%s/config"), Mqtt::base().c_str(), sensor.code().c_str());
                 Mqtt::publish_ha(topic, config.as<JsonObject>());
 
                 registered_ha_[sensor_no - 1] = true;

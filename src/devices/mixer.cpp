@@ -161,9 +161,9 @@ void Mixer::register_mqtt_ha_config() {
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-mixer");
 
-    std::string topic(100, '\0');
+    std::string topic(128, '\0');
     if (type() == Type::HC) {
-        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/ems-esp/mixer_hc%d/config"), hc_);
+        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/mixer_hc%d/config"), Mqtt::base().c_str(), hc_);
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char hc_name[10];
         snprintf_P(hc_name, sizeof(hc_name), PSTR("hc%d"), hc_);
@@ -174,7 +174,7 @@ void Mixer::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(valveStatus), device_type(), "valveStatus", F_(percent), F_(iconpercent));
     } else {
         // WWC
-        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/ems-esp/mixer_wwc%d/config"), hc_);
+        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/mixer_wwc%d/config"), Mqtt::base().c_str(), hc_);
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char wwc_name[10];
         snprintf_P(wwc_name, sizeof(wwc_name), PSTR("wwc%d"), hc_);
