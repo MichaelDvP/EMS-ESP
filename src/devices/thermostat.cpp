@@ -168,11 +168,12 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         EMSESP::send_read_request(monitor_typeids[i], device_id);
     }
 
-    /* do not flood tx-queue now, these values are fetched later by toggle fetch
-
     for (uint8_t i = 0; i < set_typeids.size(); i++) {
         EMSESP::send_read_request(set_typeids[i], device_id);
     }
+
+    /* do not flood tx-queue now, these values are fetched later by toggle fetch
+
     for (uint8_t i = 0; i < summer_typeids.size(); i++) {
         EMSESP::send_read_request(summer_typeids[i], device_id);
     }
@@ -786,6 +787,11 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
         if (heating_circuit->hc_num() == hc_num) {
             return heating_circuit;
         }
+    }
+
+    // register new heatingcircuits only on active monitor telegrams
+    if (!toggle_) {
+        return nullptr;
     }
 
     // create a new heating circuit object

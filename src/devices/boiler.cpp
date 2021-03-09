@@ -1064,6 +1064,8 @@ void Boiler::process_UBAMonitorSlowPlus(std::shared_ptr<const Telegram> telegram
 /*
  * UBAParametersPlus - type 0xe6
  * 88 0B E6 00 01 46 00 00 46 0A 00 01 06 FA 0A 01 02 64 01 00 00 1E 00 3C 01 00 00 00 01 00 9A
+ * from: issue #732
+ *       data: 01 50 1E 5A 46 12 64 00 06 FA 3C 03 05 64 00 00 00 28 00 41 03 00 00 00 00 00 00 00 00 00
  */
 void Boiler::process_UBAParametersPlus(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(heatingActivated_, 0);
@@ -1073,6 +1075,7 @@ void Boiler::process_UBAParametersPlus(std::shared_ptr<const Telegram> telegram)
     changed_ |= telegram->read_value(boilHystOff_, 8);
     changed_ |= telegram->read_value(boilHystOn_, 9);
     changed_ |= telegram->read_value(burnMinCycleTime_, 10);
+    // changed_ |= telegram->read_value(pumpDelay_, 12);  // guess
     // changed_ |= telegram->read_value(pumpModMax_, 13); // guess
     // changed_ |= telegram->read_value(pumpModMin_, 14); // guess
 }
