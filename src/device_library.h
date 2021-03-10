@@ -25,7 +25,7 @@
 
 // Boilers - 0x08
 { 64, DeviceType::BOILER, F("BK13/BK15/Smartline/GB1x2"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
-{ 72, DeviceType::BOILER, F("GB125/MC10"), DeviceFlags::EMS_DEVICE_FLAG_EMS},
+{ 72, DeviceType::BOILER, F("GB125/MC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 { 84, DeviceType::BOILER, F("Logamax Plus GB022"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 { 95, DeviceType::BOILER, F("Condens 2500/Logamax/Logomatic/Cerapur Top/Greenstar/Generic HT3"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 {115, DeviceType::BOILER, F("Topline/GB162"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
@@ -45,7 +45,7 @@
 {206, DeviceType::BOILER, F("Ecomline Excellent"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 
 // Controllers - 0x09 / 0x10 / 0x50
-{ 68, DeviceType::CONTROLLER, F("BC10/MC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
+{ 68, DeviceType::CONTROLLER, F("BC10/RFM20"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 { 84, DeviceType::CONTROLLER, F("GB022"), DeviceFlags::EMS_DEVICE_FLAG_NONE},
 { 89, DeviceType::CONTROLLER, F("BC10 GB142"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 { 95, DeviceType::CONTROLLER, F("HT3"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
@@ -56,7 +56,7 @@
 {190, DeviceType::CONTROLLER, F("BC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {194, DeviceType::CONTROLLER, F("BC10"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {206, DeviceType::CONTROLLER, F("Ecomline"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
-{207, DeviceType::CONTROLLER, F("Sense II/CS200"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x10 -> solar thermostat
+{207, DeviceType::CONTROLLER, F("Sense II/CS200"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x10
 {209, DeviceType::CONTROLLER, F("ErP"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
 {218, DeviceType::CONTROLLER, F("M200/RFM200"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x50
 {224, DeviceType::CONTROLLER, F("9000i"), DeviceFlags::EMS_DEVICE_FLAG_NONE}, // 0x09
