@@ -820,19 +820,11 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), entity);
     doc["stat_t"] = state_t;
 
-    if (bool_format_ == BOOL_FORMAT_ONOFF) {
-        doc[F("payload_on")]  = FJSON("on");
-        doc[F("payload_off")] = FJSON("off");
-    } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {
-        doc[F("payload_on")]  = FJSON("ON");
-        doc[F("payload_off")] = FJSON("OFF");
-    } else if (bool_format_ == BOOL_FORMAT_TRUEFALSE) {
-        doc[F("payload_on")]  = true;
-        doc[F("payload_off")] = false;
-    } else {
-        doc[F("payload_on")]  = 1;
-        doc[F("payload_off")] = 0;
-    }
+    // how to render boolean
+    // HA only accepts String values
+    char s[10];
+    doc[F("payload_on")]   = Helpers::render_boolean(s, true);
+    doc[F("payload_off")]  = Helpers::render_boolean(s, false);
 
     JsonObject dev = doc.createNestedObject("dev");
     JsonArray  ids = dev.createNestedArray("ids");

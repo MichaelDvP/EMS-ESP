@@ -1,11 +1,13 @@
 # Changelog
 
 ### Added
-- Boiler WB Greenstar 8000 (195) and GB172i (210) 
+
+- Boiler WB Greenstar 8000 (195) and GB172i (210)
 - optional id to info command to output heatingcircuits separated
 - Reset to factory setting with PButton (io0 to GND for >9 sec)
 
 ### Fixed
+
 - telegrams matched to masterthermostat 0x18
 - Boiler Junkers Cerapur Aero
 - multiple roomcontrollers
@@ -21,6 +23,7 @@
 - fix ems+ values #723, #732
 
 ### Changed
+
 - split `show values` in smaller packages and separate heating circuits
 - extended length of IP/hostname from 32 to 48 chars (#676)
 - check flowsensor for `tap_water_active`
