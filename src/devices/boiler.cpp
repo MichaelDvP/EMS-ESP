@@ -1,5 +1,5 @@
 /*
- * EMS-ESP - https://github.com/proddy/EMS-ESP
+ * EMS-ESP - https://github.com/emsesp/EMS-ESP
  * Copyright 2020  Paul Derbyshire
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,12 +26,12 @@ uuid::log::Logger Boiler::logger_{F_(boiler), uuid::log::Facility::CONSOLE};
 
 Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const std::string & version, const std::string & name, uint8_t flags, uint8_t brand)
     : EMSdevice(device_type, device_id, product_id, version, name, flags, brand) {
-
-    // register values only for master boiler/cascade module 
+    // register values only for master boiler/cascade module
     if (device_id != EMSdevice::EMS_DEVICE_ID_BOILER) {
         return;
     }
-    // reserve_mem(10); // reserve some space for the telegram registries, to avoid memory fragmentation
+
+    // reserve_mem(20); // reserve some space for the telegram registries, to avoid memory fragmentation
 
     LOG_DEBUG(F("Adding new Boiler with device ID 0x%02X"), device_id);
 
@@ -477,7 +477,6 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 // creates JSON doc from values
 // returns false if empty
 bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
-
     // Hot tap water bool
     Helpers::json_boolean(json, "heatingActive", heatingActive_);
 
@@ -910,7 +909,7 @@ void Boiler::process_UBAMonitorFast(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_bitvalue(wWCirc_, 7, 7);
 
     // warm water storage sensors (if present)
-    // wWStorageTemp2 is also used by some brands as the boiler temperature - see https://github.com/proddy/EMS-ESP/issues/206
+    // wWStorageTemp2 is also used by some brands as the boiler temperature - see https://github.com/emsesp/EMS-ESP/issues/206
     changed_ |= telegram->read_value(wWStorageTemp1_, 9);  // 0x8300 if not available
     changed_ |= telegram->read_value(wWStorageTemp2_, 11); // 0x8000 if not available - this is boiler temp
 
@@ -1163,7 +1162,7 @@ void Boiler::process_UBAEnergySupplied(std::shared_ptr<const Telegram> telegram)
 
 // 0x2A - MC10Status
 // e.g. 88 00 2A 00 00 00 00 00 00 00 00 00 D2 00 00 80 00 00 01 08 80 00 02 47 00
-// see https://github.com/proddy/EMS-ESP/issues/397
+// see https://github.com/emsesp/EMS-ESP/issues/397
 void Boiler::process_MC10Status(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(mixerTemp_, 14);
     changed_ |= telegram->read_value(tankMiddleTemp_, 18);
@@ -1501,7 +1500,7 @@ bool Boiler::set_warmwater_activated(const char * value, const int8_t id) {
 
     LOG_INFO(F("Setting boiler warm water active %s"), v ? "on" : "off");
 
-    // https://github.com/proddy/EMS-ESP/issues/268
+    // https://github.com/emsesp/EMS-ESP/issues/268
     uint8_t n;
     if (EMSbus::is_ht3()) {
         n = (v ? 0x08 : 0x00); // 0x08 is on, 0x00 is off
@@ -1554,7 +1553,7 @@ bool Boiler::set_tapwarmwater_activated(const char * value, const int8_t id) {
 
 // Activate / De-activate One Time warm water 0x35
 // true = on, false = off
-// See also https://github.com/proddy/EMS-ESP/issues/341#issuecomment-596245458 for Junkers
+// See also https://github.com/emsesp/EMS-ESP/issues/341#issuecomment-596245458 for Junkers
 bool Boiler::set_warmwater_onetime(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
@@ -1616,7 +1615,7 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
     // int v = 0;
     uint8_t v;
     if (!Helpers::value2enum(value, v, {F("off"), F("1"), F("2"), F("3"), F("4"), F("5"), F("6"), F("continous")})) {
-    // if (!Helpers::value2number(value, v)) {
+        // if (!Helpers::value2number(value, v)) {
         LOG_WARNING(F("Set warm water circulation mode: Invalid value"));
         return false;
     }

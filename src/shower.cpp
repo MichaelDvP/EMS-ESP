@@ -1,5 +1,5 @@
 /*
- * EMS-ESP - https://github.com/proddy/EMS-ESP
+ * EMS-ESP - https://github.com/emsesp/EMS-ESP
  * Copyright 2020  Paul Derbyshire
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -153,7 +153,6 @@ void Shower::publish_values() {
 }
 
 void Shower::send_MQTT_discovery_config() {
-    
     if (mqtt_discovery_config_send_) {
         //nothing to do
         return;
@@ -170,7 +169,7 @@ void Shower::send_MQTT_discovery_config() {
         doc["val_tpl"]     = FJSON("{{value_json['duration']}}");
         doc["ic"]          = FJSON("mdi:shower");
         JsonObject dev     = doc.createNestedObject("dev");
-        JsonArray ids      = dev.createNestedArray("ids");
+        JsonArray  ids     = dev.createNestedArray("ids");
         ids.add("ems-esp-boiler");
 
         std::string topic(128, '\0');
