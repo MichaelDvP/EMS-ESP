@@ -57,8 +57,10 @@ void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
                 drop_next_rx_ = true;
             }
         }
-        if (pEMSRxBuf->buffer[pEMSRxBuf->length - 1]) { // check if last byte is break
-            pEMSRxBuf->length++;
+        if (pEMSRxBuf->length > 0 && pEMSRxBuf->length < EMS_MAXBUFFERSIZE) {
+            if (pEMSRxBuf->buffer[pEMSRxBuf->length - 1]) { // check if last byte is break
+                pEMSRxBuf->length++;
+            }
         }
         // Ignore telegrams with no data value, then transmit EMS buffer, excluding the BRK
         if (!drop_next_rx_ && (pEMSRxBuf->length > 4 || pEMSRxBuf->length == 2)) {

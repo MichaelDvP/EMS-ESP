@@ -166,6 +166,7 @@ void System::syslog_init() {
     int8_t   syslog_level_;
     uint32_t syslog_mark_interval_;
     String   syslog_host_;
+    uint16_t syslog_port_;
 
     // fetch settings
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
@@ -173,6 +174,7 @@ void System::syslog_init() {
         syslog_level_         = settings.syslog_level;
         syslog_mark_interval_ = settings.syslog_mark_interval;
         syslog_host_          = settings.syslog_host;
+        syslog_port_          = settings.syslog_port;
     });
 
 #ifndef EMSESP_STANDALONE
@@ -195,7 +197,7 @@ void System::syslog_init() {
     syslog_.start();
     syslog_.log_level((uuid::log::Level)syslog_level_);
     syslog_.mark_interval(syslog_mark_interval_);
-    syslog_.destination(addr);
+    syslog_.destination(addr, syslog_port_);
     EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) { syslog_.hostname(wifiSettings.hostname.c_str()); });
 
     EMSESP::logger().info(F("Syslog started"));
