@@ -427,7 +427,7 @@ void Mqtt::start() {
     });
 
     // create space for command buffer, to avoid heap memory fragmentation
-    mqtt_subfunctions_.reserve(35);
+    // mqtt_subfunctions_.reserve(35);
 }
 
 void Mqtt::set_publish_time_boiler(uint16_t publish_time) {

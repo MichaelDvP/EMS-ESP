@@ -51,7 +51,8 @@ Mixer::Mixer(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
 
     // HT3
     if (flags == EMSdevice::EMS_DEVICE_FLAG_IPM) {
-        register_telegram_type(0x010C, F("IPMSetMessage"), false, [&](std::shared_ptr<const Telegram> t) { process_IPMStatusMessage(t); });
+        register_telegram_type(0x010C, F("IPMStatusMessage"), false, [&](std::shared_ptr<const Telegram> t) { process_IPMStatusMessage(t); });
+        register_telegram_type(0x001E, F("IPMTempMessage"), false, [&](std::shared_ptr<const Telegram> t) { process_IPMTempMessage(t); });
     }
 }
 
@@ -170,6 +171,7 @@ void Mixer::register_mqtt_ha_config() {
         // Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempLowLoss), device_type(), "flowTempLowLoss", F_(degrees), nullptr);
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowSetTemp), device_type(), "flowSetTemp", F_(degrees), nullptr);
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempHc), device_type(), "flowTempHc", F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempVf), device_type(), "flowTempVf", F_(degrees), nullptr);
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(pumpStatus), device_type(), "pumpStatus", nullptr, F_(iconpump));
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(valveStatus), device_type(), "valveStatus", F_(percent), F_(iconpercent));
     } else {
@@ -226,6 +228,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         // TC1: flow temperature in assigned hc or tank temperature in assigned tank primary circuit
         if (Helpers::hasValue(flowTempHc_)) {
             json_hc["flowTempHc"] = (float)flowTempHc_ / 10;
+        }
+        // VF: flow temperature in Header
+        if (Helpers::hasValue(flowTempVf_)) {
+            json_hc["flowTempVf"] = (float)flowTempVf_ / 10;
         }
         // PC1: heating pump in assigned hc -or- PW1: tank primary pump in assigned tank primary circuit (code switch 9 or 10)
         Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
@@ -299,7 +305,7 @@ void Mixer::process_MMPLUSStatusMessage_WWC(std::shared_ptr<const Telegram> tele
     changed_ |= telegram->read_value(status_, 11); // temp status
 }
 
-// Mixer IMP - 0x010C
+// Mixer IPM - 0x010C
 // e.g.  A0 00 FF 00 00 0C 01 00 00 00 00 00 54
 //       A1 00 FF 00 00 0C 02 04 00 01 1D 00 82
 void Mixer::process_IPMStatusMessage(std::shared_ptr<const Telegram> telegram) {
@@ -321,6 +327,17 @@ void Mixer::process_IPMStatusMessage(std::shared_ptr<const Telegram> telegram) {
 
     changed_ |= telegram->read_bitvalue(pumpStatus_, 1, 0); // pump is also in unmixed circuits
     changed_ |= telegram->read_value(flowSetTemp_, 5);      // is also in unmixed circuits, see #711
+}
+
+// Mixer IPM - 0x001E Temperature Message for unmixed ccircuits (switch temperature)
+// unmixed FlowTemp in 10C is zero, the flowtemp on header is published here
+// republished from boiler in 0x19 as switchTemp.
+void Mixer::process_IPMTempMessage(std::shared_ptr<const Telegram> telegram) {
+    type(Type::HC);
+    hc_ = device_id() - 0x20 + 1;
+
+    changed_ |= telegram->read_value(flowTempVf_, 0); // VF, is * 10
+    // no other values
 }
 
 // Mixer on a MM10 - 0xAB
