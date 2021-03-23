@@ -78,7 +78,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F("boilhystoff"), [&](const char * value, const int8_t id) { return set_hyst_off(value, id); });
     register_mqtt_cmd(F("burnperiod"), [&](const char * value, const int8_t id) { return set_burn_period(value, id); });
     register_mqtt_cmd(F("pumpdelay"), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
-    // register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
+    register_mqtt_cmd(F("reset"), [&](const char * value, const int8_t id) { return set_reset(value, id); });
     register_mqtt_cmd(F("maintenance"), [&](const char * value, const int8_t id) { return set_maintenance(value, id); });
     register_mqtt_cmd(F("pumpmodmax"), [&](const char * value, const int8_t id) { return set_max_pump(value, id); });
     register_mqtt_cmd(F("pumpmodmin"), [&](const char * value, const int8_t id) { return set_min_pump(value, id); });
@@ -1640,12 +1640,10 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
     return true;
 }
 
-/*
 // Reset command
 // 0 & 1        Reset-Mode (Manual, others), 5A resets Lxx error?
 // 8            reset maintenance message Hxx, send FF
 // 12 & 13      Reset that Error-memory
-
 bool Boiler::set_reset(const char * value, const int8_t id) {
     std::string s(12, '\0');
     if (!Helpers::value2string(value, s)) {
@@ -1657,12 +1655,11 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
         return true;
     } else if (s == "error") {
         LOG_INFO(F("Reset boiler error message"));
-        write_command(0x05, 0x00, 0x5A); error reset
+        write_command(0x05, 0x00, 0x5A);
         return true;
     }
     return false;
 }
-*/
 
 //maintenance
 bool Boiler::set_maintenance(const char * value, const int8_t id) {

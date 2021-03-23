@@ -316,7 +316,6 @@ MAKE_PSTR(dewTemperature, "Dew point temperature")
 MAKE_PSTR(activated, "Switch activated")
 MAKE_PSTR(status, "Switch status")
 
-
 // Home Assistant icons
 MAKE_PSTR(iconwatertemp, "mdi:coolant-temperature")
 MAKE_PSTR(iconpercent, "mdi:sine-wave")

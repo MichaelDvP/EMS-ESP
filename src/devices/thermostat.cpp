@@ -160,7 +160,7 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
     add_commands();
 
     // reserve some memory for the heating circuits (max 4 to start with)
-    heating_circuits_.reserve(4);
+    // heating_circuits_.reserve(4);
 
     // only for for the master-thermostat, go a query all the heating circuits. This is only done once.
     // The automatic fetch will from now on only update the active heating circuits
