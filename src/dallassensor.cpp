@@ -292,18 +292,6 @@ std::string DallasSensor::Sensor::to_string() const {
     return str;
 }
 
-std::string DallasSensor::Sensor::code() const {
-    std::string str(20, '\0');
-    snprintf_P(&str[0],
-               str.capacity() + 1,
-               PSTR("%02X%04X%04X%04X"),
-               (unsigned int)(id_ >> 48) & 0xFF,
-               (unsigned int)(id_ >> 32) & 0xFFFF,
-               (unsigned int)(id_ >> 16) & 0xFFFF,
-               (unsigned int)(id_)&0xFFFF);
-    return str;
-}
-
 // check to see if values have been updated
 bool DallasSensor::updated_values() {
     if (changed_) {
@@ -402,15 +390,18 @@ void DallasSensor::publish_values(const bool force) {
                 }
                 config["name"] = str;
 
-                snprintf_P(str, sizeof(str), PSTR("dallas_%s"), sensor.code().c_str());
+                snprintf_P(str, sizeof(str), PSTR("dallas_%s"), sensor.to_string().c_str());
                 config["uniq_id"] = str;
 
                 JsonObject dev = config.createNestedObject("dev");
+                dev["name"]    = FJSON("EMS-ESP Dallas");               // Global name for device (all Dallas sensors, avoids using the very first name for the group)
+                dev["mf"]      = FJSON("Dallas");                       // Manufacturer (avoids the ugly <unknown> in HA)
+                dev["mdl"]     = FJSON("1Wire");                        // Model (avoids the ugly <unknown> in HA)
                 JsonArray  ids = dev.createNestedArray("ids");
-                ids.add("ems-esp");
+                ids.add("ems-esp-dallas");                              // Different ids as the other portions of the EMS-ESP
 
                 std::string topic(128, '\0');
-                snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/dallas_%s/config"), Mqtt::base().c_str(), sensor.code().c_str());
+                snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/dallas_%s/config"), Mqtt::base().c_str(), sensor.to_string().c_str());
                 Mqtt::publish_ha(topic, config.as<JsonObject>());
 
                 registered_ha_[sensor_no - 1] = true;
