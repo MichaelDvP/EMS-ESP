@@ -3,9 +3,9 @@
 
 #define FT_ENABLED(feature) feature
 
-// project feature off by default
+// project feature on by default
 #ifndef FT_PROJECT
-#define FT_PROJECT 0
+#define FT_PROJECT 1
 #endif
 
 // security feature on by default
@@ -28,9 +28,9 @@
 #define FT_OTA 1
 #endif
 
-// upload firmware feature off by default
+// upload firmware feature on by default
 #ifndef FT_UPLOAD_FIRMWARE
-#define FT_UPLOAD_FIRMWARE 0
+#define FT_UPLOAD_FIRMWARE 1
 #endif
 
 

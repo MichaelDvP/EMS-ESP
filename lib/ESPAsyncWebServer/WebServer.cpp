@@ -41,8 +41,9 @@ AsyncWebServer::AsyncWebServer(uint16_t port)
   , _handlers(LinkedList<AsyncWebHandler*>([](AsyncWebHandler* h){ delete h; }))
 {
   _catchAllHandler = new AsyncCallbackWebHandler();
-  if(_catchAllHandler == NULL)
+  if(_catchAllHandler == NULL) {
     return;
+  }
   _server.onClient([](void *s, AsyncClient* c){
     if(c == NULL)
       return;
@@ -59,7 +60,9 @@ AsyncWebServer::AsyncWebServer(uint16_t port)
 AsyncWebServer::~AsyncWebServer(){
   reset();
   end();
-  if(_catchAllHandler) delete _catchAllHandler;
+  if(_catchAllHandler) {
+      delete _catchAllHandler;
+  }
 }
 
 AsyncWebRewrite& AsyncWebServer::addRewrite(AsyncWebRewrite* rewrite){
@@ -196,18 +199,3 @@ void AsyncWebServer::reset(){
   }
 }
 
-AsyncCallbackWebHandler& AsyncWebServer::on(String uri, ArRequestHandlerFunction onRequest){
-  return on(uri.c_str(), onRequest);
-}
-
-AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest){
-  return on(uri.c_str(), method, onRequest);
-}
-
-AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload){
-  return on(uri.c_str(), method, onRequest, onUpload);
-}
-
-AsyncCallbackWebHandler& AsyncWebServer::on(String uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload, ArBodyHandlerFunction onBody){
-  return on(uri.c_str(), method, onRequest, onUpload, onBody);
-}
