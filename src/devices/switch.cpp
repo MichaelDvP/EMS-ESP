@@ -42,9 +42,9 @@ void Switch::device_info_web(JsonArray & root, uint8_t & part) {
     JsonObject                                     json = doc.to<JsonObject>();
     if (export_values(json)) {
         doc.shrinkToFit();
-        create_value_json(root, F("activated"), nullptr, F_(activated), nullptr, json);
-        create_value_json(root, F("flowTemp"), nullptr, F_(flowTempHc), F_(degrees), json);
-        create_value_json(root, F("status"), nullptr, F_(status), nullptr, json);
+        create_value_json(root, F_(activated), nullptr, F_(activated_), nullptr, json);
+        create_value_json(root, F_(flowtemphc), nullptr, F_(flowtemphc_), F_(degrees), json);
+        create_value_json(root, F_(status), nullptr, F_(status_), nullptr, json);
     }
 }
 
@@ -69,14 +69,14 @@ void Switch::publish_values(JsonObject & json, bool force) {
 
 // export values to JSON
 bool Switch::export_values(JsonObject & json, int8_t id) {
-    Helpers::json_boolean(json, "activated", activated_);
+    Helpers::json_boolean(json, F_(activated), activated_);
 
     if (Helpers::hasValue(flowTempHc_)) {
-        json["flowTemp"] = (float)flowTempHc_ / 10;
+        json[F_(flowtemphc)] = (float)flowTempHc_ / 10;
     }
 
     if (Helpers::hasValue(status_)) {
-        json["status"] = status_;
+        json[F_(status)] = status_;
     }
 
     return true;
@@ -133,9 +133,9 @@ void Switch::register_mqtt_ha_config() {
     snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/switch/config"),Mqtt::base().c_str());
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(activated), device_type(), "activated", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(flowTempHc), device_type(), "flowTempHc", F_(degrees), F_(iconwatertemp));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(status), device_type(), "status", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(activated_), device_type(), F_(activated), nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(flowtemphc_), device_type(), F_(flowtemphc), F_(degrees), F_(iconwatertemp));
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(status_), device_type(), F_(status), nullptr, nullptr);
 
     mqtt_ha_config_ = true; // done
 }

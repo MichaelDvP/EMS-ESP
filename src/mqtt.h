@@ -104,12 +104,12 @@ class Mqtt {
     static void publish_ha(const std::string & topic, const JsonObject & payload);
     static void publish_ha(const __FlashStringHelper * topic, const JsonObject & payload);
 
-    static void register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, const uint8_t device_type, const char * entity);
+    static void register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, const uint8_t device_type, const __FlashStringHelper * entity);
     static void register_mqtt_ha_sensor(const char *                prefix,
                                         const __FlashStringHelper * suffix,
                                         const __FlashStringHelper * name,
                                         const uint8_t               device_type,
-                                        const char *                entity,
+                                        const __FlashStringHelper * entity,
                                         const __FlashStringHelper * uom,
                                         const __FlashStringHelper * icon);
     static void register_command(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb);
@@ -139,6 +139,14 @@ class Mqtt {
 
     static uint32_t publish_fails() {
         return mqtt_publish_fails_;
+    }
+
+    static uint16_t publish_queue() {
+        return mqtt_messages_.size();
+    }
+
+    static uint16_t publish_count() {
+        return mqtt_message_id_;
     }
 
     static void reset_publish_fails() {

@@ -57,8 +57,8 @@ void Heatpump::device_info_web(JsonArray & root, uint8_t & part) {
         return; // empty
     }
     doc.shrinkToFit();
-    create_value_json(root, F("airHumidity"), nullptr, F_(airHumidity), F_(percent), json);
-    create_value_json(root, F("dewTemperature"), nullptr, F_(dewTemperature), F_(degrees), json);
+    create_value_json(root, F("airHumidity"), nullptr, F_(airhumidity_), F_(percent), json);
+    create_value_json(root, F("dewTemperature"), nullptr, F_(dewtemperature_), F_(degrees), json);
 }
 
 // publish values via MQTT
@@ -110,8 +110,8 @@ void Heatpump::register_mqtt_ha_config() {
     snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/heatpump/config"),Mqtt::base().c_str());
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(airHumidity), device_type(), "airHumidity", F_(percent), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dewTemperature), device_type(), "dewTemperature", F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(airhumidity_), device_type(), F("airHumidity"), F_(percent), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dewtemperature_), device_type(), F("dewTemperature"), F_(degrees), nullptr);
 
     mqtt_ha_config_ = true; // done
 }

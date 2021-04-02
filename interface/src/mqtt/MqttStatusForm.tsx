@@ -6,7 +6,7 @@ import { Avatar, Divider, List, ListItem, ListItemAvatar, ListItemText } from '@
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import ReportIcon from '@material-ui/icons/Report';
-import SpeakerNotesOffIcon from "@material-ui/icons/SpeakerNotesOff";
+import SpeakerNotesIcon from "@material-ui/icons/SpeakerNotes";
 
 import { RestFormProps, FormActions, FormButton, HighlightAvatar } from '../components';
 import { mqttStatusHighlight, mqttStatus, mqttPublishHighlight, disconnectReason } from './MqttStatus';
@@ -14,6 +14,9 @@ import { MqttStatus } from './types';
 
 type MqttStatusFormProps = RestFormProps<MqttStatus> & WithTheme;
 
+function formatNumber(num: number) {
+  return new Intl.NumberFormat().format(num);
+}
 class MqttStatusForm extends Component<MqttStatusFormProps> {
 
   renderConnectionStatus() {
@@ -31,12 +34,12 @@ class MqttStatusForm extends Component<MqttStatusFormProps> {
           <ListItem>
           <ListItemAvatar>
             <HighlightAvatar color={mqttPublishHighlight(data, theme)}>
-              <SpeakerNotesOffIcon />
+              <SpeakerNotesIcon />
             </HighlightAvatar>
           </ListItemAvatar>
           <ListItemText
-            primary="MQTT Publish Errors"
-            secondary={data.mqtt_fails}
+            primary="MQTT Publish Count / Queued / Errors"
+            secondary={formatNumber(data.mqtt_count) +' / ' + formatNumber(data.mqtt_queue) + ' / ' + formatNumber(data.mqtt_fails)}
           />
         </ListItem>
         </Fragment>

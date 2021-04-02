@@ -197,25 +197,25 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
     if (part == 0) {
         if (export_values_main(json)) {
             doc.shrinkToFit();
-            create_value_json(root, F("dateTime"), nullptr, F_(time), nullptr, json);
-            create_value_json(root, F("errorcode"), nullptr, F_(error), nullptr, json);
-            create_value_json(root, F("lastcode"), nullptr, F_(lastCode), nullptr, json);
-            create_value_json(root, F("display"), nullptr, F_(display), nullptr, json);
-            create_value_json(root, F("language"), nullptr, F_(language), nullptr, json);
-            create_value_json(root, F("offsetclock"), nullptr, F_(offsetclock), nullptr, json);
-            create_value_json(root, F("dampedoutdoortemp"), nullptr, F_(dampedoutdoortemp), F_(degrees), json);
-            create_value_json(root, F("inttemp1"), nullptr, F_(inttemp1), F_(degrees), json);
-            create_value_json(root, F("inttemp2"), nullptr, F_(inttemp2), F_(degrees), json);
-            create_value_json(root, F("intoffset"), nullptr, F_(intoffset), nullptr, json);
-            create_value_json(root, F("minexttemp"), nullptr, F_(minexttemp), F_(degrees), json);
-            create_value_json(root, F("building"), nullptr, F_(building), nullptr, json);
-            create_value_json(root, F("floordry"), nullptr, F_(floordry), nullptr, json);
-            create_value_json(root, F("floordrytemp"), nullptr, F_(floordrytemp), F_(degrees), json);
-            create_value_json(root, F("wwmode"), nullptr, F_(wwmode), nullptr, json);
-            create_value_json(root, F("wwsettemp"), nullptr, F_(wwsettemp), nullptr, json);
-            create_value_json(root, F("wwsettemplow"), nullptr, F_(wwsettemplow), nullptr, json);
-            create_value_json(root, F("wwextra1"), nullptr, F_(wwextra1), nullptr, json);
-            create_value_json(root, F("wwcircmode"), nullptr, F_(wwcircmode), nullptr, json);
+            create_value_json(root, F_(datetime), nullptr, F_(datetime_), nullptr, json);
+            create_value_json(root, F_(errorcode), nullptr, F_(errorcode_), nullptr, json);
+            create_value_json(root, F_(lastcode), nullptr, F_(lastcode_), nullptr, json);
+            create_value_json(root, F_(display), nullptr, F_(display_), nullptr, json);
+            create_value_json(root, F_(language), nullptr, F_(language_), nullptr, json);
+            create_value_json(root, F_(offsetclock), nullptr, F_(offsetclock_), nullptr, json);
+            create_value_json(root, F_(dampedoutdoortemp), nullptr, F_(dampedoutdoortemp_), F_(degrees), json);
+            create_value_json(root, F_(inttemp1), nullptr, F_(inttemp1_), F_(degrees), json);
+            create_value_json(root, F_(inttemp2), nullptr, F_(inttemp2_), F_(degrees), json);
+            create_value_json(root, F_(intoffset), nullptr, F_(intoffset_), nullptr, json);
+            create_value_json(root, F_(minexttemp), nullptr, F_(minexttemp_), F_(degrees), json);
+            create_value_json(root, F_(building), nullptr, F_(building_), nullptr, json);
+            create_value_json(root, F_(floordry), nullptr, F_(floordry_), nullptr, json);
+            create_value_json(root, F_(floordrytemp), nullptr, F_(floordrytemp_), F_(degrees), json);
+            create_value_json(root, F_(wwmode), nullptr, F_(wwmode_), nullptr, json);
+            create_value_json(root, F_(wwsettemp), nullptr, F_(wwsettemp_), nullptr, json);
+            create_value_json(root, F_(wwsettemplow), nullptr, F_(wwsettemplow_), nullptr, json);
+            create_value_json(root, F_(wwextra1), nullptr, F_(wwextra1_), nullptr, json);
+            create_value_json(root, F_(wwcircmode), nullptr, F_(wwcircmode_), nullptr, json);
         }
         if (heating_circuits_.size() > 0) {
             part = 1;
@@ -228,31 +228,31 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
             char prefix_str[10];
             snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(hc %d) "), hc->hc_num());
 
-            create_value_json(root, F("seltemp"), FPSTR(prefix_str), F_(seltemp), F_(degrees), json);
-            create_value_json(root, F("currtemp"), FPSTR(prefix_str), F_(currtemp), F_(degrees), json);
-            create_value_json(root, F("heattemp"), FPSTR(prefix_str), F_(heattemp), F_(degrees), json);
-            create_value_json(root, F("comforttemp"), FPSTR(prefix_str), F_(comforttemp), F_(degrees), json);
-            create_value_json(root, F("daytemp"), FPSTR(prefix_str), F_(daytemp), F_(degrees), json);
-            create_value_json(root, F("ecotemp"), FPSTR(prefix_str), F_(ecotemp), F_(degrees), json);
-            create_value_json(root, F("nighttemp"), FPSTR(prefix_str), F_(nighttemp), F_(degrees), json);
-            create_value_json(root, F("manualtemp"), FPSTR(prefix_str), F_(manualtemp), F_(degrees), json);
-            create_value_json(root, F("holidaytemp"), FPSTR(prefix_str), F_(holidaytemp), F_(degrees), json);
-            create_value_json(root, F("nofrosttemp"), FPSTR(prefix_str), F_(nofrosttemp), F_(degrees), json);
-            create_value_json(root, F("heatingtype"), FPSTR(prefix_str), F_(heatingtype), nullptr, json);
-            create_value_json(root, F("targetflowtemp"), FPSTR(prefix_str), F_(targetflowtemp), F_(degrees), json);
-            create_value_json(root, F("offsettemp"), FPSTR(prefix_str), F_(offsettemp), F_(degrees), json);
-            create_value_json(root, F("designtemp"), FPSTR(prefix_str), F_(designtemp), F_(degrees), json);
-            create_value_json(root, F("roominfluence"), FPSTR(prefix_str), F_(roominfluence), F_(degrees), json);
-            create_value_json(root, F("flowtempoffset"), FPSTR(prefix_str), F_(flowtempoffset), F_(degrees), json);
-            create_value_json(root, F("minflowtemp"), FPSTR(prefix_str), F_(minflowtemp), F_(degrees), json);
-            create_value_json(root, F("maxflowtemp"), FPSTR(prefix_str), F_(maxflowtemp), F_(degrees), json);
-            create_value_json(root, F("summertemp"), FPSTR(prefix_str), F_(summertemp), F_(degrees), json);
-            create_value_json(root, F("summermode"), FPSTR(prefix_str), F_(summermode), nullptr, json);
-            create_value_json(root, F("reducemode"), FPSTR(prefix_str), F_(reducemode), nullptr, json);
-            create_value_json(root, F("program"), FPSTR(prefix_str), F_(program), nullptr, json);
-            create_value_json(root, F("controlmode"), FPSTR(prefix_str), F_(controlmode), nullptr, json);
-            create_value_json(root, F("mode"), FPSTR(prefix_str), F_(mode), nullptr, json);
-            create_value_json(root, F("modetype"), FPSTR(prefix_str), F_(modetype), nullptr, json);
+            create_value_json(root, F_(seltemp), FPSTR(prefix_str), F_(seltemp_), F_(degrees), json);
+            create_value_json(root, F_(currtemp), FPSTR(prefix_str), F_(currtemp_), F_(degrees), json);
+            create_value_json(root, F_(heattemp), FPSTR(prefix_str), F_(heattemp_), F_(degrees), json);
+            create_value_json(root, F_(comforttemp), FPSTR(prefix_str), F_(comforttemp_), F_(degrees), json);
+            create_value_json(root, F_(daytemp), FPSTR(prefix_str), F_(daytemp_), F_(degrees), json);
+            create_value_json(root, F_(ecotemp), FPSTR(prefix_str), F_(ecotemp_), F_(degrees), json);
+            create_value_json(root, F_(nighttemp), FPSTR(prefix_str), F_(nighttemp_), F_(degrees), json);
+            create_value_json(root, F_(manualtemp), FPSTR(prefix_str), F_(manualtemp_), F_(degrees), json);
+            create_value_json(root, F_(holidaytemp), FPSTR(prefix_str), F_(holidaytemp_), F_(degrees), json);
+            create_value_json(root, F_(nofrosttemp), FPSTR(prefix_str), F_(nofrosttemp_), F_(degrees), json);
+            create_value_json(root, F_(heatingtype), FPSTR(prefix_str), F_(heatingtype_), nullptr, json);
+            create_value_json(root, F_(targetflowtemp), FPSTR(prefix_str), F_(targetflowtemp_), F_(degrees), json);
+            create_value_json(root, F_(offsettemp), FPSTR(prefix_str), F_(offsettemp_), F_(degrees), json);
+            create_value_json(root, F_(designtemp), FPSTR(prefix_str), F_(designtemp_), F_(degrees), json);
+            create_value_json(root, F_(roominfluence), FPSTR(prefix_str), F_(roominfluence_), F_(degrees), json);
+            create_value_json(root, F_(flowtempoffset), FPSTR(prefix_str), F_(flowtempoffset_), F_(degrees), json);
+            create_value_json(root, F_(minflowtemp), FPSTR(prefix_str), F_(minflowtemp_), F_(degrees), json);
+            create_value_json(root, F_(maxflowtemp), FPSTR(prefix_str), F_(maxflowtemp_), F_(degrees), json);
+            create_value_json(root, F_(summertemp), FPSTR(prefix_str), F_(summertemp_), F_(degrees), json);
+            create_value_json(root, F_(summermode), FPSTR(prefix_str), F_(summermode_), nullptr, json);
+            create_value_json(root, F_(reducemode), FPSTR(prefix_str), F_(reducemode_), nullptr, json);
+            create_value_json(root, F_(program), FPSTR(prefix_str), F_(program_), nullptr, json);
+            create_value_json(root, F_(controlmode), FPSTR(prefix_str), F_(controlmode_), nullptr, json);
+            create_value_json(root, F_(mode), FPSTR(prefix_str), F_(mode_), nullptr, json);
+            create_value_json(root, F_(modetype), FPSTR(prefix_str), F_(modetype_), nullptr, json);
         }
         if (++part > heating_circuits_.size()) {
             part = 0; // no more parts
@@ -311,7 +311,7 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_main(json_data)) {
             Mqtt::publish(F("thermostat_data"), json_data);
-            json_data.clear();
+            doc.clear();
         }
         for (const auto & hc : heating_circuits_) {
             if (export_values_hc(hc, json_data)) {
@@ -319,7 +319,7 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
                 snprintf_P(topic, 30, PSTR("thermostat_data_hc%d"), hc->hc_num());
                 Mqtt::publish(topic, json_data);
             }
-            json_data.clear();
+            doc.clear();
         }
         return;
     }
@@ -349,128 +349,128 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
 
     // Clock time
     if (datetime_.size()) {
-        rootThermostat["dateTime"] = datetime_;
+        rootThermostat[F_(datetime)] = datetime_;
     }
 
     if (Helpers::hasValue(errorNumber_)) {
-        rootThermostat["errorcode"] = errorCode_;
+        rootThermostat[F_(errorcode)] = errorCode_;
     }
 
     if (lastCode_[0] != '\0') {
-        rootThermostat["lastcode"] = lastCode_;
+        rootThermostat[F_(lastcode)] = lastCode_;
     }
 
     if (model == EMSdevice::EMS_DEVICE_FLAG_RC30_1) {
         // Display
         if (Helpers::hasValue(ibaMainDisplay_)) {
             if (ibaMainDisplay_ == 0) {
-                rootThermostat["display"] = FJSON("internal temperature");
+                rootThermostat[F_(display)] = FJSON("internal temperature");
             } else if (ibaMainDisplay_ == 1) {
-                rootThermostat["display"] = FJSON("internal setpoint");
+                rootThermostat[F_(display)] = FJSON("internal setpoint");
             } else if (ibaMainDisplay_ == 2) {
-                rootThermostat["display"] = FJSON("external temperature");
+                rootThermostat[F_(display)] = FJSON("external temperature");
             } else if (ibaMainDisplay_ == 3) {
-                rootThermostat["display"] = FJSON("burner temperature");
+                rootThermostat[F_(display)] = FJSON("burner temperature");
             } else if (ibaMainDisplay_ == 4) {
-                rootThermostat["display"] = FJSON("WW temperature");
+                rootThermostat[F_(display)] = FJSON("WW temperature");
             } else if (ibaMainDisplay_ == 5) {
-                rootThermostat["display"] = FJSON("functioning mode");
+                rootThermostat[F_(display)] = FJSON("functioning mode");
             } else if (ibaMainDisplay_ == 6) {
-                rootThermostat["display"] = FJSON("time");
+                rootThermostat[F_(display)] = FJSON("time");
             } else if (ibaMainDisplay_ == 7) {
-                rootThermostat["display"] = FJSON("date");
+                rootThermostat[F_(display)] = FJSON("date");
             } else if (ibaMainDisplay_ == 8) {
-                rootThermostat["display"] = FJSON("smoke temperature");
+                rootThermostat[F_(display)] = FJSON("smoke temperature");
             }
         }
 
         // Language
-        Helpers::json_enum(rootThermostat, "language", {F("German"), F("Dutch"), F("French"), F("Italian")}, ibaLanguage_);
+        Helpers::json_enum(rootThermostat, F_(language), {F("German"), F("Dutch"), F("French"), F("Italian")}, ibaLanguage_);
 
         // Offset clock
         if (Helpers::hasValue(ibaClockOffset_)) {
-            rootThermostat["offsetclock"] = ibaClockOffset_; // offset (in sec) to clock, 0xff=-1s, 0x02=2s
+            rootThermostat[F_(offsetclock)] = ibaClockOffset_; // offset (in sec) to clock, 0xff=-1s, 0x02=2s
         }
     }
 
     // Damped outdoor temperature (RC35)
     if (Helpers::hasValue(dampedoutdoortemp_)) {
         if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
-            rootThermostat["dampedoutdoortemp"] = dampedoutdoortemp_;
+            rootThermostat[F_(dampedoutdoortemp)] = dampedoutdoortemp_;
         }
     }
 
     // Damped outdoor temperature (RC300)
     if (Helpers::hasValue(dampedoutdoortemp2_)) {
-        rootThermostat["dampedoutdoortemp"] = (float)dampedoutdoortemp2_ / 10;
+        rootThermostat[F_(dampedoutdoortemp)] = (float)dampedoutdoortemp2_ / 10;
     }
 
     // Floordry
-    Helpers::json_enum(rootThermostat, "floordry", {F("off"), F("start"), F("heat"), F("hold"), F("cool"), F("end")}, floordrystatus_);
+    Helpers::json_enum(rootThermostat, F_(floordry), {F_(off), F_(start), F_(heat), F_(hold), F_(cool), F_(end)}, floordrystatus_);
 
     if (Helpers::hasValue(floordrytemp_) && (floordrytemp_ > 0)) {
-        rootThermostat["floordrytemp"] = floordrytemp_;
+        rootThermostat[F_(floordrytemp)] = floordrytemp_;
     }
 
     // Temp sensor 1
     if (Helpers::hasValue(tempsensor1_)) {
-        rootThermostat["inttemp1"] = (float)tempsensor1_ / 10;
+        rootThermostat[F_(inttemp1)] = (float)tempsensor1_ / 10;
     }
 
     // Temp sensor 2
     if (Helpers::hasValue(tempsensor2_)) {
-        rootThermostat["inttemp2"] = (float)tempsensor2_ / 10;
+        rootThermostat[F_(inttemp2)] = (float)tempsensor2_ / 10;
     }
 
     // Offset int. temperature
     if (Helpers::hasValue(ibaCalIntTemperature_)) {
-        rootThermostat["intoffset"] = (float)ibaCalIntTemperature_ / 2;
+        rootThermostat[F_(intoffset)] = (float)ibaCalIntTemperature_ / 2;
     }
 
     // Min ext. temperature
     if (Helpers::hasValue(ibaMinExtTemperature_)) {
-        rootThermostat["minexttemp"] = (float)ibaMinExtTemperature_; // min ext temp for heating curve, in deg.
+        rootThermostat[F_(minexttemp)] = (float)ibaMinExtTemperature_; // min ext temp for heating curve, in deg.
     }
 
     // Building
     if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Helpers::json_enum(rootThermostat, "building", {F("light"), F("medium"), F("heavy")}, ibaBuildingType_ - 1);
+        Helpers::json_enum(rootThermostat, F_(building), {F_(light), F_(medium), F_(heavy)}, ibaBuildingType_ - 1);
     } else {
-        Helpers::json_enum(rootThermostat, "building", {F("light"), F("medium"), F("heavy")}, ibaBuildingType_);
+        Helpers::json_enum(rootThermostat, F_(building), {F_(light), F_(medium), F_(heavy)}, ibaBuildingType_);
     }
 
     // Warm water mode, "high" is normal setting
     if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Helpers::json_enum(rootThermostat, "wwmode", {F("off"), F("low"), F("high"), F("auto"), F("own_prog")}, wwMode_);
+        Helpers::json_enum(rootThermostat, F_(wwmode), {F_(off), F_(low), F_(high), F_(auto), F_(own)}, wwMode_);
     } else {
-        Helpers::json_enum(rootThermostat, "wwmode", {F("off"), F("on"), F("auto")}, wwMode_);
+        Helpers::json_enum(rootThermostat, F_(wwmode), {F_(off), F_(on), F_(auto)}, wwMode_);
     }
 
     // Warm water set temp
     if (Helpers::hasValue(wwSetTemp_)) {
-        rootThermostat["wwsettemp"] = wwSetTemp_;
+        rootThermostat[F_(wwsettemp)] = wwSetTemp_;
     }
 
     // Warm water set temp low
     if (Helpers::hasValue(wwSetTempLow_)) {
-        rootThermostat["wwsettemplow"] = wwSetTempLow_;
+        rootThermostat[F_(wwsettemplow)] = wwSetTempLow_;
     }
 
     // Warm water extra1
     if (Helpers::hasValue(wwExtra1_)) {
-        rootThermostat["wwextra1"] = wwExtra1_;
+        rootThermostat[F_(wwextra1)] = wwExtra1_;
     }
 
     // Warm water extra2
     if (Helpers::hasValue(wwExtra2_)) {
-        rootThermostat["wwextra2"] = wwExtra2_;
+        rootThermostat[F_(wwextra2)] = wwExtra2_;
     }
 
     // Warm Water circulation mode
     if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Helpers::json_enum(rootThermostat, "wwcircmode", {F("off"), F("on"), F("auto"), F("own_prog")}, wwCircMode_);
+        Helpers::json_enum(rootThermostat, F_(wwcircmode), {F_(off), F_(on), F_(auto), F_(own)}, wwCircMode_);
     } else {
-        Helpers::json_enum(rootThermostat, "wwcircmode", {F("off"), F("on"), F("auto")}, wwCircMode_);
+        Helpers::json_enum(rootThermostat, F_(wwcircmode), {F_(off), F_(on), F_(auto)}, wwCircMode_);
     }
 
     return (rootThermostat.size());
@@ -500,129 +500,129 @@ bool Thermostat::export_values_hc(std::shared_ptr<Thermostat::HeatingCircuit> hc
 
     // Setpoint room temperature
     if (Helpers::hasValue(hc->setpoint_roomTemp)) {
-        dataThermostat["seltemp"] = Helpers::round2((float)hc->setpoint_roomTemp / setpoint_temp_divider);
+        dataThermostat[F_(seltemp)] = Helpers::round2((float)hc->setpoint_roomTemp / setpoint_temp_divider);
     }
 
     // Current room temperature
     if (Helpers::hasValue(hc->curr_roomTemp)) {
-        dataThermostat["currtemp"] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
+        dataThermostat[F_(currtemp)] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
     }
 
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
         if (Helpers::hasValue(hc->ha_temp)) {
-            dataThermostat["hatemp"] = Helpers::round2((float)hc->ha_temp / 10);
+            dataThermostat[F_(hatemp)] = Helpers::round2((float)hc->ha_temp / 10);
         } else if (Helpers::hasValue(hc->curr_roomTemp)) {
-            dataThermostat["hatemp"] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
+            dataThermostat[F_(hatemp)] = Helpers::round2((float)hc->curr_roomTemp / curr_temp_divider);
         } else {
-            dataThermostat["hatemp"] = Helpers::round2((float)hc->setpoint_roomTemp / setpoint_temp_divider);
+            dataThermostat[F_(hatemp)] = Helpers::round2((float)hc->setpoint_roomTemp / setpoint_temp_divider);
         }
     }
 
     if (Helpers::hasValue(hc->daytemp)) {
         if (model == EMSdevice::EMS_DEVICE_FLAG_JUNKERS) {
             // Heat temperature
-            dataThermostat["heattemp"] = (float)hc->daytemp / 2;
+            dataThermostat[F_(heattemp)] = (float)hc->daytemp / 2;
         } else if (model == EMSdevice::EMS_DEVICE_FLAG_RC300 || model == EMSdevice::EMS_DEVICE_FLAG_RC100) {
             // Comfort temperature
-            dataThermostat["comforttemp"] = (float)hc->daytemp / 2;
+            dataThermostat[F_(comforttemp)] = (float)hc->daytemp / 2;
         } else {
             // Day temperature
-            dataThermostat["daytemp"] = (float)hc->daytemp / 2;
+            dataThermostat[F_(daytemp)] = (float)hc->daytemp / 2;
         }
     }
 
     if (Helpers::hasValue(hc->nighttemp)) {
         if (model == EMSdevice::EMS_DEVICE_FLAG_JUNKERS || model == EMSdevice::EMS_DEVICE_FLAG_RC300 || model == EMSdevice::EMS_DEVICE_FLAG_RC100) {
             // Eco temperature
-            dataThermostat["ecotemp"] = (float)hc->nighttemp / 2;
+            dataThermostat[F_(ecotemp)] = (float)hc->nighttemp / 2;
         } else {
             // Night temperature
-            dataThermostat["nighttemp"] = (float)hc->nighttemp / 2;
+            dataThermostat[F_(nighttemp)] = (float)hc->nighttemp / 2;
         }
     }
 
     // Manual temperature
     if (Helpers::hasValue(hc->manualtemp)) {
-        dataThermostat["manualtemp"] = (float)hc->manualtemp / 2;
+        dataThermostat[F_(manualtemp)] = (float)hc->manualtemp / 2;
     }
 
     // Holiday temperature
     if (Helpers::hasValue(hc->holidaytemp)) {
-        dataThermostat["holidaytemp"] = (float)hc->holidaytemp / 2;
+        dataThermostat[F_(holidaytemp)] = (float)hc->holidaytemp / 2;
     }
 
     // Nofrost temperature
     if (Helpers::hasValue(hc->nofrosttemp)) {
         if (model == EMSdevice::EMS_DEVICE_FLAG_JUNKERS) {
-            dataThermostat["nofrosttemp"] = (float)hc->nofrosttemp / 2;
+            dataThermostat[F_(nofrosttemp)] = (float)hc->nofrosttemp / 2;
         } else {
-            dataThermostat["nofrosttemp"] = hc->nofrosttemp;
+            dataThermostat[F_(nofrosttemp)] = hc->nofrosttemp;
         }
     }
 
     // Heating Type
-    Helpers::json_enum(dataThermostat, "heatingtype", {F("off"), F("radiator"), F("convector"), F("floor")}, hc->heatingtype);
+    Helpers::json_enum(dataThermostat, F_(heatingtype), {F_(off), F("radiator"), F("convector"), F("floor")}, hc->heatingtype);
 
     // Target flow temperature
     if (Helpers::hasValue(hc->targetflowtemp)) {
-        dataThermostat["targetflowtemp"] = hc->targetflowtemp;
+        dataThermostat[F_(targetflowtemp)] = hc->targetflowtemp;
     }
 
     // Offset temperature
     if (Helpers::hasValue(hc->offsettemp)) {
         if (model == EMSdevice::EMS_DEVICE_FLAG_RC300 || model == EMSdevice::EMS_DEVICE_FLAG_RC100) {
-            dataThermostat["offsettemp"] = hc->offsettemp;
+            dataThermostat[F_(offsettemp)] = hc->offsettemp;
         } else {
-            dataThermostat["offsettemp"] = hc->offsettemp / 2;
+            dataThermostat[F_(offsettemp)] = hc->offsettemp / 2;
         }
     }
 
     // Design temperature
     if (Helpers::hasValue(hc->designtemp)) {
-        dataThermostat["designtemp"] = hc->designtemp;
+        dataThermostat[F_(designtemp)] = hc->designtemp;
     }
 
     // Room influence
     if (Helpers::hasValue(hc->roominfluence)) {
-        dataThermostat["roominfluence"] = hc->roominfluence;
+        dataThermostat[F_(roominfluence)] = hc->roominfluence;
     }
 
     // Flow temperature offset
     if (Helpers::hasValue(hc->flowtempoffset)) {
-        dataThermostat["flowtempoffset"] = hc->flowtempoffset;
+        dataThermostat[F_(flowtempoffset)] = hc->flowtempoffset;
     }
 
     // Min Flow temperature offset
     if (Helpers::hasValue(hc->minflowtemp)) {
-        dataThermostat["minflowtemp"] = hc->minflowtemp;
+        dataThermostat[F_(minflowtemp)] = hc->minflowtemp;
     }
 
     // Max Flow temperature offset
     if (Helpers::hasValue(hc->maxflowtemp)) {
-        dataThermostat["maxflowtemp"] = hc->maxflowtemp;
+        dataThermostat[F_(maxflowtemp)] = hc->maxflowtemp;
     }
 
     // Summer temperature
     if (Helpers::hasValue(hc->summertemp)) {
-        dataThermostat["summertemp"] = hc->summertemp;
+        dataThermostat[F_(summertemp)] = hc->summertemp;
     }
 
     // Summer mode
-    Helpers::json_enum(dataThermostat, "summermode", {F("summer"), F("auto"), F("winter")}, hc->summer_setmode);
+    Helpers::json_enum(dataThermostat, F_(summermode), {F_(summer), F_(auto), F_(winter)}, hc->summer_setmode);
 
     // Reduce mode
-    Helpers::json_enum(dataThermostat, "reducemode", {F("nofrost"), F("reduce"), F("room"), F("outdoor")}, hc->reducemode);
+    Helpers::json_enum(dataThermostat, F_(reducemode), {F_(nofrost), F_(reduce), F_(room), F_(outdoor)}, hc->reducemode);
 
     // Control mode room or outdoor
     if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
-        Helpers::json_enum(dataThermostat, "controlmode", {F("outdoor"), F("room")}, hc->controlmode);
+        Helpers::json_enum(dataThermostat, F_(controlmode), {F_(outdoor), F_(room)}, hc->controlmode);
     } else if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Helpers::json_enum(dataThermostat, "controlmode", {F("off"), F("outdoor"), F("simple"), F("MPC"), F("room"), F("power"), F("const.")}, hc->controlmode);
+        Helpers::json_enum(dataThermostat, F_(controlmode), {F_(off), F_(outdoor), F("simple"), F("MPC"), F_(room), F("power"), F("const.")}, hc->controlmode);
     }
 
     // program no.
     if (Helpers::hasValue(hc->program)) {
-        dataThermostat["program"] = hc->program;
+        dataThermostat[F_(program)] = hc->program;
     }
 
     // mode - always force showing this when in HA so not to break HA's climate component
@@ -639,18 +639,18 @@ bool Thermostat::export_values_hc(std::shared_ptr<Thermostat::HeatingCircuit> hc
             }
         }
         // Mode
-        dataThermostat["mode"] = mode_tostring(hc_mode);
+        dataThermostat[F_(mode)] = mode_tostring(hc_mode);
     }
 
     // special handling of mode type, for the RC35 replace with summer/holiday if set
     // https://github.com/emsesp/EMS-ESP/issues/373#issuecomment-619810209
     // Mode Type
     if (Helpers::hasValue(hc->summer_mode) && hc->summer_mode) {
-        dataThermostat["modetype"] = FJSON("summer");
+        dataThermostat[F_(modetype)] = F_(summer);
     } else if (Helpers::hasValue(hc->holiday_mode) && hc->holiday_mode) {
-        dataThermostat["modetype"] = FJSON("holiday");
+        dataThermostat[F_(modetype)] = F_(holiday);
     } else if (Helpers::hasValue(hc->mode_type)) {
-        dataThermostat["modetype"] = mode_tostring(hc->get_mode_type(model));
+        dataThermostat[F_(modetype)] = mode_tostring(hc->get_mode_type(model));
     }
 
     return (dataThermostat.size());
@@ -844,34 +844,34 @@ void Thermostat::register_mqtt_ha_config() {
     snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/thermostat/config"),Mqtt::base().c_str());
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(time), device_type(), "dateTime", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(error), device_type(), "errorcode", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(datetime_), device_type(), F_(datetime), nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
 
     uint8_t model = this->model();
 
     if (model == EMS_DEVICE_FLAG_RC30_1) {
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(display), device_type(), "display", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(language), device_type(), "language", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(display_), device_type(), F_(display), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(language_), device_type(), F_(language), nullptr, nullptr);
     }
 
     if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp), device_type(), "dampedoutdoortemp", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building), device_type(), "building", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp), device_type(), "minexttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordry), device_type(), "floordry", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordrytemp), device_type(), "floordrytemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode), device_type(), "wwmode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwsettemp), device_type(), "wwsettemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode), device_type(), "wwcircmode", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordry_), device_type(), F_(floordry), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordrytemp_), device_type(), F_(floordrytemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode_), device_type(), F_(wwmode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwsettemp_), device_type(), F_(wwsettemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode_), device_type(), F_(wwcircmode), nullptr, nullptr);
     }
 
     if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
         // excluding inttemp1, inttemp2, intoffset, minexttemp
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp), device_type(), "dampedoutdoortemp", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building), device_type(), "building", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp), device_type(), "minexttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode), device_type(), "wwmode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode), device_type(), "wwcircmode", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode_), device_type(), F_(wwmode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwcircmode_), device_type(), F_(wwcircmode), nullptr, nullptr);
     }
 }
 
@@ -943,57 +943,57 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     char s[3];
     strlcat(hc_name, Helpers::itoa(s, hc_num), 10);
 
-    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(mode), device_type(), "mode", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(mode_), device_type(), F_(mode), nullptr, nullptr);
 
-    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(seltemp), device_type(), "seltemp", F_(degrees), F_(iconwatertemp));
-    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(currtemp), device_type(), "hatemp", F_(degrees), F_(iconwatertemp));
+    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(seltemp_), device_type(), F_(seltemp), F_(degrees), F_(iconwatertemp));
+    Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(currtemp_), device_type(), F_(hatemp), F_(degrees), F_(iconwatertemp));
 
     switch (model()) {
     case EMS_DEVICE_FLAG_RC100:
     case EMS_DEVICE_FLAG_RC300:
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype), device_type(), "modetype", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(ecotemp), device_type(), "ecotemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(manualtemp), device_type(), "manualtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(comforttemp), device_type(), "comforttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(summertemp), device_type(), "summertemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(designtemp), device_type(), "designtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(offsettemp), device_type(), "offsettemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(minflowtemp), device_type(), "minflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(maxflowtemp), device_type(), "maxflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(roominfluence), device_type(), "roominfluence", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp), device_type(), "nofrosttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(targetflowtemp), device_type(), "targetflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(controlmode), device_type(), "controlmode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program), device_type(), "program", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype_), device_type(), F_(modetype), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(ecotemp_), device_type(), F_(ecotemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(manualtemp_), device_type(), F_(manualtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(comforttemp_), device_type(), F_(comforttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(summertemp_), device_type(), F_(summertemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(designtemp_), device_type(), F_(designtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(offsettemp_), device_type(), F_(offsettemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(minflowtemp_), device_type(), F_(minflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(maxflowtemp_), device_type(), F_(maxflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(roominfluence_), device_type(), F_(roominfluence), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp_), device_type(), F_(nofrosttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(targetflowtemp_), device_type(), F_(targetflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(controlmode_), device_type(), F_(controlmode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program_), device_type(), F_(program), nullptr, nullptr);
         break;
     case EMS_DEVICE_FLAG_RC20_2:
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(daytemp), device_type(), "daytemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nighttemp), device_type(), "nighttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program), device_type(), "program", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(daytemp_), device_type(), F_(daytemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nighttemp_), device_type(), F_(nighttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program_), device_type(), F_(program), nullptr, nullptr);
         break;
     case EMS_DEVICE_FLAG_RC30_1:
     case EMS_DEVICE_FLAG_RC35:
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype), device_type(), "modetype", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nighttemp), device_type(), "nighttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(daytemp), device_type(), "daytemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(designtemp), device_type(), "designtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(offsettemp), device_type(), "offsettemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(holidaytemp), device_type(), "holidaytemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(targetflowtemp), device_type(), "targetflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(summertemp), device_type(), "summertemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp), device_type(), "nofrosttemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(roominfluence), device_type(), "roominfluence", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(minflowtemp), device_type(), "minflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(maxflowtemp), device_type(), "maxflowtemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(reducemode), device_type(), "reducemode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(controlmode), device_type(), "controlmode", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program), device_type(), "program", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype_), device_type(), F_(modetype), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nighttemp_), device_type(), F_(nighttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(daytemp_), device_type(), F_(daytemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(designtemp_), device_type(), F_(designtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(offsettemp_), device_type(), F_(offsettemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(holidaytemp_), device_type(), F_(holidaytemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(targetflowtemp_), device_type(), F_(targetflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(summertemp_), device_type(), F_(summertemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp_), device_type(), F_(nofrosttemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(roominfluence_), device_type(), F_(roominfluence), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(minflowtemp_), device_type(), F_(minflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(maxflowtemp_), device_type(), F_(maxflowtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(reducemode_), device_type(), F_(reducemode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(controlmode_), device_type(), F_(controlmode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(program_), device_type(), F_(program), nullptr, nullptr);
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype), device_type(), "modetype", nullptr, nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(heattemp), device_type(), "heattemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(ecotemp), device_type(), "ecotemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp), device_type(), "nofrosttemp", F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(modetype_), device_type(), F_(modetype), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(heattemp_), device_type(), F_(heattemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(ecotemp_), device_type(), F_(ecotemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(nofrosttemp_), device_type(), F_(nofrosttemp), F_(degrees), F_(iconwatertemp));
         break;
     default:
         break;
@@ -1097,56 +1097,56 @@ uint8_t Thermostat::HeatingCircuit::get_mode_type(uint8_t model) const {
 std::string Thermostat::mode_tostring(uint8_t mode) {
     switch (mode) {
     case HeatingCircuit::Mode::OFF:
-        return read_flash_string(F("off"));
+        return read_flash_string(F_(off));
         break;
     case HeatingCircuit::Mode::MANUAL:
-        return read_flash_string(F("manual"));
+        return read_flash_string(F_(manual));
         break;
     case HeatingCircuit::Mode::DAY:
-        return read_flash_string(F("day"));
+        return read_flash_string(F_(day));
         break;
     case HeatingCircuit::Mode::NIGHT:
-        return read_flash_string(F("night"));
+        return read_flash_string(F_(night));
         break;
     case HeatingCircuit::Mode::ECO:
-        return read_flash_string(F("eco"));
+        return read_flash_string(F_(eco));
         break;
     case HeatingCircuit::Mode::COMFORT:
-        return read_flash_string(F("comfort"));
+        return read_flash_string(F_(comfort));
         break;
     case HeatingCircuit::Mode::HEAT:
-        return read_flash_string(F("heat"));
+        return read_flash_string(F_(heat));
         break;
     case HeatingCircuit::Mode::HOLIDAY:
-        return read_flash_string(F("holiday"));
+        return read_flash_string(F_(holiday));
         break;
     case HeatingCircuit::Mode::NOFROST:
-        return read_flash_string(F("nofrost"));
+        return read_flash_string(F_(nofrost));
         break;
     case HeatingCircuit::Mode::AUTO:
-        return read_flash_string(F("auto"));
+        return read_flash_string(F_(auto));
         break;
     case HeatingCircuit::Mode::SUMMER:
-        return read_flash_string(F("summer"));
+        return read_flash_string(F_(summer));
         break;
     case HeatingCircuit::Mode::OFFSET:
-        return read_flash_string(F("offset"));
+        return read_flash_string(F_(offset));
         break;
     case HeatingCircuit::Mode::DESIGN:
-        return read_flash_string(F("design"));
+        return read_flash_string(F_(design));
         break;
     case HeatingCircuit::Mode::MINFLOW:
-        return read_flash_string(F("minflow"));
+        return read_flash_string(F_(minflow));
         break;
     case HeatingCircuit::Mode::MAXFLOW:
-        return read_flash_string(F("maxflow"));
+        return read_flash_string(F_(maxflow));
         break;
     case HeatingCircuit::Mode::ROOMINFLUENCE:
-        return read_flash_string(F("roominfluence"));
+        return read_flash_string(F_(roominfluence));
         break;
     default:
     case HeatingCircuit::Mode::UNKNOWN:
-        return read_flash_string(F("unknown"));
+        return read_flash_string(F_(unknown));
         break;
     }
 }
@@ -1705,7 +1705,7 @@ bool Thermostat::set_remotetemp(const char * value, const int8_t id) {
 // 0xA5 - Set the building settings
 bool Thermostat::set_building(const char * value, const int8_t id) {
     uint8_t bd = 0;
-    if (!Helpers::value2enum(value, bd, {F("light"), F("medium"), F("heavy")})) {
+    if (!Helpers::value2enum(value, bd, {F_(light), F_(medium), F_(heavy)})) {
         LOG_WARNING(F("Set building: Invalid value"));
         return false;
     }
@@ -1738,7 +1738,7 @@ bool Thermostat::set_language(const char * value, const int8_t id) {
 // Set the control-mode for hc 0-off, 1-RC20, 2-RC3x
 bool Thermostat::set_control(const char * value, const int8_t id) {
     uint8_t ctrl = 0;
-    if (!Helpers::value2enum(value, ctrl, {F("off"), F("rc20"), F("rc3x")})) {
+    if (!Helpers::value2enum(value, ctrl, {F_(off), F("rc20"), F("rc3x")})) {
         LOG_WARNING(F("Set control: Invalid value"));
         return false;
     }
@@ -1760,14 +1760,14 @@ bool Thermostat::set_wwmode(const char * value, const int8_t id) {
     uint8_t set = 0xFF;
 
     if ((model() == EMS_DEVICE_FLAG_RC300) || (model() == EMS_DEVICE_FLAG_RC100)) {
-        if (!Helpers::value2enum(value, set, {F("off"), F("low"), F("high"), F("auto"), F("own")})) {
+        if (!Helpers::value2enum(value, set, {F_(off), F_(low), F_(high), F_(auto), F_(own)})) {
             LOG_WARNING(F("Set warm water mode: Invalid mode"));
             return false;
         }
         LOG_INFO(F("Setting warm water mode to %s"), value);
         write_command(0x02F5, 2, set, 0x02F5);
     } else {
-        if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto")})) {
+        if (!Helpers::value2enum(value, set, {F_(off), F_(on), F_(auto)})) {
             LOG_WARNING(F("Set warm water mode: Invalid mode"));
             return false;
         }
@@ -1819,7 +1819,7 @@ bool Thermostat::set_wwcircmode(const char * value, const int8_t id) {
     uint8_t set = 0xFF;
 
     if ((model() == EMS_DEVICE_FLAG_RC300) || (model() == EMS_DEVICE_FLAG_RC100)) {
-        if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto"), F("own")})) {
+        if (!Helpers::value2enum(value, set, {F_(off), F_(on), F_(auto), F_(own)})) {
             LOG_WARNING(F("Set warm water circulation mode: Invalid mode"));
             return false;
         }
@@ -1827,7 +1827,7 @@ bool Thermostat::set_wwcircmode(const char * value, const int8_t id) {
         write_command(0x02F5, 3, set, 0x02F5);
         return true;
     }
-    if (!Helpers::value2enum(value, set, {F("off"), F("on"), F("auto")})) {
+    if (!Helpers::value2enum(value, set, {F_(off), F_(on), F_(auto)})) {
         LOG_WARNING(F("Set warm water circulation mode: Invalid mode"));
         return false;
     }
@@ -2116,7 +2116,7 @@ bool Thermostat::set_summermode(const char * value, const int8_t id) {
         return false;
     }
     uint8_t set = 0xFF;
-    if (!Helpers::value2enum(value, set, {F("summer"), F("auto"), F("winter")})) {
+    if (!Helpers::value2enum(value, set, {F_(summer), F_(auto), F_(winter)})) {
         LOG_WARNING(F("Setting summer mode: Invalid mode"));
         return false;
     }
@@ -2134,7 +2134,7 @@ bool Thermostat::set_reducemode(const char * value, const int8_t id) {
         return false;
     }
     uint8_t set = 0xFF;
-    if (!Helpers::value2enum(value, set, {F("nofrost"), F("reduce"), F("room"), F("outdoor")})) {
+    if (!Helpers::value2enum(value, set, {F_(nofrost), F_(reduce), F_(room), F_(outdoor)})) {
         LOG_WARNING(F("Setting reduce mode: Invalid mode"));
         return false;
     }
@@ -2153,13 +2153,13 @@ bool Thermostat::set_controlmode(const char * value, const int8_t id) {
     }
     uint8_t set = 0xFF;
     if (model() == EMS_DEVICE_FLAG_RC300 || model() == EMS_DEVICE_FLAG_RC100) {
-        if (Helpers::value2enum(value, set, {F("off"), F("outdoor"), F("simple"), F("MPC"), F("room"), F("power"), F("const")})) {
+        if (Helpers::value2enum(value, set, {F_(off), F_(outdoor), F("simple"), F("MPC"), F_(room), F("power"), F("const")})) {
             LOG_INFO(F("Setting control mode to %d for heating circuit %d"), set, hc->hc_num());
             write_command(curve_typeids[hc->hc_num() - 1], 0, set, curve_typeids[hc->hc_num() - 1]);
             return true;
         }
     } else if (model() == EMS_DEVICE_FLAG_RC35 || model() == EMS_DEVICE_FLAG_RC30_1) {
-        if (Helpers::value2enum(value, set, {F("outdoor"), F("room")})) {
+        if (Helpers::value2enum(value, set, {F_(outdoor), F_(room)})) {
             LOG_INFO(F("Setting control mode to %d for heating circuit %d"), set, hc->hc_num());
             write_command(set_typeids[hc->hc_num() - 1], 33, set, set_typeids[hc->hc_num() - 1]);
             return true;
@@ -2593,78 +2593,78 @@ void Thermostat::add_commands() {
     }
 
     // common to all thermostats
-    register_mqtt_cmd(F("temp"), [&](const char * value, const int8_t id) { return set_temp(value, id); });
-    register_mqtt_cmd(F("mode"), [&](const char * value, const int8_t id) { return set_mode(value, id); });
-    register_mqtt_cmd(F("roomtemp"), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
+    register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); });
+    register_mqtt_cmd(F_(mode), [&](const char * value, const int8_t id) { return set_mode(value, id); });
+    register_mqtt_cmd(F_(roomtemp), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
     if (model() == EMS_DEVICE_FLAG_RC35) {
-        register_mqtt_cmd(F("datetime"), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
+        register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
     }
 
     switch (model()) {
     case EMS_DEVICE_FLAG_RC100:
     case EMS_DEVICE_FLAG_RC300:
-        register_mqtt_cmd(F("datetime"), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
-        register_mqtt_cmd(F("manualtemp"), [&](const char * value, const int8_t id) { return set_manualtemp(value, id); });
-        register_mqtt_cmd(F("ecotemp"), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
-        register_mqtt_cmd(F("comforttemp"), [&](const char * value, const int8_t id) { return set_comforttemp(value, id); });
-        register_mqtt_cmd(F("summermode"), [&](const char * value, const int8_t id) { return set_summermode(value, id); });
-        register_mqtt_cmd(F("summertemp"), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
-        register_mqtt_cmd(F("wwmode"), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
-        register_mqtt_cmd(F("wwsettemp"), [&](const char * value, const int8_t id) { return set_wwtemp(value, id); });
-        register_mqtt_cmd(F("wwsettemplow"), [&](const char * value, const int8_t id) { return set_wwtemplow(value, id); });
-        register_mqtt_cmd(F("wwonetime"), [&](const char * value, const int8_t id) { return set_wwonetime(value, id); });
-        register_mqtt_cmd(F("wwcircmode"), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
-        register_mqtt_cmd(F("building"), [&](const char * value, const int8_t id) { return set_building(value, id); });
-        register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F("designtemp"), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
-        register_mqtt_cmd(F("offsettemp"), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
-        register_mqtt_cmd(F("minflowtemp"), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
-        register_mqtt_cmd(F("maxflowtemp"), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
-        register_mqtt_cmd(F("minexttemp"), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
-        register_mqtt_cmd(F("roominfluence"), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
-        register_mqtt_cmd(F("program"), [&](const char * value, const int8_t id) { return set_program(value, id); });
-        register_mqtt_cmd(F("controlmode"), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
+        register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
+        register_mqtt_cmd(F_(manualtemp), [&](const char * value, const int8_t id) { return set_manualtemp(value, id); });
+        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
+        register_mqtt_cmd(F_(comforttemp), [&](const char * value, const int8_t id) { return set_comforttemp(value, id); });
+        register_mqtt_cmd(F_(summermode), [&](const char * value, const int8_t id) { return set_summermode(value, id); });
+        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
+        register_mqtt_cmd(F_(wwmode), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
+        register_mqtt_cmd(F_(wwsettemp), [&](const char * value, const int8_t id) { return set_wwtemp(value, id); });
+        register_mqtt_cmd(F_(wwsettemplow), [&](const char * value, const int8_t id) { return set_wwtemplow(value, id); });
+        register_mqtt_cmd(F_(wwonetime), [&](const char * value, const int8_t id) { return set_wwonetime(value, id); });
+        register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
+        register_mqtt_cmd(F_(building), [&](const char * value, const int8_t id) { return set_building(value, id); });
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
+        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
+        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
+        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
+        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
+        register_mqtt_cmd(F_(minexttemp), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
+        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
+        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); });
+        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
         break;
     case EMS_DEVICE_FLAG_RC20_2:
-        register_mqtt_cmd(F("nighttemp"), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
-        register_mqtt_cmd(F("daytemp"), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
-        register_mqtt_cmd(F("program"), [&](const char * value, const int8_t id) { return set_program(value, id); });
+        register_mqtt_cmd(F_(nighttemp), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
+        register_mqtt_cmd(F_(daytemp), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
+        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); });
         break;
     case EMS_DEVICE_FLAG_RC30_1: // only RC30_1
-        register_mqtt_cmd(F("clockoffset"), [&](const char * value, const int8_t id) { return set_clockoffset(value, id); });
-        register_mqtt_cmd(F("language"), [&](const char * value, const int8_t id) { return set_language(value, id); });
-        register_mqtt_cmd(F("display"), [&](const char * value, const int8_t id) { return set_display(value, id); });
+        register_mqtt_cmd(F_(clockoffset), [&](const char * value, const int8_t id) { return set_clockoffset(value, id); });
+        register_mqtt_cmd(F_(language_), [&](const char * value, const int8_t id) { return set_language(value, id); });
+        register_mqtt_cmd(F_(display), [&](const char * value, const int8_t id) { return set_display(value, id); });
     case EMS_DEVICE_FLAG_RC35: // RC30 and RC35
-        register_mqtt_cmd(F("nighttemp"), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
-        register_mqtt_cmd(F("daytemp"), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
-        register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F("remotetemp"), [&](const char * value, const int8_t id) { return set_remotetemp(value, id); });
-        register_mqtt_cmd(F("minexttemp"), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
-        register_mqtt_cmd(F("calinttemp"), [&](const char * value, const int8_t id) { return set_calinttemp(value, id); });
-        register_mqtt_cmd(F("building"), [&](const char * value, const int8_t id) { return set_building(value, id); });
-        register_mqtt_cmd(F("control"), [&](const char * value, const int8_t id) { return set_control(value, id); });
-        register_mqtt_cmd(F("pause"), [&](const char * value, const int8_t id) { return set_pause(value, id); });
-        register_mqtt_cmd(F("party"), [&](const char * value, const int8_t id) { return set_party(value, id); });
-        register_mqtt_cmd(F("holiday"), [&](const char * value, const int8_t id) { return set_holiday(value, id); });
-        register_mqtt_cmd(F("summertemp"), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
-        register_mqtt_cmd(F("designtemp"), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
-        register_mqtt_cmd(F("offsettemp"), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
-        register_mqtt_cmd(F("holidaytemp"), [&](const char * value, const int8_t id) { return set_holidaytemp(value, id); });
-        register_mqtt_cmd(F("wwmode"), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
-        register_mqtt_cmd(F("wwcircmode"), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
-        register_mqtt_cmd(F("roominfluence"), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
-        register_mqtt_cmd(F("flowtempoffset"), [&](const char * value, const int8_t id) { return set_flowtempoffset(value, id); });
-        register_mqtt_cmd(F("minflowtemp"), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
-        register_mqtt_cmd(F("maxflowtemp"), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
-        register_mqtt_cmd(F("reducemode"), [&](const char * value, const int8_t id) { return set_reducemode(value, id); });
-        register_mqtt_cmd(F("program"), [&](const char * value, const int8_t id) { return set_program(value, id); });
-        register_mqtt_cmd(F("controlmode"), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
+        register_mqtt_cmd(F_(nighttemp), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
+        register_mqtt_cmd(F_(daytemp), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
+        register_mqtt_cmd(F_(remotetemp), [&](const char * value, const int8_t id) { return set_remotetemp(value, id); });
+        register_mqtt_cmd(F_(minexttemp), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
+        register_mqtt_cmd(F_(calinttemp), [&](const char * value, const int8_t id) { return set_calinttemp(value, id); });
+        register_mqtt_cmd(F_(building), [&](const char * value, const int8_t id) { return set_building(value, id); });
+        register_mqtt_cmd(F_(control), [&](const char * value, const int8_t id) { return set_control(value, id); });
+        register_mqtt_cmd(F_(pause), [&](const char * value, const int8_t id) { return set_pause(value, id); });
+        register_mqtt_cmd(F_(party), [&](const char * value, const int8_t id) { return set_party(value, id); });
+        register_mqtt_cmd(F_(holiday), [&](const char * value, const int8_t id) { return set_holiday(value, id); });
+        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
+        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
+        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
+        register_mqtt_cmd(F_(holidaytemp), [&](const char * value, const int8_t id) { return set_holidaytemp(value, id); });
+        register_mqtt_cmd(F_(wwmode), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
+        register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
+        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
+        register_mqtt_cmd(F_(flowtempoffset), [&](const char * value, const int8_t id) { return set_flowtempoffset(value, id); });
+        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
+        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
+        register_mqtt_cmd(F_(reducemode), [&](const char * value, const int8_t id) { return set_reducemode(value, id); });
+        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); });
+        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
-        register_mqtt_cmd(F("datetime"), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
-        register_mqtt_cmd(F("nofrosttemp"), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F("ecotemp"), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
-        register_mqtt_cmd(F("heattemp"), [&](const char * value, const int8_t id) { return set_heattemp(value, id); });
+        register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
+        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
+        register_mqtt_cmd(F_(heattemp), [&](const char * value, const int8_t id) { return set_heattemp(value, id); });
         break;
     default:
         break;

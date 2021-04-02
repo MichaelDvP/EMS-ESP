@@ -137,8 +137,8 @@ void Shower::publish_values() {
     //first sent out the HA MQTT Discovery config topic
     send_MQTT_discovery_config();
 
-    Helpers::json_boolean(json,"shower_timer", shower_timer_);
-    Helpers::json_boolean(json,"shower_alert", shower_alert_);
+    Helpers::json_boolean(json, F("shower_timer"), shower_timer_);
+    Helpers::json_boolean(json, F("shower_alert"), shower_alert_);
     // doc["shower_timer"] = Helpers::render_boolean(s, shower_timer_);
     // doc["shower_alert"] = Helpers::render_boolean(s, shower_alert_);
 
@@ -176,7 +176,7 @@ void Shower::send_MQTT_discovery_config() {
         snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/shower/config"),Mqtt::base().c_str());
         Mqtt::publish_ha(topic, doc.as<JsonObject>());
 
-        Mqtt::register_mqtt_ha_binary_sensor(F("Shower Active"), EMSdevice::DeviceType::BOILER, "shower_active");
+        Mqtt::register_mqtt_ha_binary_sensor(F("Shower Active"), EMSdevice::DeviceType::BOILER, F("shower_active"));
 
         mqtt_discovery_config_send_ = true;
     } else {

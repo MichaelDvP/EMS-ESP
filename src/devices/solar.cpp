@@ -51,7 +51,7 @@ Solar::Solar(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
             register_telegram_type(0x038E, F("SM100Energy"), true, [&](std::shared_ptr<const Telegram> t) { process_SM100Energy(t); });
             register_telegram_type(0x0391, F("SM100Time"), true, [&](std::shared_ptr<const Telegram> t) { process_SM100Time(t); });
 
-            register_mqtt_cmd(F("SM100Tank1MaxTemp"), [&](const char * value, const int8_t id) { return set_SM100TankBottomMaxTemp(value, id); });
+            register_mqtt_cmd(F_(tankbottommaxtemp), [&](const char * value, const int8_t id) { return set_SM100TankBottomMaxTemp(value, id); });
         }
     }
 
@@ -72,23 +72,23 @@ void Solar::device_info_web(JsonArray & root, uint8_t & part) {
         return; // empty
     }
     doc.shrinkToFit();
-    create_value_json(root, F("collectorTemp"), nullptr, F_(collectorTemp), F_(degrees), json);
-    create_value_json(root, F("collectorMaxTemp"), nullptr, F_(collectorMaxTemp), F_(degrees), json);
-    create_value_json(root, F("tankBottomTemp"), nullptr, F_(tankBottomTemp), F_(degrees), json);
-    create_value_json(root, F("tank2BottomTemp"), nullptr, F_(tank2BottomTemp), F_(degrees), json);
-    create_value_json(root, F("tankBottomMaxTemp"), nullptr, F_(tankBottomMaxTemp), F_(degrees), json);
-    create_value_json(root, F("heatExchangerTemp"), nullptr, F_(heatExchangerTemp), F_(degrees), json);
-    create_value_json(root, F("solarPumpModulation"), nullptr, F_(solarPumpModulation), F_(percent), json);
-    create_value_json(root, F("cylinderPumpModulation"), nullptr, F_(cylinderPumpModulation), F_(percent), json);
-    create_value_json(root, F("valveStatus"), nullptr, F_(valveStatus), nullptr, json);
-    create_value_json(root, F("solarPump"), nullptr, F_(solarPump), nullptr, json);
-    create_value_json(root, F("tankHeated"), nullptr, F_(tankHeated), nullptr, json);
-    create_value_json(root, F("collectorShutdown"), nullptr, F_(collectorShutdown), nullptr, json);
-    create_value_json(root, F("energyLastHour"), nullptr, F_(energyLastHour), F_(wh), json);
-    create_value_json(root, F("energyToday"), nullptr, F_(energyToday), F_(wh), json);
-    create_value_json(root, F("energyTotal"), nullptr, F_(energyTotal), F_(kwh), json);
-    // create_value_json(root, F("pumpWorkTime"), nullptr, F_(pumpWorkTime), F_(min), json);
-    create_value_json(root, F("pumpWorkTimeText"), nullptr, F_(pumpWorkTimeText), nullptr, json);
+    create_value_json(root, F_(collectortemp), nullptr, F_(collectortemp_), F_(degrees), json);
+    create_value_json(root, F_(collectormaxtemp), nullptr, F_(collectormaxtemp_), F_(degrees), json);
+    create_value_json(root, F_(tankbottomtemp), nullptr, F_(tankbottomtemp_), F_(degrees), json);
+    create_value_json(root, F_(tank2bottomtemp), nullptr, F_(tank2bottomtemp_), F_(degrees), json);
+    create_value_json(root, F_(tankbottommaxtemp), nullptr, F_(tankbottommaxtemp_), F_(degrees), json);
+    create_value_json(root, F_(heatexchangertemp), nullptr, F_(heatexchangertemp_), F_(degrees), json);
+    create_value_json(root, F_(solarpumpmodulation), nullptr, F_(solarpumpmodulation_), F_(percent), json);
+    create_value_json(root, F_(cylinderpumpmodulation), nullptr, F_(cylinderpumpmodulation_), F_(percent), json);
+    create_value_json(root, F_(valvestatus), nullptr, F_(valvestatus_), nullptr, json);
+    create_value_json(root, F_(solarpump), nullptr, F_(solarpump_), nullptr, json);
+    create_value_json(root, F_(tankheated), nullptr, F_(tankheated_), nullptr, json);
+    create_value_json(root, F_(collectorshutdown), nullptr, F_(collectorshutdown_), nullptr, json);
+    create_value_json(root, F_(energylasthour), nullptr, F_(energylasthour_), F_(wh), json);
+    create_value_json(root, F_(energytoday), nullptr, F_(energytoday_), F_(wh), json);
+    create_value_json(root, F_(energytotal), nullptr, F_(energytotal_), F_(kwh), json);
+    // create_value_json(root, F_(pumpworktime), nullptr, F_(pumpworktime_), F_(min), json);
+    create_value_json(root, F_(pumpworktimetext), nullptr, F_(pumpworktimetext_), nullptr, json);
 }
 
 // publish values via MQTT
@@ -144,24 +144,24 @@ void Solar::register_mqtt_ha_config() {
     snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/solar/config"),Mqtt::base().c_str());
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorTemp), device_type(), "collectorTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorMaxTemp), device_type(), "collectorMaxTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorMinTemp), device_type(), "collectorMinTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankBottomTemp), device_type(), "tankBottomTemp", F_(degrees), nullptr);
-    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankMiddleTemp), device_type(), "tankMiddleTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tank2BottomTemp), device_type(), "tank2BottomTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankBottomMaxTemp), device_type(), "tankBottomMaxTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatExchangerTemp), device_type(), "heatExchangerTemp", F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarPumpModulation), device_type(), "solarPumpModulation", F_(percent), F_(iconpercent));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(cylinderPumpModulation), device_type(), "cylinderPumpModulation", F_(percent), F_(iconpercent));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(pumpWorkTime), device_type(), "pumpWorkTime", F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energyLastHour), device_type(), "energyLastHour", F_(wh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energyToday), device_type(), "energyToday", F_(wh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energyTotal), device_type(), "energyTotal", F_(kwh), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarPump), device_type(), "solarPump", nullptr, F_(iconpump));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(valveStatus), device_type(), "valveStatus", nullptr, F_(iconvalve));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankHeated), device_type(), "tankHeated", nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorShutdown), device_type(), "collectorShutdown", nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectortemp_), device_type(), F_(collectortemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectormaxtemp_), device_type(), F_(collectormaxtemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectormintemp_), device_type(), F_(collectormintemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankbottomtemp_), device_type(), F_(tankbottomtemp), F_(degrees), nullptr);
+    // Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankMiddleTemp), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tank2bottomtemp_), device_type(), F_(tank2bottomtemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankbottommaxtemp_), device_type(), F_(tankbottommaxtemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatexchangertemp_), device_type(), F_(heatexchangertemp), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpumpmodulation_), device_type(), F_(solarpumpmodulation), F_(percent), F_(iconpercent));
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(cylinderpumpmodulation_), device_type(), F_(cylinderpumpmodulation), F_(percent), F_(iconpercent));
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(pumpworktime_), device_type(), F_(pumpworktime), F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energylasthour_), device_type(), F_(energylasthour), F_(wh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energytoday_), device_type(), F_(energytoday), F_(wh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(energytotal_), device_type(), F_(energytotal), F_(kwh), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpump_), device_type(), F_(solarpump), nullptr, F_(iconpump));
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(valvestatus_), device_type(), F_(valvestatus), nullptr, F_(iconvalve));
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankheated_), device_type(), F_(tankheated), nullptr, nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorshutdown_), device_type(), F_(collectorshutdown), nullptr, nullptr);
 
     mqtt_ha_config_ = true; // done
 }
@@ -171,11 +171,11 @@ void Solar::register_mqtt_ha_config() {
 bool Solar::export_values(JsonObject & json, int8_t id) {
     // collector array temperature (TS1)
     if (Helpers::hasValue(collectorTemp_)) {
-        json["collectorTemp"] = (float)collectorTemp_ / 10;
+        json[F_(collectortemp)] = (float)collectorTemp_ / 10;
     }
     // tank bottom temperature (TS2)
     if (Helpers::hasValue(tankBottomTemp_)) {
-        json["tankBottomTemp"] = (float)tankBottomTemp_ / 10;
+        json[F_(tankbottomtemp)] = (float)tankBottomTemp_ / 10;
     }
     // tank middle temperature (TS3)
     // if (Helpers::hasValue(tankMiddleTemp_)) {
@@ -183,56 +183,56 @@ bool Solar::export_values(JsonObject & json, int8_t id) {
     // }
     // second tank bottom temperature or swimming pool (TS5)
     if (Helpers::hasValue(tank2BottomTemp_)) {
-        json["tank2BottomTemp"] = (float)tank2BottomTemp_ / 10;
+        json[F_(tank2bottomtemp)] = (float)tank2BottomTemp_ / 10;
     }
     // temperature heat exchanger (TS6)
     if (Helpers::hasValue(heatExchangerTemp_)) {
-        json["heatExchangerTemp"] = (float)heatExchangerTemp_ / 10;
+        json[F_(heatexchangertemp)] = (float)heatExchangerTemp_ / 10;
     }
 
     if (Helpers::hasValue(tankBottomMaxTemp_)) {
-        json["tankBottomMaxTemp"] = tankBottomMaxTemp_;
+        json[F_(tankbottommaxtemp)] = tankBottomMaxTemp_;
     }
 
     if (Helpers::hasValue(collectorMaxTemp_)) {
-        json["collectorMaxTemp"] = collectorMaxTemp_;
+        json[F_(collectormaxtemp)] = collectorMaxTemp_;
     }
 
     if (Helpers::hasValue(collectorMinTemp_)) {
-        json["collectorMinTemp"] = collectorMinTemp_;
+        json[F_(collectormintemp)] = collectorMinTemp_;
     }
 
     if (Helpers::hasValue(solarPumpModulation_)) {
-        json["solarPumpModulation"] = solarPumpModulation_;
+        json[F_(solarpumpmodulation)] = solarPumpModulation_;
     }
 
     if (Helpers::hasValue(cylinderPumpModulation_)) {
-        json["cylinderPumpModulation"] = cylinderPumpModulation_;
+        json[F_(cylinderpumpmodulation)] = cylinderPumpModulation_;
     }
 
-    Helpers::json_boolean(json, "solarPump", solarPump_);
+    Helpers::json_boolean(json, F_(solarpump), solarPump_);
 
-    Helpers::json_boolean(json, "valveStatus", valveStatus_);
+    Helpers::json_boolean(json, F_(valvestatus), valveStatus_);
 
-    Helpers::json_time(json, "pumpWorkTimeText", pumpWorkTime_, true);
+    Helpers::json_time(json, F_(pumpworktimetext), pumpWorkTime_, true);
     if (Helpers::hasValue(pumpWorkTime_)) {
-        json["pumpWorkTime"] = pumpWorkTime_;
+        json[F_(pumpworktime)] = pumpWorkTime_;
     }
 
-    Helpers::json_boolean(json, "tankHeated", tankHeated_);
+    Helpers::json_boolean(json, F_(tankheated), tankHeated_);
 
-    Helpers::json_boolean(json, "collectorShutdown", collectorShutdown_);
+    Helpers::json_boolean(json, F_(collectorshutdown), collectorShutdown_);
 
     if (Helpers::hasValue(energyLastHour_)) {
-        json["energyLastHour"] = (float)energyLastHour_ / 10;
+        json[F_(energylasthour)] = (float)energyLastHour_ / 10;
     }
 
     if (Helpers::hasValue(energyToday_)) {
-        json["energyToday"] = energyToday_;
+        json[F_(energytoday)] = energyToday_;
     }
 
     if (Helpers::hasValue(energyTotal_)) {
-        json["energyTotal"] = (float)energyTotal_ / 10;
+        json[F_(energytotal)] = (float)energyTotal_ / 10;
     }
 
     return json.size();

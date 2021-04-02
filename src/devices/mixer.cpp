@@ -63,8 +63,10 @@ void Mixer::device_info_web(JsonArray & root, uint8_t & part) {
     }
 
     // fetch the values into a JSON document
-    StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
-    JsonObject                                     json = doc.to<JsonObject>();
+    // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+    // JsonObject                                     json = doc.to<JsonObject>();
+    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
+    JsonObject          json = doc.to<JsonObject>();
 
     if (!export_values_format(Mqtt::Format::SINGLE, json)) {
         return; // empty
@@ -74,15 +76,15 @@ void Mixer::device_info_web(JsonArray & root, uint8_t & part) {
     if (type() == Type::HC) {
         snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(hc %d) "), hc_);
         // create_value_json(root, F("flowTempLowLoss"), FPSTR(prefix_str), F_(flowTempLowLoss), F_(degrees), json);
-        create_value_json(root, F("flowSetTemp"), FPSTR(prefix_str), F_(flowSetTemp), F_(degrees), json);
-        create_value_json(root, F("flowTempHc"), FPSTR(prefix_str), F_(flowTempHc), F_(degrees), json);
-        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpStatus), nullptr, json);
-        create_value_json(root, F("valveStatus"), FPSTR(prefix_str), F_(valveStatus), F_(percent), json);
+        create_value_json(root, F("flowSetTemp"), FPSTR(prefix_str), F_(flowsettemp_), F_(degrees), json);
+        create_value_json(root, F("flowTempHc"), FPSTR(prefix_str), F_(flowtemphc_), F_(degrees), json);
+        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
+        create_value_json(root, F("valveStatus"), FPSTR(prefix_str), F_(valvestatus_), F_(percent), json);
     } else {
         snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(wwc %d) "), hc_);
-        create_value_json(root, F("wWTemp"), FPSTR(prefix_str), F_(wWTemp), F_(degrees), json);
-        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpStatus), nullptr, json);
-        create_value_json(root, F("tempStatus"), FPSTR(prefix_str), F_(tempStatus), nullptr, json);
+        create_value_json(root, F("wWTemp"), FPSTR(prefix_str), F_(wwtemp_), F_(degrees), json);
+        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
+        create_value_json(root, F("tempStatus"), FPSTR(prefix_str), F_(tempstatus_), nullptr, json);
     }
 }
 
@@ -168,21 +170,21 @@ void Mixer::register_mqtt_ha_config() {
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char hc_name[10];
         snprintf_P(hc_name, sizeof(hc_name), PSTR("hc%d"), hc_);
-        // Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempLowLoss), device_type(), "flowTempLowLoss", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowSetTemp), device_type(), "flowSetTemp", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempHc), device_type(), "flowTempHc", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempVf), device_type(), "flowTempVf", F_(degrees), nullptr);
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(pumpStatus), device_type(), "pumpStatus", nullptr, F_(iconpump));
-        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(valveStatus), device_type(), "valveStatus", F_(percent), F_(iconpercent));
+        // Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowTempLowLoss), device_type(), F("flowTempLowLoss"), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowsettemp_), device_type(), F_(flowsettemp), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowtemphc_), device_type(), F_(flowtemphc), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(flowtempvf_), device_type(), F_(flowtempvf), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(pumpstatus_), device_type(), F_(pumpstatus), nullptr, F_(iconpump));
+        Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(valvestatus_), device_type(), F_(valvestatus), F_(percent), F_(iconpercent));
     } else {
         // WWC
         snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/mixer_wwc%d/config"), Mqtt::base().c_str(), hc_);
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char wwc_name[10];
         snprintf_P(wwc_name, sizeof(wwc_name), PSTR("wwc%d"), hc_);
-        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(wWTemp), device_type(), "wWTemp", F_(degrees), F_(iconwatertemp));
-        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(pumpStatus), device_type(), "pumpStatus", nullptr, F_(iconpump));
-        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(tempStatus), device_type(), "tempStatus", nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(wwtemp_), device_type(), F_(wwtemp), F_(degrees), F_(iconwatertemp));
+        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(pumpstatus_), device_type(), F_(pumpstatus), nullptr, F_(iconpump));
+        Mqtt::register_mqtt_ha_sensor(wwc_name, nullptr, F_(tempstatus_), device_type(), F_(tempstatus), nullptr, nullptr);
     }
 
     mqtt_ha_config_ = true; // done
@@ -223,21 +225,21 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         // }
         // Setpoint for heating circuit
         if (Helpers::hasValue(flowSetTemp_)) {
-            json_hc["flowSetTemp"] = flowSetTemp_;
+            json_hc[F_(flowsettemp)] = flowSetTemp_;
         }
         // TC1: flow temperature in assigned hc or tank temperature in assigned tank primary circuit
         if (Helpers::hasValue(flowTempHc_)) {
-            json_hc["flowTempHc"] = (float)flowTempHc_ / 10;
+            json_hc[F_(flowtemphc)] = (float)flowTempHc_ / 10;
         }
         // VF: flow temperature in Header
         if (Helpers::hasValue(flowTempVf_)) {
-            json_hc["flowTempVf"] = (float)flowTempVf_ / 10;
+            json_hc[F_(flowtempvf)] = (float)flowTempVf_ / 10;
         }
         // PC1: heating pump in assigned hc -or- PW1: tank primary pump in assigned tank primary circuit (code switch 9 or 10)
-        Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
+        Helpers::json_boolean(json_hc, F_(pumpstatus), pumpStatus_);
         // VC1: mixing valve actuator in the assigned hc with mixer -or- PW2: DHW circulation pump with connection to module (code switch 9 or 10)
         if (Helpers::hasValue(status_)) {
-            json_hc["valveStatus"] = status_;
+            json_hc[F_(valvestatus)] = status_;
         }
 
         return json_hc.size();
@@ -255,11 +257,11 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         json_hc = json.createNestedObject(hc_name);
     }
     if (Helpers::hasValue(flowTempHc_)) {
-        json_hc["wWTemp"] = (float)flowTempHc_ / 10;
+        json_hc[F_(wwtemp)] = (float)flowTempHc_ / 10;
     }
-    Helpers::json_boolean(json_hc, "pumpStatus", pumpStatus_);
+    Helpers::json_boolean(json_hc, F_(pumpstatus), pumpStatus_);
     if (Helpers::hasValue(status_)) {
-        json_hc["tempStatus"] = status_;
+        json_hc[F_(tempstatus)] = status_;
     }
 
     return json_hc.size();

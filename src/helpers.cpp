@@ -123,7 +123,7 @@ char * Helpers::smallitoa(char * result, const uint16_t value) {
 }
 
 // set a json value to boolean format
-void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) {
+void Helpers::json_boolean(JsonObject & json, const __FlashStringHelper * name, uint8_t value) {
     if (value == EMS_VALUE_BOOL_NOTSET) {
         return;
     }
@@ -140,7 +140,7 @@ void Helpers::json_boolean(JsonObject & json, const char * name, uint8_t value) 
 }
 
 // set a json value to enumerated strings or numbers
-void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
+void Helpers::json_enum(JsonObject & json, const __FlashStringHelper * name, const std::vector<const __FlashStringHelper *> & value, const uint8_t no) {
     if (no >= value.size()) {
         return; // out of bounds
     }
@@ -163,7 +163,7 @@ void Helpers::json_enum(JsonObject & json, const char * name, const std::vector<
 }
 
 // set json value to time from uint32
-void Helpers::json_time(JsonObject & json, const char * name, const uint32_t value, const bool textformat) {
+void Helpers::json_time(JsonObject & json, const __FlashStringHelper * name, const uint32_t value, const bool textformat) {
     if (value == EMS_VALUE_ULONG_NOTSET || value == EMS_VALUE_ULONG_NOTSET / 60) {
         return;
     }

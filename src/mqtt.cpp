@@ -805,7 +805,7 @@ void Mqtt::process_queue() {
 }
 
 // HA config for a binary_sensor
-void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, const uint8_t device_type, const char * entity) {
+void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, const uint8_t device_type, const __FlashStringHelper * entity) {
     if (mqtt_format() != Format::HA) {
         return;
     }
@@ -814,10 +814,10 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_HA_CONFIG);
 
     doc["name"]    = name;
-    doc["uniq_id"] = entity;
+    doc["uniq_id"] = uuid::read_flash_string(entity);
 
     char state_t[50];
-    snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), entity);
+    snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), uuid::read_flash_string(entity).c_str());
     doc["stat_t"] = state_t;
 
     // how to render boolean
@@ -833,7 +833,7 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     ids.add(ha_device);
 
     std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/binary_sensor/%s/%s/config"), Mqtt::base().c_str(), entity);
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/binary_sensor/%s/%s/config"), Mqtt::base().c_str(), uuid::read_flash_string(entity).c_str());
     publish_ha(topic, doc.as<JsonObject>());
 }
 
@@ -844,7 +844,7 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
                                    const __FlashStringHelper * suffix,
                                    const __FlashStringHelper * name,
                                    const uint8_t               device_type,
-                                   const char *                entity,
+                                   const __FlashStringHelper * entity,
                                    const __FlashStringHelper * uom,
                                    const __FlashStringHelper * icon) {
     if (mqtt_format() != Format::HA) {
@@ -857,9 +857,9 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     // create entity by prefixing any given prefix
     char new_entity[50];
     if (prefix != nullptr) {
-        snprintf_P(new_entity, sizeof(new_entity), PSTR("%s.%s"), prefix, entity);
+        snprintf_P(new_entity, sizeof(new_entity), PSTR("%s.%s"), prefix, uuid::read_flash_string(entity).c_str());
     } else {
-        strncpy(new_entity, entity, sizeof(new_entity));
+        strncpy(new_entity, uuid::read_flash_string(entity).c_str(), sizeof(new_entity));
     }
 
     char device_name[50];
