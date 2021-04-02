@@ -816,21 +816,31 @@ void Boiler::publish_values(JsonObject & json, bool force) {
 
     // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_LARGE> doc;
     // JsonObject                                     json_data = doc.to<JsonObject>();
-    DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
-    JsonObject          json_data = doc.to<JsonObject>();
-    if (export_values_main(json_data)) {
-        Mqtt::publish(F("boiler_data"), json_data);
+    {
+        DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+        JsonObject          json_data = doc.to<JsonObject>();
+        if (export_values_main(json_data)) {
+            doc.shrinkToFit();
+            Mqtt::publish(F("boiler_data"), json_data);
+        }
     }
-    doc.clear();
 
-    if (export_values_ww(json_data)) {
-        Mqtt::publish(F("boiler_data_ww"), json_data);
+    {
+        DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+        JsonObject          json_data = doc.to<JsonObject>();
+        if (export_values_ww(json_data)) {
+            doc.shrinkToFit();
+            Mqtt::publish(F("boiler_data_ww"), json_data);
+        }
     }
-    doc.clear();
 
-    if (export_values_info(json_data)) {
-        doc.shrinkToFit();
-        Mqtt::publish(F("boiler_data_info"), json_data);
+    {
+        DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+        JsonObject          json_data = doc.to<JsonObject>();
+        if (export_values_info(json_data)) {
+            doc.shrinkToFit();
+            Mqtt::publish(F("boiler_data_info"), json_data);
+        }
     }
 
     // send out heating and tapwater status
