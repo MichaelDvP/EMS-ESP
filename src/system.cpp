@@ -98,11 +98,29 @@ bool System::command_fetch(const char * value, const int8_t id) {
 
 // mqtt publish
 bool System::command_publish(const char * value, const int8_t id) {
-    std::string ha(10, '\0');
+    std::string ha(14, '\0');
     if (Helpers::value2string(value, ha)) {
         if (ha == "ha") {
             EMSESP::publish_all(true); // includes HA
             LOG_INFO(F("Publishing all data to MQTT, including HA configs"));
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(boiler))) {
+            EMSESP::publish_device_values(EMSdevice::DeviceType::BOILER);
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(thermostat))) {
+            EMSESP::publish_device_values(EMSdevice::DeviceType::THERMOSTAT);
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(solar))) {
+            EMSESP::publish_device_values(EMSdevice::DeviceType::SOLAR);
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(mixer))) {
+            EMSESP::publish_device_values(EMSdevice::DeviceType::MIXER);
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(other))) {
+            EMSESP::publish_other_values();
+            return true;
+        } else if (ha == uuid::read_flash_string(F_(dallassensor))) {
+            EMSESP::publish_sensor_values(true);
             return true;
         }
     }

@@ -76,15 +76,15 @@ void Mixer::device_info_web(JsonArray & root, uint8_t & part) {
     if (type() == Type::HC) {
         snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(hc %d) "), hc_);
         // create_value_json(root, F("flowTempLowLoss"), FPSTR(prefix_str), F_(flowTempLowLoss), F_(degrees), json);
-        create_value_json(root, F("flowSetTemp"), FPSTR(prefix_str), F_(flowsettemp_), F_(degrees), json);
-        create_value_json(root, F("flowTempHc"), FPSTR(prefix_str), F_(flowtemphc_), F_(degrees), json);
-        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
-        create_value_json(root, F("valveStatus"), FPSTR(prefix_str), F_(valvestatus_), F_(percent), json);
+        create_value_json(root, F_(flowsettemp), FPSTR(prefix_str), F_(flowsettemp_), F_(degrees), json);
+        create_value_json(root, F_(flowtemphc), FPSTR(prefix_str), F_(flowtemphc_), F_(degrees), json);
+        create_value_json(root, F_(pumpstatus), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
+        create_value_json(root, F_(valvestatus), FPSTR(prefix_str), F_(valvestatus_), F_(percent), json);
     } else {
         snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(wwc %d) "), hc_);
-        create_value_json(root, F("wWTemp"), FPSTR(prefix_str), F_(wwtemp_), F_(degrees), json);
-        create_value_json(root, F("pumpStatus"), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
-        create_value_json(root, F("tempStatus"), FPSTR(prefix_str), F_(tempstatus_), nullptr, json);
+        create_value_json(root, F_(wwtemp), FPSTR(prefix_str), F_(wwtemp_), F_(degrees), json);
+        create_value_json(root, F_(pumpstatus), FPSTR(prefix_str), F_(pumpstatus_), nullptr, json);
+        create_value_json(root, F_(tempstatus), FPSTR(prefix_str), F_(tempstatus_), nullptr, json);
     }
 }
 
@@ -249,10 +249,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     snprintf_P(hc_name, sizeof(hc_name), PSTR("wwc%d"), hc_);
     if (mqtt_format == Mqtt::Format::SINGLE) {
         json_hc      = json;
-        json["type"] = FJSON("wwc");
+        json[F_(type)] = FJSON("wwc");
     } else if (mqtt_format == Mqtt::Format::HA) {
         json_hc         = json.createNestedObject(hc_name);
-        json_hc["type"] = FJSON("wwc");
+        json_hc[F_(type)] = FJSON("wwc");
     } else {
         json_hc = json.createNestedObject(hc_name);
     }

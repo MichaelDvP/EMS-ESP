@@ -297,7 +297,13 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
                 char data_str[10];
                 cmd_known = Command::call(mf.device_type_, command, Helpers::render_value(data_str, (float)data.as<float>(), 2), n);
             } else if (data.isNull()) {
-                cmd_known = Command::call(mf.device_type_, command, "", n);
+                // cmd_known = Command::call(mf.device_type_, command, "", n);
+                DynamicJsonDocument resp(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+                JsonObject          json = resp.to<JsonObject>();
+                cmd_known = Command::call(mf.device_type_, command, "", n, json);
+                if (cmd_known && json.size()) {
+                    Mqtt::publish(F("response"), resp.as<JsonObject>());
+                }
             }
 
             if (!cmd_known) {

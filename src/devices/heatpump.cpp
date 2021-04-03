@@ -57,8 +57,8 @@ void Heatpump::device_info_web(JsonArray & root, uint8_t & part) {
         return; // empty
     }
     doc.shrinkToFit();
-    create_value_json(root, F("airHumidity"), nullptr, F_(airhumidity_), F_(percent), json);
-    create_value_json(root, F("dewTemperature"), nullptr, F_(dewtemperature_), F_(degrees), json);
+    create_value_json(root, F_(airhumidity), nullptr, F_(airhumidity_), F_(percent), json);
+    create_value_json(root, F_(dewtemperature), nullptr, F_(dewtemperature_), F_(degrees), json);
 }
 
 // publish values via MQTT

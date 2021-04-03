@@ -278,7 +278,7 @@ class TxService : public EMSbus {
                  const uint16_t validateid,
                  const bool     front = false);
     void     add(const uint8_t operation, const uint8_t * data, const uint8_t length, const uint16_t validateid, const bool front = false);
-    void     read_request(const uint16_t type_id, const uint8_t dest, const uint8_t offset = 0);
+    void     read_request(const uint16_t type_id, const uint8_t dest, const uint8_t offset = 0, const uint8_t length = 0);
     void     send_raw(const char * telegram_data);
     void     send_poll();
     void     flush_tx_queue();

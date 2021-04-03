@@ -71,6 +71,7 @@ class Thermostat : public EMSdevice {
         int16_t ha_temp           = EMS_VALUE_SHORT_NOTSET;
         uint8_t program           = EMS_VALUE_UINT_NOTSET;
         uint8_t controlmode       = EMS_VALUE_UINT_NOTSET;
+        uint8_t control           = EMS_VALUE_UINT_NOTSET;
 
         uint8_t hc_num() const {
             return hc_num_;
@@ -344,6 +345,7 @@ class Thermostat : public EMSdevice {
     bool set_reducemode(const char * value, const int8_t id);
     bool set_program(const char * value, const int8_t id);
     bool set_controlmode(const char * value, const int8_t id);
+    bool set_switchtime(const char * value, const int8_t id);
 
     // set functions - these don't use the id/hc, the parameters are ignored
     bool set_wwmode(const char * value, const int8_t id);
