@@ -142,31 +142,31 @@ void Mixer::register_mqtt_ha_config() {
 
     char name[20];
     snprintf_P(name, sizeof(name), PSTR("Mixer %02X"), device_id() - 0x20 + 1);
-    doc[F("name")] = name;
+    doc[F_(name)] = name;
 
     char uniq_id[20];
     snprintf_P(uniq_id, sizeof(uniq_id), PSTR("mixer%02X"), device_id() - 0x20 + 1);
-    doc[F("uniq_id")] = uniq_id;
+    doc[F_(uniq_id)] = uniq_id;
 
-    doc[F("ic")] = F("mdi:home-thermometer-outline");
+    doc[F_(ic)] = F_(iconthermostat);
 
     char stat_t[128];
-    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/mixer_data"), Mqtt::base().c_str());
-    doc[F("stat_t")] = stat_t;
+    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s"), Mqtt::base().c_str(), Fc_(mixer_data));
+    doc[F_(stat_t)] = stat_t;
 
-    doc[F("val_tpl")] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
+    doc[F_(val_tpl)] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
 
-    JsonObject dev = doc.createNestedObject("dev");
-    dev[F("name")]    = F("EMS-ESP Mixer");
-    dev[F("sw")]      = EMSESP_APP_VERSION;
-    dev[F("mf")]      = brand_to_string();
-    dev[F("mdl")]     = this->name();
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp-mixer");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    dev[F_(name)]  = F("EMS-ESP Mixer");
+    dev[F_(sw)]    = EMSESP_APP_VERSION;
+    dev[F_(mf)]    = brand_to_string();
+    dev[F_(mdl)]   = this->name();
+    JsonArray ids  = dev.createNestedArray(F_(ids));
+    ids.add(F("ems-esp-mixer"));
 
     std::string topic(128, '\0');
     if (type() == Type::HC) {
-        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/mixer_hc%d/config"), Mqtt::base().c_str(), hc_);
+        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s_hc%d/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(mixer), hc_, Fc_(config));
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char hc_name[10];
         snprintf_P(hc_name, sizeof(hc_name), PSTR("hc%d"), hc_);

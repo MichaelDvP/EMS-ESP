@@ -51,14 +51,14 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
     JsonArray devices = root.createNestedArray("devices");
     for (const auto & emsdevice : EMSESP::emsdevices) {
         if (emsdevice) {
-            JsonObject obj   = devices.createNestedObject();
+            JsonObject obj      = devices.createNestedObject();
             obj[F("id")]        = emsdevice->unique_id();
-            obj[F("type")]      = emsdevice->device_type_name();
+            obj[F_(type)]       = emsdevice->device_type_name();
             obj[F("brand")]     = emsdevice->brand_to_string();
-            obj[F("name")]      = emsdevice->name();
+            obj[F_(name)]       = emsdevice->name();
             obj[F("deviceid")]  = emsdevice->device_id();
             obj[F("productid")] = emsdevice->product_id();
-            obj[F("version")]   = emsdevice->version();
+            obj[F_(version)]    = emsdevice->version();
         }
     }
 
@@ -69,7 +69,7 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
             JsonObject obj = sensors.createNestedObject();
             obj[F("no")]      = i++;
             obj[F("id")]      = sensor.to_string();
-            obj[F("temp")]    = (float)sensor.temperature_c / 10;
+            obj[F_(temp)]     = (float)sensor.temperature_c / 10;
         }
     }
 

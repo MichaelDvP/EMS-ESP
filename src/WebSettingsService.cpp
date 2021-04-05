@@ -30,7 +30,7 @@ WebSettingsService::WebSettingsService(AsyncWebServer * server, FS * fs, Securit
 }
 
 void WebSettings::read(WebSettings & settings, JsonObject & root) {
-    root[F("tx_mode")]              = settings.tx_mode;
+    root[F_(tx_mode)]               = settings.tx_mode;
     root[F("tx_delay")]             = settings.tx_delay;
     root[F("ems_bus_id")]           = settings.ems_bus_id;
     root[F("syslog_enabled")]       = settings.syslog_enabled;
@@ -59,7 +59,7 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
 
     // tx_mode, rx and tx pins
     snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d%d"), settings.tx_mode, settings.rx_gpio, settings.tx_gpio);
-    settings.tx_mode  = root[F("tx_mode")] | EMSESP_DEFAULT_TX_MODE;
+    settings.tx_mode  = root[F_(tx_mode)] | EMSESP_DEFAULT_TX_MODE;
     settings.tx_delay = root[F("tx_delay")] | EMSESP_DEFAULT_TX_DELAY;
     settings.rx_gpio  = root[F("rx_gpio")] | EMSESP_DEFAULT_RX_GPIO;
     settings.tx_gpio  = root[F("tx_gpio")] | EMSESP_DEFAULT_TX_GPIO;
@@ -114,8 +114,8 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
 
     // shower
     snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d"), settings.shower_timer, settings.shower_alert);
-    settings.shower_timer = root[F("shower_timer")] | EMSESP_DEFAULT_SHOWER_TIMER;
-    settings.shower_alert = root[F("shower_alert")] | EMSESP_DEFAULT_SHOWER_ALERT;
+    settings.shower_timer = root[F_(shower_timer)] | EMSESP_DEFAULT_SHOWER_TIMER;
+    settings.shower_alert = root[F_(shower_alert)] | EMSESP_DEFAULT_SHOWER_ALERT;
     snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d"), settings.shower_timer, settings.shower_alert);
     if (crc_before != crc_after) {
         add_flags(ChangeFlags::SHOWER);

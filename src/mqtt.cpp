@@ -286,7 +286,7 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
             }
 
             bool        cmd_known = false;
-            JsonVariant data      = doc[F("data")];
+            JsonVariant data      = doc[F_(data)];
 
             if (data.is<char *>()) {
                 cmd_known = Command::call(mf.device_type_, command, data.as<char *>(), n);
@@ -302,7 +302,7 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
                 JsonObject          json = resp.to<JsonObject>();
                 cmd_known = Command::call(mf.device_type_, command, "", n, json);
                 if (cmd_known && json.size()) {
-                    Mqtt::publish(F("response"), resp.as<JsonObject>());
+                    Mqtt::publish(F_(response), resp.as<JsonObject>());
                 }
             }
 
@@ -516,13 +516,13 @@ void Mqtt::on_connect() {
     // send info topic appended with the version information as JSON
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     if (connectcount_ == 1) {
-        doc[F("event")]   = "start";
+        doc[F("event")]   = F("start");
     } else {
         char s[40];
         snprintf_P(s, sizeof(s), PSTR("reconnect #%d @%s"), connectcount_ - 1, uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).c_str());
         doc[F("event")]  = s;
     }
-    doc[F("version")] = EMSESP_APP_VERSION;
+    doc[F_(version)] = EMSESP_APP_VERSION;
 #ifndef EMSESP_STANDALONE
     char s[30];
     doc[F("ip")] = WiFi.localIP().toString();
@@ -538,7 +538,7 @@ void Mqtt::on_connect() {
     // doc [F("boot_mode")] = s;
     doc [F("cpu_freq")] = ESP.getCpuFreqMHz();
     snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getResetReason().c_str());
-    doc [F("reset")] = s;
+    doc [F_(reset)] = s;
 #elif defined(ESP32)
     doc [F("sdk")]      = ESP.getSdkVersion();
     doc [F("cpu_freq")] = ESP.getCpuFreqMHz();
@@ -572,7 +572,7 @@ void Mqtt::on_connect() {
         EMSESP::publish_all(true);
     }
 
-    publish_retain(F("status"), "online", true); // say we're alive to the Last Will topic, with retain on
+    publish_retain(F_(status), "online", true); // say we're alive to the Last Will topic, with retain on
 
     LOG_INFO(F("MQTT connected"));
     reset_publish_fails(); // reset fail count to 0
@@ -584,25 +584,25 @@ void Mqtt::on_connect() {
 void Mqtt::ha_status() {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
-    doc[F("name")]    = F("EMS-ESP status");
-    doc[F("uniq_id")] = F("status");
-    doc[F("~")]       = mqtt_base_.c_str(); // ems-esp
+    doc[F_(name)]    = F("EMS-ESP status");
+    doc[F_(uniq_id)] = F_(status);
+    doc["~"]         = mqtt_base_.c_str(); // ems-esp
     // doc[F("avty_t")]      = F("~/status");
-    doc[F("json_attr_t")] = F("~/heartbeat");
-    doc[F("stat_t")]      = F("~/heartbeat");
-    doc[F("val_tpl")]     = F("{{value_json['status']}}");
-    doc[F("ic")]          = F("mdi:home-thermometer-outline");
+    doc[F_(json_attr_t)] = F("~/heartbeat");
+    doc[F_(stat_t)]      = F("~/heartbeat");
+    doc[F_(val_tpl)]     = F("{{value_json['status']}}");
+    doc[F_(ic)]          = F_(iconthermostat);
 
-    JsonObject dev = doc.createNestedObject("dev");
-    dev[F("name")]    = F("EMS-ESP");
-    dev[F("sw")]      = EMSESP_APP_VERSION;
-    dev[F("mf")]      = F("proddy");
-    dev[F("mdl")]     = F("EMS-ESP");
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    dev[F_(name)]  = F("EMS-ESP");
+    dev[F_(sw)]    = EMSESP_APP_VERSION;
+    dev[F_(mf)]    = F("proddy");
+    dev[F_(mdl)]   = F("EMS-ESP");
+    JsonArray ids  = dev.createNestedArray(F_(ids));
+    ids.add(F("ems-esp"));
 
     std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/status/config"),Mqtt::base().c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(status), Fc_(config));
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 }
 
@@ -620,7 +620,7 @@ std::shared_ptr<const MqttMessage> Mqtt::queue_message(const uint8_t operation, 
 
     // if the queue is full, make room but removing the last one
     if (mqtt_messages_.size() >= MAX_MQTT_MESSAGES) {
-        LOG_INFO(F("Max. queue size, dropping one message"));
+        LOG_WARNING(F("Max. queue size, dropping one message"));
         mqtt_messages_.pop_front();
     }
     mqtt_messages_.emplace_back(mqtt_message_id_++, std::move(message));
@@ -747,7 +747,7 @@ void Mqtt::process_queue() {
     auto mqtt_message = mqtt_messages_.front();
     auto message      = mqtt_message.content_;
     char topic[MQTT_TOPIC_MAX_SIZE];
-    if ((strncmp(message->topic.c_str(), "homeassistant/", 13) == 0)) {
+    if ((strncmp_P(message->topic.c_str(), PSTR("homeassistant/"), 13) == 0)) {
         // leave topic as it is
         strcpy(topic, message->topic.c_str());
     } else {
@@ -819,12 +819,12 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_HA_CONFIG);
 
-    doc[F("name")]    = name;
-    doc[F("uniq_id")] = uuid::read_flash_string(entity);
+    doc[F_(name)]    = name;
+    doc[F_(uniq_id)] = entity;
 
     char state_t[50];
     snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), uuid::read_flash_string(entity).c_str());
-    doc[F("stat_t")] = state_t;
+    doc[F_(stat_t)] = state_t;
 
     // how to render boolean
     // HA only accepts String values
@@ -832,14 +832,14 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     doc[F("payload_on")]   = Helpers::render_boolean(s, true);
     doc[F("payload_off")]  = Helpers::render_boolean(s, false);
 
-    JsonObject dev = doc.createNestedObject("dev");
-    JsonArray  ids = dev.createNestedArray("ids");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    JsonArray  ids = dev.createNestedArray(F_(ids));
     char       ha_device[40];
     snprintf_P(ha_device, sizeof(ha_device), PSTR("ems-esp-%s"), EMSdevice::device_type_2_device_name(device_type).c_str());
     ids.add(ha_device);
 
     std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/binary_sensor/%s/%s/config"), Mqtt::base().c_str(), uuid::read_flash_string(entity).c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), uuid::read_flash_string(entity).c_str(), Fc_(config));
     publish_ha(topic, doc.as<JsonObject>());
 }
 
@@ -901,23 +901,23 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     }
     new_name[0] = toupper(new_name[0]); // capitalize first letter
 
-    doc[F("name")]    = new_name;
-    doc[F("uniq_id")] = uniq;
+    doc[F_(name)]    = new_name;
+    doc[F_(uniq_id)] = uniq;
     if (uom != nullptr) {
-        doc[F("unit_of_meas")] = uom;
+        doc[F_(unit_of_meas)] = uom;
     }
-    doc[F("stat_t")]  = stat_t;
-    doc[F("val_tpl")] = val_tpl;
+    doc[F_(stat_t)]  = stat_t;
+    doc[F_(val_tpl)] = val_tpl;
     if (icon != nullptr) {
-        doc[F("ic")] = icon;
+        doc[F_(ic)] = icon;
     }
 
-    JsonObject dev = doc.createNestedObject("dev");
-    JsonArray  ids = dev.createNestedArray("ids");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    JsonArray  ids = dev.createNestedArray(F_(ids));
     ids.add(ha_device);
 
     std::string topic(MQTT_TOPIC_MAX_SIZE, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/%s/config"), Mqtt::base().c_str(), uniq.c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), uniq.c_str(), Fc_(config));
     publish_ha(topic, doc.as<JsonObject>());
 }
 

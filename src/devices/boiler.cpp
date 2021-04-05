@@ -98,25 +98,25 @@ void Boiler::register_mqtt_ha_config() {
 
     // Create the Master device
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc[F("name")]    = F("Service Code");
-    doc[F("uniq_id")] = F("boiler");
-    doc[F("ic")]      = F("mdi:home-thermometer-outline");
+    doc[F_(name)]    = F("Service Code");
+    doc[F_(uniq_id)] = F_(boiler);
+    doc[F_(ic)]      = F_(iconthermostat);
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/boiler_data"), Mqtt::base().c_str());
-    doc[F("stat_t")] = stat_t;
+    doc[F_(stat_t)] = stat_t;
 
-    doc[F("val_tpl")] = F("{{value_json.serviceCode}}");
-    JsonObject dev = doc.createNestedObject("dev");
-    dev[F("name")]    = F("EMS-ESP Boiler");
-    dev[F("sw")]      = EMSESP_APP_VERSION;
-    dev[F("mf")]      = brand_to_string();
-    dev[F("mdl")]     = name();
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp-boiler");
+    doc[F_(val_tpl)] = F("{{value_json.servicecode}}");
+    JsonObject dev   = doc.createNestedObject(F_(dev));
+    dev[F_(name)]    = F("EMS-ESP Boiler");
+    dev[F_(sw)]      = EMSESP_APP_VERSION;
+    dev[F_(mf)]      = brand_to_string();
+    dev[F_(mdl)]     = name();
+    JsonArray ids    = dev.createNestedArray(F_(ids));
+    ids.add(F_(emsespboiler));
 
     std::string topic(128, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/boiler/config"), Mqtt::base().c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(boiler), Fc_(config));
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_binary_sensor(F_(tapwateractive), device_type(), F("tapwater_active"));
@@ -390,7 +390,11 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water charging type
     if (Helpers::hasValue(wWChargeType_, EMS_VALUE_BOOL)) {
-        json[F_(wwchargetype)] = wWChargeType_ ? F_(3wayvalve) : F_(chargepump);
+        if (Mqtt::bool_format() == BOOL_FORMAT_10) {
+            json[F_(wwchargetype)] = wWChargeType_ ? 1 : 0;
+        } else{
+            json[F_(wwchargetype)] = wWChargeType_ ? F_(3wayvalve) : F_(chargepump);
+        }
     }
 
     // Warm Water circulation pump available bool
@@ -398,7 +402,9 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water circulation pump freq
     if (Helpers::hasValue(wWCircPumpMode_)) {
-        if (wWCircPumpMode_ == 7) {
+        if (Mqtt::bool_format() == BOOL_FORMAT_10) {
+            json[F_(wwcircpumpmode)] = wWCircPumpMode_;
+        } else if (wWCircPumpMode_ == 7) {
             json[F_(wwcircpumpmode)] = F_(continuous);
         } else {
             char s[10];
@@ -821,7 +827,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_main(json_data)) {
             doc.shrinkToFit();
-            Mqtt::publish(F("boiler_data"), json_data);
+            Mqtt::publish(F_(boiler_data), json_data);
         }
     }
 
@@ -830,7 +836,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_ww(json_data)) {
             doc.shrinkToFit();
-            Mqtt::publish(F("boiler_data_ww"), json_data);
+            Mqtt::publish(F_(boiler_data_ww), json_data);
         }
     }
 
@@ -839,7 +845,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_info(json_data)) {
             doc.shrinkToFit();
-            Mqtt::publish(F("boiler_data_info"), json_data);
+            Mqtt::publish(F_(boiler_data_info), json_data);
         }
     }
 
@@ -1263,7 +1269,7 @@ void Boiler::process_UBAMaintenanceData(std::shared_ptr<const Telegram> telegram
 bool Boiler::set_warmwater_temp(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler warm water temperature: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1282,7 +1288,7 @@ bool Boiler::set_warmwater_temp(const char * value, const int8_t id) {
 bool Boiler::set_flow_temp(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler flow temperature: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1301,7 +1307,7 @@ bool Boiler::set_flow_temp(const char * value, const int8_t id) {
 bool Boiler::set_heating_activated(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set boiler heating: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1319,7 +1325,7 @@ bool Boiler::set_heating_activated(const char * value, const int8_t id) {
 bool Boiler::set_heating_temp(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler heating temperature: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1337,7 +1343,7 @@ bool Boiler::set_heating_temp(const char * value, const int8_t id) {
 bool Boiler::set_min_power(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler min power: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1355,7 +1361,7 @@ bool Boiler::set_min_power(const char * value, const int8_t id) {
 bool Boiler::set_max_power(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler max power: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1373,7 +1379,7 @@ bool Boiler::set_max_power(const char * value, const int8_t id) {
 bool Boiler::set_min_pump(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set pump min: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1391,7 +1397,7 @@ bool Boiler::set_min_pump(const char * value, const int8_t id) {
 bool Boiler::set_max_pump(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set pump max: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1409,7 +1415,7 @@ bool Boiler::set_max_pump(const char * value, const int8_t id) {
 bool Boiler::set_hyst_on(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler hysteresis: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1427,7 +1433,7 @@ bool Boiler::set_hyst_on(const char * value, const int8_t id) {
 bool Boiler::set_hyst_off(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler hysteresis: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1445,7 +1451,7 @@ bool Boiler::set_hyst_off(const char * value, const int8_t id) {
 bool Boiler::set_burn_period(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set burner min. period: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1463,7 +1469,7 @@ bool Boiler::set_burn_period(const char * value, const int8_t id) {
 bool Boiler::set_pump_delay(const char * value, const int8_t id) {
     int v = 0;
     if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set boiler pump delay: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1481,7 +1487,7 @@ bool Boiler::set_pump_delay(const char * value, const int8_t id) {
 bool Boiler::set_warmwater_mode(const char * value, const int8_t id) {
     uint8_t set;
     if (!Helpers::value2enum(value, set, {F_(hot), F_(eco), F_(intelligent)})) {
-        LOG_WARNING(F("Set boiler warm water mode: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1509,7 +1515,7 @@ bool Boiler::set_warmwater_mode(const char * value, const int8_t id) {
 bool Boiler::set_warmwater_activated(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set boiler warm water active: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1537,7 +1543,7 @@ bool Boiler::set_warmwater_activated(const char * value, const int8_t id) {
 bool Boiler::set_tapwarmwater_activated(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set warm tap water: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1572,7 +1578,7 @@ bool Boiler::set_tapwarmwater_activated(const char * value, const int8_t id) {
 bool Boiler::set_warmwater_onetime(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set warm water OneTime loading: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1591,7 +1597,7 @@ bool Boiler::set_warmwater_onetime(const char * value, const int8_t id) {
 bool Boiler::set_warmwater_circulation(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set warm water circulation: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1609,7 +1615,7 @@ bool Boiler::set_warmwater_circulation(const char * value, const int8_t id) {
 bool Boiler::set_warmwater_circulation_pump(const char * value, const int8_t id) {
     bool v = false;
     if (!Helpers::value2bool(value, v)) {
-        LOG_WARNING(F("Set warm water circulation pump: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1631,18 +1637,18 @@ bool Boiler::set_warmwater_circulation_mode(const char * value, const int8_t id)
     uint8_t v;
     if (!Helpers::value2enum(value, v, {F_(off), F("1"), F("2"), F("3"), F("4"), F("5"), F("6"), F_(continuous)})) {
         // if (!Helpers::value2number(value, v)) {
-        LOG_WARNING(F("Set warm water circulation mode: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
     if (v == 0) {
-        LOG_INFO(F("Seting warm water circulation mode off"));
+        LOG_INFO(F("Setting warm water circulation mode off"));
     } else if (v < 7) {
         LOG_INFO(F("Setting warm water circulation mode %dx3min"), v);
     } else if (v == 7) {
         LOG_INFO(F("Setting warm water circulation mode continuous"));
     } else {
-        LOG_WARNING(F("Set warm water circulation mode: Invalid value"));
+        LOG_WARNING(F_(invalid));
         return false;
     }
 
@@ -1664,11 +1670,11 @@ bool Boiler::set_reset(const char * value, const int8_t id) {
     if (!Helpers::value2string(value, s)) {
         return false;
     }
-    if (s == "maintenance") {
+    if (s == uuid::read_flash_string(F_(maintenance))) {
         LOG_INFO(F("Reset boiler maintenance message"));
         write_command(0x05, 0x08, 0xFF, 0x1C);
         return true;
-    } else if (s == "error") {
+    } else if (s == uuid::read_flash_string(F_(error))) {
         LOG_INFO(F("Reset boiler error message"));
         write_command(0x05, 0x00, 0x5A);
         return true;

@@ -395,7 +395,7 @@ void EMSESP::publish_device_values(uint8_t device_type, bool force) {
         }
         if (json.size()) {
             doc.shrinkToFit();
-            Mqtt::publish("mixer_data", json);
+            Mqtt::publish(F_(mixer_data), json);
         }
         return;
     }
@@ -433,12 +433,12 @@ void EMSESP::publish_response(std::shared_ptr<const Telegram> telegram) {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
     char buffer[100];
-    doc[F("src")]    = Helpers::hextoa(buffer, telegram->src);
-    doc[F("dest")]   = Helpers::hextoa(buffer, telegram->dest);
-    doc[F("type")]   = Helpers::hextoa(buffer, telegram->type_id);
-    doc[F("offset")] = Helpers::hextoa(buffer, telegram->offset);
+    doc[F("src")]   = Helpers::hextoa(buffer, telegram->src);
+    doc[F("dest")]  = Helpers::hextoa(buffer, telegram->dest);
+    doc[F_(type)]   = Helpers::hextoa(buffer, telegram->type_id);
+    doc[F_(offset)] = Helpers::hextoa(buffer, telegram->offset);
     strcpy(buffer, Helpers::data_to_hex(telegram->message_data, telegram->message_length).c_str());
-    doc[F("data")] = buffer;
+    doc[F_(data)] = buffer;
 
     if (telegram->message_length <= 4) {
         uint32_t value = 0;
@@ -448,7 +448,7 @@ void EMSESP::publish_response(std::shared_ptr<const Telegram> telegram) {
         doc[F("value")] = value;
     }
 
-    Mqtt::publish(F("response"), doc.as<JsonObject>());
+    Mqtt::publish(F_(response), doc.as<JsonObject>());
 }
 
 // search for recognized device_ids : Me, All, otherwise print hex value

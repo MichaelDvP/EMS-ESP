@@ -60,7 +60,7 @@ void WebStatusService::webStatusService(AsyncWebServerRequest * request) {
     AsyncJsonResponse * response = new AsyncJsonResponse(false, EMSESP_MAX_JSON_SIZE_MEDIUM_DYN);
     JsonObject          root     = response->getRoot();
 
-    root[F("status")]       = EMSESP::bus_status(); // 0, 1 or 2
+    root[F_(status)]        = EMSESP::bus_status(); // 0, 1 or 2
     root[F("rx_received")]  = EMSESP::rxservice_.telegram_count();
     root[F("tx_sent")]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
     root[F("rx_quality")]   = EMSESP::rxservice_.quality();

@@ -123,25 +123,25 @@ void Solar::register_mqtt_ha_config() {
 
     // Create the Master device
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc["name"]    = F_(EMSESP);
-    doc["uniq_id"] = F_(solar);
-    doc["ic"]      = F_(iconthermostat);
+    doc[F_(name)]    = F_(EMSESP);
+    doc[F_(uniq_id)] = F_(solar);
+    doc[F_(ic)]      = F_(iconthermostat);
 
     char stat_t[128];
-    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/solar_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s"), Mqtt::base().c_str(), Fc_(solar_data));
+    doc[F_(stat_t)] = stat_t;
 
-    doc["val_tpl"] = F("{{value_json.solarPump}}");
-    JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = F("EMS-ESP Solar");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = name();
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp-solar");
+    doc[F_(val_tpl)] = F("{{value_json.solarpump}}");
+    JsonObject dev   = doc.createNestedObject(F_(dev));
+    dev[F_(name)]    = F("EMS-ESP Solar");
+    dev[F_(sw)]      = EMSESP_APP_VERSION;
+    dev[F_(mf)]      = brand_to_string();
+    dev[F_(mdl)]     = name();
+    JsonArray ids    = dev.createNestedArray(F_(ids));
+    ids.add(F("ems-esp-solar"));
 
     std::string topic(128, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/solar/config"),Mqtt::base().c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(solar), Fc_(config));
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectortemp_), device_type(), F_(collectortemp), F_(degrees), nullptr);

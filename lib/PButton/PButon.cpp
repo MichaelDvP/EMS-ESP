@@ -164,7 +164,7 @@ bool PButton::check(void) {
         // Trigger "long" hold
         if ((millisRes - downTime_) >= VLongPressDelay_) {
             if (vLongPressHappened_ == false) {
-                // raise OnVLongPress, only for pin wait for release
+                // raise OnVLongPress, only for pin 0 wait for release
                 if (pin_) {
                     resultEvent = 4;
                 }

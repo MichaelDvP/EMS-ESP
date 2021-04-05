@@ -107,30 +107,30 @@ void Switch::register_mqtt_ha_config() {
 
     char name[10];
     snprintf_P(name, sizeof(name), PSTR("Switch"));
-    doc[F("name")] = name;
+    doc[F_(name)] = name;
 
     char uniq_id[10];
     snprintf_P(uniq_id, sizeof(uniq_id), PSTR("switch"));
-    doc[F("uniq_id")] = uniq_id;
+    doc[F_(uniq_id)] = uniq_id;
 
-    doc[F("ic")] = F("mdi:home-thermometer-outline");
+    doc[F_(ic)] = F_(iconthermostat);
 
     char stat_t[128];
-    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/switch_data"), Mqtt::base().c_str());
-    doc[F("stat_t")] = stat_t;
+    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s"), Mqtt::base().c_str(), Fc_(switch_data));
+    doc[F_(stat_t)] = stat_t;
 
-    doc[F("val_tpl")] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
+    doc[F_(val_tpl)] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
 
-    JsonObject dev = doc.createNestedObject("dev");
-    dev[F("name")]    = F("EMS-ESP Switch");
-    dev[F("sw")]      = EMSESP_APP_VERSION;
-    dev[F("mf")]      = brand_to_string();
-    dev[F("mdl")]     = this->name();
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp-switch");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    dev[F_(name)]  = F("EMS-ESP Switch");
+    dev[F_(sw)]    = EMSESP_APP_VERSION;
+    dev[F_(mf)]    = brand_to_string();
+    dev[F_(mdl)]   = this->name();
+    JsonArray ids  = dev.createNestedArray(F_(ids));
+    ids.add(F("ems-esp-switch"));
 
     std::string topic(128, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/switch/config"),Mqtt::base().c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(switch), Fc_(config));
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(activated_), device_type(), F_(activated), nullptr, nullptr);

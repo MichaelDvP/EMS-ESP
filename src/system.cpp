@@ -893,9 +893,9 @@ bool System::check_upgrade() {
 
             EMSESP::esp8266React.getWiFiSettingsService()->update(
                 [&](WiFiSettings & wifiSettings) {
-                    wifiSettings.hostname = general[F("hostname")] | FACTORY_WIFI_HOSTNAME;
-                    wifiSettings.ssid     = network[F("ssid")] | FACTORY_WIFI_SSID;
-                    wifiSettings.password = network[F("password")] | FACTORY_WIFI_PASSWORD;
+                    wifiSettings.hostname = general[F_(hostname)] | FACTORY_WIFI_HOSTNAME;
+                    wifiSettings.ssid     = network[F_(ssid)] | FACTORY_WIFI_SSID;
+                    wifiSettings.password = network[F_(password)] | FACTORY_WIFI_PASSWORD;
 
                     wifiSettings.staticIPConfig = false;
                     JsonUtils::readIP(network, "staticip", wifiSettings.localIP);
@@ -909,7 +909,7 @@ bool System::check_upgrade() {
 
             EMSESP::esp8266React.getSecuritySettingsService()->update(
                 [&](SecuritySettings & securitySettings) {
-                    securitySettings.jwtSecret = general[F("password")] | FACTORY_JWT_SECRET;
+                    securitySettings.jwtSecret = general[F_(password)] | FACTORY_JWT_SECRET;
 
                     return StateUpdateResult::CHANGED;
                 },
@@ -924,10 +924,10 @@ bool System::check_upgrade() {
                     mqttSettings.mqtt_qos      = mqtt[F("qos")] | 0;
                     mqttSettings.mqtt_retain   = mqtt[F("retain")] | false;
                     mqttSettings.username      = mqtt[F("user")] | "";
-                    mqttSettings.password      = mqtt[F("password")] | "";
-                    mqttSettings.port          = mqtt[F("port")] | FACTORY_MQTT_PORT;
+                    mqttSettings.password      = mqtt[F_(password)] | "";
+                    mqttSettings.port          = mqtt[F_(port)] | FACTORY_MQTT_PORT;
                     mqttSettings.clientId      = FACTORY_MQTT_CLIENT_ID;
-                    mqttSettings.enabled       = mqtt[F("enabled")];
+                    mqttSettings.enabled       = mqtt[F_(enabled)];
                     mqttSettings.keepAlive     = FACTORY_MQTT_KEEP_ALIVE;
                     mqttSettings.cleanSession  = FACTORY_MQTT_CLEAN_SESSION;
 
@@ -962,14 +962,14 @@ bool System::check_upgrade() {
             Serial.printf(PSTR("Error. Failed to deserialize custom json, error %s\n"), error.c_str());
             failed = true;
         } else {
-            custom_settings = doc[F("settings")];
+            custom_settings = doc[F_(settings)];
             EMSESP::webSettingsService.update(
                 [&](WebSettings & settings) {
-                    settings.tx_mode              = custom_settings[F("tx_mode")] | EMSESP_DEFAULT_TX_MODE;
+                    settings.tx_mode              = custom_settings[F_(tx_mode)] | EMSESP_DEFAULT_TX_MODE;
                     settings.shower_alert         = custom_settings[F("shower_alert")] | EMSESP_DEFAULT_SHOWER_ALERT;
                     settings.shower_timer         = custom_settings[F("shower_timer")] | EMSESP_DEFAULT_SHOWER_TIMER;
                     settings.master_thermostat    = custom_settings[F("master_thermostat")] | EMSESP_DEFAULT_MASTER_THERMOSTAT;
-                    settings.ems_bus_id           = custom_settings[F("bus_id")] | EMSESP_DEFAULT_EMS_BUS_ID;
+                    settings.ems_bus_id           = custom_settings[F_(bus_id)] | EMSESP_DEFAULT_EMS_BUS_ID;
                     settings.syslog_enabled       = false;
                     settings.syslog_host          = EMSESP_DEFAULT_SYSLOG_HOST;
                     settings.syslog_level         = EMSESP_DEFAULT_SYSLOG_LEVEL;
@@ -1018,9 +1018,9 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
 #else
     EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & settings) {
         JsonObject node = json.createNestedObject("WIFI");
-        node[F("ssid")]    = settings.ssid;
+        node[F_(ssid)]   = settings.ssid;
         // node[F("password")]         = settings.password;
-        node[F("hostname")] = settings.hostname;
+        node[F_(hostname)] = settings.hostname;
         // Helpers::json_boolean(node, "static_ip_config", settings.staticIPConfig);
         node[F("static_ip_config")] = settings.staticIPConfig;
         JsonUtils::writeIP(node, "local_ip", settings.localIP);
@@ -1033,7 +1033,7 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     EMSESP::esp8266React.getAPSettingsService()->read([&](APSettings & settings) {
         JsonObject node        = json.createNestedObject("AP");
         node[F("provision_mode")] = settings.provisionMode;
-        node[F("ssid")]           = settings.ssid;
+        node[F_(ssid)]            = settings.ssid;
         // node[F("password")]       = settings.password;
         node[F("local_ip")]    = settings.localIP.toString();
         node[F("gateway_ip")]  = settings.gatewayIP.toString();
@@ -1043,9 +1043,9 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
         JsonObject node = json.createNestedObject("MQTT");
         // Helpers::json_boolean(node, "enabled", settings.enabled);
-        node[F("enabled")]  = settings.enabled;
-        node[F("host")]     = settings.host;
-        node[F("port")]     = settings.port;
+        node[F_(enabled)]   = settings.enabled;
+        node[F_(host)]      = settings.host;
+        node[F_(port)]      = settings.port;
         node[F("username")] = settings.username;
         // node[F("password")]                = settings.password;
         node[F("base")]       = settings.base;
@@ -1070,7 +1070,7 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     EMSESP::esp8266React.getNTPSettingsService()->read([&](NTPSettings & settings) {
         JsonObject node = json.createNestedObject("NTP");
         // Helpers::json_boolean(node, "enabled", settings.enabled);
-        node[F("enabled")]   = settings.enabled;
+        node[F_(enabled)]    = settings.enabled;
         node[F("server")]    = settings.server;
         node[F("tz_label")]  = settings.tzLabel;
         node[F("tz_format")] = settings.tzFormat;
@@ -1079,14 +1079,14 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     EMSESP::esp8266React.getOTASettingsService()->read([&](OTASettings & settings) {
         JsonObject node = json.createNestedObject("OTA");
         // Helpers::json_boolean(node, "enabled", settings.enabled);
-        node[F("enabled")] = settings.enabled;
-        node[F("port")]    = settings.port;
-        // node[F("password")] = settings.password;
+        node[F_(enabled)] = settings.enabled;
+        node[F_(port)]    = settings.port;
+        // node[F_(password)] = settings.password;
     });
 
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
         JsonObject node    = json.createNestedObject("Settings");
-        node[F("tx_mode")]    = settings.tx_mode;
+        node[F_(tx_mode)]     = settings.tx_mode;
         node[F("ems_bus_id")] = settings.ems_bus_id;
         // Helpers::json_boolean(node, "syslog_enabled", settings.syslog_enabled);
         node[F("syslog_enabled")]       = settings.syslog_enabled;
@@ -1123,7 +1123,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
 
     node = json.createNestedObject("System");
 
-    node[F("version")] = EMSESP_APP_VERSION;
+    node[F_(version)] = EMSESP_APP_VERSION;
 #if defined(ESP8266)
     node[F("platform")] = "esp8266";
 #elif defined(ESP32)
@@ -1177,7 +1177,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         break;
     case EMSESP::BUS_STATUS_CONNECTED:
     default:
-        node[F("bus")] = (F("connected"));
+        node[F("bus")] = (F_(connected));
         break;
     }
 
@@ -1201,8 +1201,8 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         for (const auto & emsdevice : EMSESP::emsdevices) {
             if ((emsdevice) && (emsdevice->device_type() == device_class.first)) {
                 JsonObject obj = devices2.createNestedObject();
-                obj[F("type")]    = emsdevice->device_type_name();
-                obj[F("name")]    = emsdevice->to_string();
+                obj[F_(type)]    = emsdevice->device_type_name();
+                obj[F_(name)]    = emsdevice->to_string();
                 char result[200];
                 obj[F("handlers")] = emsdevice->show_telegram_handlers(result);
             }

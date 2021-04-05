@@ -88,30 +88,30 @@ void Heatpump::register_mqtt_ha_config() {
 
     // Create the Master device
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc[F("name")]    = F_(EMSESP);
-    doc[F("uniq_id")] = F_(heatpump);
-    doc[F("ic")]      = F_(iconpump);
+    doc[F_(name)]    = F_(EMSESP);
+    doc[F_(uniq_id)] = F_(heatpump);
+    doc[F_(ic)]      = F_(iconpump);
 
     char stat_t[128];
-    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/heatpump_data"), Mqtt::base().c_str());
-    doc[F("stat_t")] = stat_t;
+    snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/%s"), Mqtt::base().c_str(), Fc_(heatpump_data));
+    doc[F_(stat_t)] = stat_t;
 
-    doc[F("val_tpl")] = F("{{value_json.airHumidity}}");
+    doc[F_(val_tpl)] = F("{{value_json.airhumidity}}");
 
-    JsonObject dev = doc.createNestedObject("dev");
-    dev[F("name")]    = F("EMS-ESP Heat Pump");
-    dev[F("sw")]      = EMSESP_APP_VERSION;
-    dev[F("mf")]      = brand_to_string();
-    dev[F("mdl")]     = this->name();
-    JsonArray ids  = dev.createNestedArray("ids");
-    ids.add("ems-esp-heatpump");
+    JsonObject dev = doc.createNestedObject(F_(dev));
+    dev[F_(name)] = F("EMS-ESP Heat Pump");
+    dev[F_(sw)]   = EMSESP_APP_VERSION;
+    dev[F_(mf)]   = brand_to_string();
+    dev[F_(mdl)]  = this->name();
+    JsonArray ids = dev.createNestedArray(F_(ids));
+    ids.add(F("ems-esp-heatpump"));
 
     std::string topic(128, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/heatpump/config"),Mqtt::base().c_str());
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(heatpump), Fc_(config));
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(airhumidity_), device_type(), F("airHumidity"), F_(percent), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dewtemperature_), device_type(), F("dewTemperature"), F_(degrees), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(airhumidity_), device_type(), F_(airhumidity), F_(percent), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dewtemperature_), device_type(), F_(dewtemperature), F_(degrees), nullptr);
 
     mqtt_ha_config_ = true; // done
 }

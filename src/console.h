@@ -45,6 +45,7 @@ using uuid::log::Level;
 #define LOG_ERROR(...) logger_.err(__VA_ARGS__)
 
 // #define FT_(name) (uuid::read_flash_string(FPSTR(__pstr__##name)))
+#define Fc_(name) (uuid::read_flash_string(FPSTR(__pstr__##name)).c_str())
 // #define FJSON(x) x
 // #define FJSON(x) F(x)
 

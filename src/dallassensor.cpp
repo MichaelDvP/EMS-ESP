@@ -320,7 +320,7 @@ bool DallasSensor::export_values(JsonObject & json) {
         JsonObject dataSensor = json.createNestedObject(sensorID);
         dataSensor["id"]      = sensor.to_string();
         if (Helpers::hasValue(sensor.temperature_c)) {
-            dataSensor["temp"] = (float)(sensor.temperature_c) / 10;
+            dataSensor[F_(temp)] = (float)(sensor.temperature_c) / 10;
         }
     }
 
@@ -357,7 +357,7 @@ void DallasSensor::publish_values(const bool force) {
             JsonObject dataSensor = doc.createNestedObject(sensorID);
             dataSensor["id"]      = sensor.to_string();
             if (Helpers::hasValue(sensor.temperature_c)) {
-                dataSensor["temp"] = (float)(sensor.temperature_c) / 10;
+                dataSensor[F_(temp)] = (float)(sensor.temperature_c) / 10;
             }
         }
 
@@ -366,13 +366,13 @@ void DallasSensor::publish_values(const bool force) {
         if (mqtt_format_ == Mqtt::Format::HA) {
             if (!(registered_ha_[sensor_no - 1]) || force) {
                 StaticJsonDocument<EMSESP_MAX_JSON_SIZE_MEDIUM> config;
-                config["dev_cla"] = F("temperature");
+                config[F_(dev_cla)] = F_(temperature);
 
                 char stat_t[128];
                 snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/dallassensor_data"), Mqtt::base().c_str());
-                config["stat_t"] = stat_t;
+                config[F_(stat_t)] = stat_t;
 
-                config["unit_of_meas"] = F("°C");
+                config[F_(unit_of_meas)] = F_(degrees);
 
                 char str[50];
                 if (Mqtt::dallas_format() == Mqtt::Dallas_Format::SENSORID) {
@@ -380,7 +380,7 @@ void DallasSensor::publish_values(const bool force) {
                 } else {
                     snprintf_P(str, sizeof(str), PSTR("{{value_json.sensor%d.temp}}"), sensor_no);
                 }
-                config["val_tpl"] = str;
+                config[F_(val_tpl)] = str;
 
                 // name as sensor number not the long unique ID
                 if (Mqtt::dallas_format() == Mqtt::Dallas_Format::SENSORID) {
@@ -388,20 +388,20 @@ void DallasSensor::publish_values(const bool force) {
                 }  else {
                     snprintf_P(str, sizeof(str), PSTR("Dallas Sensor %d"), sensor_no);
                 }
-                config["name"] = str;
+                config[F_(name)] = str;
 
                 snprintf_P(str, sizeof(str), PSTR("dallas_%s"), sensor.to_string().c_str());
-                config["uniq_id"] = str;
+                config[F_(uniq_id)] = str;
 
-                JsonObject dev = config.createNestedObject("dev");
-                dev["name"]    = F("EMS-ESP Dallas");               // Global name for device (all Dallas sensors, avoids using the very first name for the group)
-                dev["mf"]      = F("Dallas");                       // Manufacturer (avoids the ugly <unknown> in HA)
-                dev["mdl"]     = F("1Wire");                        // Model (avoids the ugly <unknown> in HA)
-                JsonArray  ids = dev.createNestedArray("ids");
-                ids.add("ems-esp-dallas");                              // Different ids as the other portions of the EMS-ESP
+                JsonObject dev = config.createNestedObject(F_(dev));
+                dev[F_(name)]  = F("EMS-ESP Dallas");               // Global name for device (all Dallas sensors, avoids using the very first name for the group)
+                dev[F_(mf)]    = F("Dallas");                       // Manufacturer (avoids the ugly <unknown> in HA)
+                dev[F_(mdl)]   = F("1Wire");                        // Model (avoids the ugly <unknown> in HA)
+                JsonArray  ids = dev.createNestedArray(F_(ids));
+                ids.add(F("ems-esp-dallas"));                              // Different ids as the other portions of the EMS-ESP
 
                 std::string topic(128, '\0');
-                snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/dallas_%s/config"), Mqtt::base().c_str(), sensor.to_string().c_str());
+                snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/dallas_%d/%s"),Fc_(hasensor), Mqtt::base().c_str(), sensor.to_string().c_str(), Fc_(config));
                 Mqtt::publish_ha(topic, config.as<JsonObject>());
 
                 registered_ha_[sensor_no - 1] = true;
@@ -411,7 +411,7 @@ void DallasSensor::publish_values(const bool force) {
     }
 
     doc.shrinkToFit();
-    Mqtt::publish(F("dallassensor_data"), doc.as<JsonObject>());
+    Mqtt::publish(F_(dallassensor_data), doc.as<JsonObject>());
 }
 
 } // namespace emsesp

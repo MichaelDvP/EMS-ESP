@@ -34,6 +34,7 @@ MAKE_PSTR_WORD(name)
 MAKE_PSTR_WORD(auto)
 MAKE_PSTR_WORD(scan)
 MAKE_PSTR_WORD(password)
+MAKE_PSTR_WORD(port)
 MAKE_PSTR_WORD(read)
 MAKE_PSTR_WORD(version)
 MAKE_PSTR_WORD(values)
@@ -49,13 +50,13 @@ MAKE_PSTR_WORD(bus_id)
 MAKE_PSTR_WORD(tx_mode)
 MAKE_PSTR_WORD(ems)
 MAKE_PSTR_WORD(devices)
-MAKE_PSTR_WORD(shower)
 MAKE_PSTR_WORD(mqtt)
 MAKE_PSTR_WORD(emsesp)
 MAKE_PSTR_WORD(connected)
 MAKE_PSTR_WORD(disconnected)
 MAKE_PSTR_WORD(passwd)
 MAKE_PSTR_WORD(hostname)
+MAKE_PSTR_WORD(host)
 MAKE_PSTR_WORD(wifi)
 MAKE_PSTR_WORD(reconnect)
 MAKE_PSTR_WORD(ssid)
@@ -98,7 +99,9 @@ MAKE_PSTR_WORD(generic)
 MAKE_PSTR_WORD(dallassensor)
 MAKE_PSTR_WORD(unknown)
 MAKE_PSTR_WORD(other)
+MAKE_PSTR_WORD(shower)
 
+// terminal
 MAKE_PSTR(1space, " ")
 MAKE_PSTR(2spaces, "  ")
 MAKE_PSTR(kwh, "kWh")
@@ -140,6 +143,11 @@ MAKE_PSTR(new_password_prompt1, "Enter new password: ")
 MAKE_PSTR(new_password_prompt2, "Retype new password: ")
 MAKE_PSTR(password_prompt, "Password: ")
 MAKE_PSTR(unset, "<unset>")
+MAKE_PSTR_WORD(temperature)
+
+// logger
+MAKE_PSTR(hc_not_found, "Heating Circuit %d not found or activated for device ID 0x%02X")
+MAKE_PSTR(invalid, "Invalid value")
 
 // Home Assistant icons
 MAKE_PSTR(iconwatertemp, "mdi:coolant-temperature")
@@ -156,8 +164,39 @@ MAKE_PSTR(iconpower, "mdi:power-cycle")
 MAKE_PSTR(iconthermostat, "mdi:home-thermometer-outline")
 MAKE_PSTR(iconpump, "mdi:pump")
 
+// HA keys
+MAKE_PSTR(hasensor, "homeassistant/sensor/")
+MAKE_PSTR(emsespboiler, "ems-esp-boiler")
+MAKE_PSTR_WORD(config)
+MAKE_PSTR_WORD(stat_t)
+MAKE_PSTR_WORD(unit_of_meas)
+MAKE_PSTR_WORD(dev_cla)
+MAKE_PSTR_WORD(val_tpl)
+MAKE_PSTR_WORD(uniq_id)
+MAKE_PSTR_WORD(json_attr_t)
+MAKE_PSTR_WORD(dev)
+MAKE_PSTR_WORD(ids)
+MAKE_PSTR_WORD(ic)
+MAKE_PSTR_WORD(sw)
+MAKE_PSTR_WORD(mf)
+MAKE_PSTR_WORD(mdl)
 
-// MQTT topic suffix
+// MQTT topics and suffix
+MAKE_PSTR_WORD(thermostat_data)
+MAKE_PSTR_WORD(boiler_data)
+MAKE_PSTR_WORD(boiler_data_ww)
+MAKE_PSTR_WORD(boiler_data_info)
+MAKE_PSTR_WORD(system_data)
+MAKE_PSTR_WORD(mixer_data)
+MAKE_PSTR_WORD(solar_data)
+MAKE_PSTR_WORD(switch_data)
+MAKE_PSTR_WORD(shower_data)
+MAKE_PSTR_WORD(heatpump_data)
+MAKE_PSTR_WORD(dallassensor_data)
+MAKE_PSTR_WORD(response)
+MAKE_PSTR_WORD(shower_alert)
+MAKE_PSTR_WORD(shower_timer)
+
 MAKE_PSTR(mqtt_suffix_ww, "_ww")
 MAKE_PSTR(mqtt_suffix_info, "_info")
 
@@ -213,27 +252,27 @@ MAKE_PSTR_WORD(german)
 MAKE_PSTR_WORD(french)
 MAKE_PSTR_WORD(dutch)
 MAKE_PSTR_WORD(italian)
+MAKE_PSTR_WORD(error)
 
-// come extra commands
+// some extra mqtt commands
 
 MAKE_PSTR_WORD(pause)
 MAKE_PSTR_WORD(party)
 MAKE_PSTR_WORD(remotetemp)
-MAKE_PSTR_WORD(control)
 MAKE_PSTR_WORD(temp)
 MAKE_PSTR_WORD(roomtemp)
-MAKE_PSTR_WORD(clockoffset)
 MAKE_PSTR_WORD(calinttemp)
 MAKE_PSTR_WORD(wwtapactivated)
 MAKE_PSTR_WORD(reset)
 MAKE_PSTR_WORD(switchtime)
 
-// MAKE_PSTR_WORD(flowtemp) // -> setflowtemp
+// renamed
+// MAKE_PSTR_WORD(flowtemp)     // -> setflowtemp
 // MAKE_PSTR_WORD(wcirculation) // -> wwcirc
-// MAKE_PSTR_WORD(burnperiod) // -> burnminperiod
+// MAKE_PSTR_WORD(burnperiod)   // -> burnminperiod
 
-//   mqtt topics
-// to change use MAKE_PSTR(tag, "new name")
+// mqtt topics
+// to change use MAKE_PSTR(topic, "new topic")
 
 // boiler
 MAKE_PSTR_WORD(heatingactive)
@@ -365,7 +404,7 @@ MAKE_PSTR_WORD(datetime)
 MAKE_PSTR_WORD(errorcode)
 MAKE_PSTR_WORD(display)
 MAKE_PSTR_WORD(language)
-MAKE_PSTR_WORD(offsetclock)
+MAKE_PSTR_WORD(clockoffset)
 MAKE_PSTR_WORD(dampedoutdoortemp)
 MAKE_PSTR_WORD(inttemp1)
 MAKE_PSTR_WORD(inttemp2)
@@ -407,6 +446,7 @@ MAKE_PSTR_WORD(maxflowtemp)
 MAKE_PSTR_WORD(reducemode)
 MAKE_PSTR_WORD(program)
 MAKE_PSTR_WORD(controlmode)
+MAKE_PSTR_WORD(control)
 MAKE_PSTR_WORD(mode)
 MAKE_PSTR_WORD(modetype)
 
@@ -551,7 +591,7 @@ MAKE_PSTR(datetime_, "time")
 MAKE_PSTR(errorcode_, "error code")
 MAKE_PSTR(display_, "display")
 MAKE_PSTR(language_, "language")
-MAKE_PSTR(offsetclock_, "clock offset")
+MAKE_PSTR(clockoffset_, "clock offset")
 MAKE_PSTR(dampedoutdoortemp_, "damped outdoor temperature")
 MAKE_PSTR(inttemp1_, "temperature sensor 1")
 MAKE_PSTR(inttemp2_, "temperature sensor 2")
@@ -593,6 +633,7 @@ MAKE_PSTR(maxflowtemp_, "max. flow temperature")
 MAKE_PSTR(reducemode_, "reduce mode")
 MAKE_PSTR(program_, "timer program")
 MAKE_PSTR(controlmode_, "control mode")
+MAKE_PSTR(control_, "control")
 MAKE_PSTR(mode_, "mode")
 MAKE_PSTR(modetype_, "mode type")
 
