@@ -633,7 +633,7 @@ MAKE_PSTR(maxflowtemp_, "max. flow temperature")
 MAKE_PSTR(reducemode_, "reduce mode")
 MAKE_PSTR(program_, "timer program")
 MAKE_PSTR(controlmode_, "control mode")
-MAKE_PSTR(control_, "control")
+MAKE_PSTR(control_, "control device")
 MAKE_PSTR(mode_, "mode")
 MAKE_PSTR(modetype_, "mode type")
 
