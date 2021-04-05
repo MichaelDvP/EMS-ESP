@@ -52,13 +52,13 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
     for (const auto & emsdevice : EMSESP::emsdevices) {
         if (emsdevice) {
             JsonObject obj   = devices.createNestedObject();
-            obj["id"]        = emsdevice->unique_id();
-            obj["type"]      = emsdevice->device_type_name();
-            obj["brand"]     = emsdevice->brand_to_string();
-            obj["name"]      = emsdevice->name();
-            obj["deviceid"]  = emsdevice->device_id();
-            obj["productid"] = emsdevice->product_id();
-            obj["version"]   = emsdevice->version();
+            obj[F("id")]        = emsdevice->unique_id();
+            obj[F("type")]      = emsdevice->device_type_name();
+            obj[F("brand")]     = emsdevice->brand_to_string();
+            obj[F("name")]      = emsdevice->name();
+            obj[F("deviceid")]  = emsdevice->device_id();
+            obj[F("productid")] = emsdevice->product_id();
+            obj[F("version")]   = emsdevice->version();
         }
     }
 
@@ -67,9 +67,9 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
         uint8_t i = 1;
         for (const auto & sensor : EMSESP::sensor_devices()) {
             JsonObject obj = sensors.createNestedObject();
-            obj["no"]      = i++;
-            obj["id"]      = sensor.to_string();
-            obj["temp"]    = (float)sensor.temperature_c / 10;
+            obj[F("no")]      = i++;
+            obj[F("id")]      = sensor.to_string();
+            obj[F("temp")]    = (float)sensor.temperature_c / 10;
         }
     }
 
@@ -81,7 +81,7 @@ void WebDevicesService::device_data(AsyncWebServerRequest * request, JsonVariant
     if (json.is<JsonObject>()) {
         AsyncJsonResponse * response = new AsyncJsonResponse(false, EMSESP_MAX_JSON_SIZE_MAX_DYN);
 #ifndef EMSESP_STANDALONE
-        uint8_t id = json["id"]; // get id from selected table row
+        uint8_t id = json[F("id")]; // get id from selected table row
         EMSESP::device_info_web(id, (JsonObject &)response->getRoot());
 #endif
         response->setLength();

@@ -1,5 +1,7 @@
 #include <MqttSettingsService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 // forward declarators
 namespace emsesp {
 class EMSESP {
@@ -41,15 +43,15 @@ MqttSettingsService::MqttSettingsService(AsyncWebServer * server, FS * fs, Secur
     , _disconnectReason(AsyncMqttClientDisconnectReason::TCP_DISCONNECTED)
     , _mqttClient() {
 #ifdef ESP32
-    WiFi.onEvent(std::bind(&MqttSettingsService::onStationModeDisconnected, this, std::placeholders::_1, std::placeholders::_2),
+    WiFi.onEvent(std::bind(&MqttSettingsService::onStationModeDisconnected, this, _1, _2),
                  WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-    WiFi.onEvent(std::bind(&MqttSettingsService::onStationModeGotIP, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+    WiFi.onEvent(std::bind(&MqttSettingsService::onStationModeGotIP, this, _1, _2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
 #elif defined(ESP8266)
-    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&MqttSettingsService::onStationModeDisconnected, this, std::placeholders::_1));
-    _onStationModeGotIPHandler        = WiFi.onStationModeGotIP(std::bind(&MqttSettingsService::onStationModeGotIP, this, std::placeholders::_1));
+    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&MqttSettingsService::onStationModeDisconnected, this, _1));
+    _onStationModeGotIPHandler        = WiFi.onStationModeGotIP(std::bind(&MqttSettingsService::onStationModeGotIP, this, _1));
 #endif
-    _mqttClient.onConnect(std::bind(&MqttSettingsService::onMqttConnect, this, std::placeholders::_1));
-    _mqttClient.onDisconnect(std::bind(&MqttSettingsService::onMqttDisconnect, this, std::placeholders::_1));
+    _mqttClient.onConnect(std::bind(&MqttSettingsService::onMqttConnect, this, _1));
+    _mqttClient.onDisconnect(std::bind(&MqttSettingsService::onMqttDisconnect, this, _1));
     addUpdateHandler([&](const String & originId) { onConfigUpdated(); }, false);
 }
 
@@ -171,54 +173,54 @@ void MqttSettingsService::configureMqtt() {
 }
 
 void MqttSettings::read(MqttSettings & settings, JsonObject & root) {
-    root["enabled"]       = settings.enabled;
-    root["host"]          = settings.host;
-    root["base"]          = settings.base;
-    root["port"]          = settings.port;
-    root["username"]      = settings.username;
-    root["password"]      = settings.password;
-    root["client_id"]     = settings.clientId;
-    root["keep_alive"]    = settings.keepAlive;
-    root["clean_session"] = settings.cleanSession;
+    root[F("enabled")]       = settings.enabled;
+    root[F("host")]          = settings.host;
+    root[F("base")]          = settings.base;
+    root[F("port")]          = settings.port;
+    root[F("username")]      = settings.username;
+    root[F("password")]      = settings.password;
+    root[F("client_id")]     = settings.clientId;
+    root[F("keep_alive")]    = settings.keepAlive;
+    root[F("clean_session")] = settings.cleanSession;
 
     // added by proddy for EMS-ESP
-    root["publish_time_boiler"]     = settings.publish_time_boiler;
-    root["publish_time_thermostat"] = settings.publish_time_thermostat;
-    root["publish_time_solar"]      = settings.publish_time_solar;
-    root["publish_time_mixer"]      = settings.publish_time_mixer;
-    root["publish_time_other"]      = settings.publish_time_other;
-    root["publish_time_sensor"]     = settings.publish_time_sensor;
-    root["bool_format"]             = settings.bool_format;
-    root["mqtt_format"]             = settings.mqtt_format;
-    root["mqtt_qos"]                = settings.mqtt_qos;
-    root["mqtt_retain"]             = settings.mqtt_retain;
-    root["dallas_format"]           = settings.dallas_format;
+    root[F("publish_time_boiler")]     = settings.publish_time_boiler;
+    root[F("publish_time_thermostat")] = settings.publish_time_thermostat;
+    root[F("publish_time_solar")]      = settings.publish_time_solar;
+    root[F("publish_time_mixer")]      = settings.publish_time_mixer;
+    root[F("publish_time_other")]      = settings.publish_time_other;
+    root[F("publish_time_sensor")]     = settings.publish_time_sensor;
+    root[F("bool_format")]             = settings.bool_format;
+    root[F("mqtt_format")]             = settings.mqtt_format;
+    root[F("mqtt_qos")]                = settings.mqtt_qos;
+    root[F("mqtt_retain")]             = settings.mqtt_retain;
+    root[F("dallas_format")]           = settings.dallas_format;
 }
 
 StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & settings) {
     MqttSettings newSettings = {};
 
-    newSettings.enabled      = root["enabled"] | FACTORY_MQTT_ENABLED;
-    newSettings.host         = root["host"] | FACTORY_MQTT_HOST;
-    newSettings.base         = root["base"] | FACTORY_MQTT_BASE;
-    newSettings.port         = root["port"] | FACTORY_MQTT_PORT;
-    newSettings.username     = root["username"] | FACTORY_MQTT_USERNAME;
-    newSettings.password     = root["password"] | FACTORY_MQTT_PASSWORD;
-    newSettings.clientId     = root["client_id"] | FACTORY_MQTT_CLIENT_ID;
-    newSettings.keepAlive    = root["keep_alive"] | FACTORY_MQTT_KEEP_ALIVE;
-    newSettings.cleanSession = root["clean_session"] | FACTORY_MQTT_CLEAN_SESSION;
+    newSettings.enabled      = root[F("enabled")] | FACTORY_MQTT_ENABLED;
+    newSettings.host         = root[F("host")] | FACTORY_MQTT_HOST;
+    newSettings.base         = root[F("base")] | FACTORY_MQTT_BASE;
+    newSettings.port         = root[F("port")] | FACTORY_MQTT_PORT;
+    newSettings.username     = root[F("username")] | FACTORY_MQTT_USERNAME;
+    newSettings.password     = root[F("password")] | FACTORY_MQTT_PASSWORD;
+    newSettings.clientId     = root[F("client_id")] | FACTORY_MQTT_CLIENT_ID;
+    newSettings.keepAlive    = root[F("keep_alive")] | FACTORY_MQTT_KEEP_ALIVE;
+    newSettings.cleanSession = root[F("clean_session")] | FACTORY_MQTT_CLEAN_SESSION;
 
-    newSettings.publish_time_boiler     = root["publish_time_boiler"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_thermostat = root["publish_time_thermostat"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_solar      = root["publish_time_solar"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_mixer      = root["publish_time_mixer"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_other      = root["publish_time_other"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_sensor     = root["publish_time_sensor"] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.bool_format             = root["bool_format"] | EMSESP_DEFAULT_BOOL_FORMAT;
-    newSettings.dallas_format           = root["dallas_format"] | EMSESP_DEFAULT_DALLAS_FORMAT;
-    newSettings.mqtt_format             = root["mqtt_format"] | EMSESP_DEFAULT_MQTT_FORMAT;
-    newSettings.mqtt_qos                = root["mqtt_qos"] | EMSESP_DEFAULT_MQTT_QOS;
-    newSettings.mqtt_retain             = root["mqtt_retain"] | EMSESP_DEFAULT_MQTT_RETAIN;
+    newSettings.publish_time_boiler     = root[F("publish_time_boiler")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_thermostat = root[F("publish_time_thermostat")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_solar      = root[F("publish_time_solar")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_mixer      = root[F("publish_time_mixer")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_other      = root[F("publish_time_other")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_sensor     = root[F("publish_time_sensor")] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.bool_format             = root[F("bool_format")] | EMSESP_DEFAULT_BOOL_FORMAT;
+    newSettings.dallas_format           = root[F("dallas_format")] | EMSESP_DEFAULT_DALLAS_FORMAT;
+    newSettings.mqtt_format             = root[F("mqtt_format")] | EMSESP_DEFAULT_MQTT_FORMAT;
+    newSettings.mqtt_qos                = root[F("mqtt_qos")] | EMSESP_DEFAULT_MQTT_QOS;
+    newSettings.mqtt_retain             = root[F("mqtt_retain")] | EMSESP_DEFAULT_MQTT_RETAIN;
 
     if (newSettings.mqtt_qos != settings.mqtt_qos) {
         emsesp::EMSESP::mqtt_.set_qos(newSettings.mqtt_qos);

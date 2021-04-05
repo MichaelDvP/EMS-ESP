@@ -1,13 +1,15 @@
 #include <OTASettingsService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 OTASettingsService::OTASettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(OTASettings::read, OTASettings::update, this, server, OTA_SETTINGS_SERVICE_PATH, securityManager)
     , _fsPersistence(OTASettings::read, OTASettings::update, this, fs, OTA_SETTINGS_FILE)
     , _arduinoOTA(nullptr) {
 #ifdef ESP32
-    WiFi.onEvent(std::bind(&OTASettingsService::onStationModeGotIP, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+    WiFi.onEvent(std::bind(&OTASettingsService::onStationModeGotIP, this, _1, _2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
 #elif defined(ESP8266)
-    _onStationModeGotIPHandler = WiFi.onStationModeGotIP(std::bind(&OTASettingsService::onStationModeGotIP, this, std::placeholders::_1));
+    _onStationModeGotIPHandler = WiFi.onStationModeGotIP(std::bind(&OTASettingsService::onStationModeGotIP, this, _1));
 #endif
     addUpdateHandler([&](const String & originId) { configureArduinoOTA(); }, false);
 }

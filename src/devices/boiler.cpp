@@ -98,20 +98,20 @@ void Boiler::register_mqtt_ha_config() {
 
     // Create the Master device
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc["name"]    = FJSON("Service Code");
-    doc["uniq_id"] = FJSON("boiler");
-    doc["ic"]      = FJSON("mdi:home-thermometer-outline");
+    doc[F("name")]    = F("Service Code");
+    doc[F("uniq_id")] = F("boiler");
+    doc[F("ic")]      = F("mdi:home-thermometer-outline");
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/boiler_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    doc[F("stat_t")] = stat_t;
 
-    doc["val_tpl"] = FJSON("{{value_json.serviceCode}}");
+    doc[F("val_tpl")] = F("{{value_json.serviceCode}}");
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Boiler");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = name();
+    dev[F("name")]    = F("EMS-ESP Boiler");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-boiler");
 
@@ -651,7 +651,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
         snprintf_P(s, sizeof(s), PSTR("H%02d"), maintenanceMessage_);
         json[F_(servicecode)] = s;
     } else if (serviceCode_[0] == 0xF0) {
-        json[F_(servicecode)] = FJSON("~H");
+        json[F_(servicecode)] = F("~H");
     } else {
         json[F_(servicecode)] = serviceCode_;
     }
@@ -673,7 +673,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
     if (Helpers::hasValue(serviceCodeNumber_)) {
         json[F_(servicecodenumber)] = serviceCodeNumber_;
         if (serviceCode_[0] == 0xF0) {
-            json[F_(servicecode)] = FJSON("~H");
+            json[F_(servicecode)] = F("~H");
         } else {
             json[F_(servicecode)] = serviceCode_;
         }

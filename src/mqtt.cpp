@@ -271,7 +271,7 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
                 return;
             }
 
-            const char * command = doc["cmd"];
+            const char * command = doc[F("cmd")];
             if (command == nullptr) {
                 LOG_ERROR(F("MQTT error: invalid payload cmd format. message=%s"), message);
                 return;
@@ -280,13 +280,13 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
             // check for hc and id, and convert to int
             int8_t n = -1; // no value
             if (doc.containsKey("hc")) {
-                n = doc["hc"];
+                n = doc[F("hc")];
             } else if (doc.containsKey("id")) {
-                n = doc["id"];
+                n = doc[F("id")];
             }
 
             bool        cmd_known = false;
-            JsonVariant data      = doc["data"];
+            JsonVariant data      = doc[F("data")];
 
             if (data.is<char *>()) {
                 cmd_known = Command::call(mf.device_type_, command, data.as<char *>(), n);
@@ -516,46 +516,46 @@ void Mqtt::on_connect() {
     // send info topic appended with the version information as JSON
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     if (connectcount_ == 1) {
-        doc["event"]   = "start";
+        doc[F("event")]   = "start";
     } else {
         char s[40];
         snprintf_P(s, sizeof(s), PSTR("reconnect #%d @%s"), connectcount_ - 1, uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).c_str());
-        doc["event"]  = s;
+        doc[F("event")]  = s;
     }
-    doc["version"] = EMSESP_APP_VERSION;
+    doc[F("version")] = EMSESP_APP_VERSION;
 #ifndef EMSESP_STANDALONE
     char s[30];
-    doc["ip"] = WiFi.localIP().toString();
+    doc[F("ip")] = WiFi.localIP().toString();
 #if defined(ESP8266)
     snprintf_P(s, sizeof(s), PSTR("0x%08x"), ESP.getChipId());
-    doc ["chip"] = s;
-    doc ["sdk"]  = ESP.getSdkVersion();
+    doc [F("chip")] = s;
+    doc [F("sdk")]  = ESP.getSdkVersion();
     snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getCoreVersion().c_str());
-    doc ["core"] = s;
+    doc [F("core")] = s;
     // snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getBootVersion());
-    // doc ["boot_ver"] = s;
+    // doc [F("boot_ver")] = s;
     // snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getBootMode());
-    // doc ["boot_mode"] = s;
-    doc ["cpu_freq"] = ESP.getCpuFreqMHz();
+    // doc [F("boot_mode")] = s;
+    doc [F("cpu_freq")] = ESP.getCpuFreqMHz();
     snprintf_P(s, sizeof(s), PSTR("%s"), ESP.getResetReason().c_str());
-    doc ["reset"] = s;
+    doc [F("reset")] = s;
 #elif defined(ESP32)
-    doc ["sdk"]      = ESP.getSdkVersion();
-    doc ["cpu_freq"] = ESP.getCpuFreqMHz();
+    doc [F("sdk")]      = ESP.getSdkVersion();
+    doc [F("cpu_freq")] = ESP.getCpuFreqMHz();
 #endif
     snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getSketchSize());
-    doc ["sketch"] = s;
+    doc [F("sketch")] = s;
     snprintf_P(s, sizeof(s), PSTR("%u"), ESP.getFreeSketchSpace());
-    doc ["free"] = s;
+    doc [F("free")] = s;
 #endif
 #ifdef ESP32
-    doc["fs_used"]  = SPIFFS.usedBytes();
-    doc["fs_total"] = SPIFFS.totalBytes();
+    doc[F("fs_used")]  = SPIFFS.usedBytes();
+    doc[F("fs_total")] = SPIFFS.totalBytes();
 #elif defined(ESP8266)
     FSInfo fs_info;
     LittleFS.info(fs_info);
-    doc["fs_used"]  = fs_info.usedBytes;
-    doc["fs_total"] = fs_info.totalBytes;
+    doc[F("fs_used")]  = fs_info.usedBytes;
+    doc[F("fs_total")] = fs_info.totalBytes;
 #endif
     publish(F_(info), doc.as<JsonObject>());
 
@@ -584,20 +584,20 @@ void Mqtt::on_connect() {
 void Mqtt::ha_status() {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
 
-    doc["name"]    = FJSON("EMS-ESP status");
-    doc["uniq_id"] = FJSON("status");
-    doc["~"]       = mqtt_base_.c_str(); // ems-esp
-    // doc["avty_t"]      = FJSON("~/status");
-    doc["json_attr_t"] = FJSON("~/heartbeat");
-    doc["stat_t"]      = FJSON("~/heartbeat");
-    doc["val_tpl"]     = FJSON("{{value_json['status']}}");
-    doc["ic"]          = FJSON("mdi:home-thermometer-outline");
+    doc[F("name")]    = F("EMS-ESP status");
+    doc[F("uniq_id")] = F("status");
+    doc[F("~")]       = mqtt_base_.c_str(); // ems-esp
+    // doc[F("avty_t")]      = F("~/status");
+    doc[F("json_attr_t")] = F("~/heartbeat");
+    doc[F("stat_t")]      = F("~/heartbeat");
+    doc[F("val_tpl")]     = F("{{value_json['status']}}");
+    doc[F("ic")]          = F("mdi:home-thermometer-outline");
 
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = FJSON("proddy");
-    dev["mdl"]     = FJSON("EMS-ESP");
+    dev[F("name")]    = F("EMS-ESP");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = F("proddy");
+    dev[F("mdl")]     = F("EMS-ESP");
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp");
 
@@ -819,12 +819,12 @@ void Mqtt::register_mqtt_ha_binary_sensor(const __FlashStringHelper * name, cons
     // StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_HA_CONFIG);
 
-    doc["name"]    = name;
-    doc["uniq_id"] = uuid::read_flash_string(entity);
+    doc[F("name")]    = name;
+    doc[F("uniq_id")] = uuid::read_flash_string(entity);
 
     char state_t[50];
     snprintf_P(state_t, sizeof(state_t), PSTR("%s/%s"), mqtt_base_.c_str(), uuid::read_flash_string(entity).c_str());
-    doc["stat_t"] = state_t;
+    doc[F("stat_t")] = state_t;
 
     // how to render boolean
     // HA only accepts String values
@@ -901,15 +901,15 @@ void Mqtt::register_mqtt_ha_sensor(const char *                prefix,
     }
     new_name[0] = toupper(new_name[0]); // capitalize first letter
 
-    doc["name"]    = new_name;
-    doc["uniq_id"] = uniq;
+    doc[F("name")]    = new_name;
+    doc[F("uniq_id")] = uniq;
     if (uom != nullptr) {
-        doc["unit_of_meas"] = uom;
+        doc[F("unit_of_meas")] = uom;
     }
-    doc["stat_t"]  = stat_t;
-    doc["val_tpl"] = val_tpl;
+    doc[F("stat_t")]  = stat_t;
+    doc[F("val_tpl")] = val_tpl;
     if (icon != nullptr) {
-        doc["ic"] = icon;
+        doc[F("ic")] = icon;
     }
 
     JsonObject dev = doc.createNestedObject("dev");

@@ -9,6 +9,8 @@
 #include <SecurityManager.h>
 #include <StatefulService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 #define HTTP_ENDPOINT_ORIGIN_ID "http"
 
 template <class T>
@@ -26,7 +28,7 @@ class HttpGetEndpoint {
         , _bufferSize(bufferSize) {
         server->on(servicePath.c_str(),
                    HTTP_GET,
-                   securityManager->wrapRequest(std::bind(&HttpGetEndpoint::fetchSettings, this, std::placeholders::_1), authenticationPredicate));
+                   securityManager->wrapRequest(std::bind(&HttpGetEndpoint::fetchSettings, this, _1), authenticationPredicate));
     }
 
     HttpGetEndpoint(JsonStateReader<T>   stateReader,
@@ -37,7 +39,7 @@ class HttpGetEndpoint {
         : _stateReader(stateReader)
         , _statefulService(statefulService)
         , _bufferSize(bufferSize) {
-        server->on(servicePath.c_str(), HTTP_GET, std::bind(&HttpGetEndpoint::fetchSettings, this, std::placeholders::_1));
+        server->on(servicePath.c_str(), HTTP_GET, std::bind(&HttpGetEndpoint::fetchSettings, this, _1));
     }
 
   protected:
@@ -70,7 +72,7 @@ class HttpPostEndpoint {
         , _stateUpdater(stateUpdater)
         , _statefulService(statefulService)
         , _updateHandler(servicePath,
-                         securityManager->wrapCallback(std::bind(&HttpPostEndpoint::updateSettings, this, std::placeholders::_1, std::placeholders::_2),
+                         securityManager->wrapCallback(std::bind(&HttpPostEndpoint::updateSettings, this, _1, _2),
                                                        authenticationPredicate),
                          bufferSize)
         , _bufferSize(bufferSize) {
@@ -87,7 +89,7 @@ class HttpPostEndpoint {
         : _stateReader(stateReader)
         , _stateUpdater(stateUpdater)
         , _statefulService(statefulService)
-        , _updateHandler(servicePath, std::bind(&HttpPostEndpoint::updateSettings, this, std::placeholders::_1, std::placeholders::_2), bufferSize)
+        , _updateHandler(servicePath, std::bind(&HttpPostEndpoint::updateSettings, this, _1, _2), bufferSize)
         , _bufferSize(bufferSize) {
         _updateHandler.setMethod(HTTP_POST);
         server->addHandler(&_updateHandler);

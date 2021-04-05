@@ -131,9 +131,9 @@ void Solar::register_mqtt_ha_config() {
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/solar_data"), Mqtt::base().c_str());
     doc["stat_t"] = stat_t;
 
-    doc["val_tpl"] = FJSON("{{value_json.solarPump}}");
+    doc["val_tpl"] = F("{{value_json.solarPump}}");
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Solar");
+    dev["name"]    = F("EMS-ESP Solar");
     dev["sw"]      = EMSESP_APP_VERSION;
     dev["mf"]      = brand_to_string();
     dev["mdl"]     = name();

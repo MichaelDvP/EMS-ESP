@@ -37,11 +37,11 @@ Heatpump::Heatpump(uint8_t device_type, uint8_t device_id, uint8_t product_id, c
 // returns false if empty
 bool Heatpump::export_values(JsonObject & json, int8_t id) {
     if (Helpers::hasValue(airHumidity_)) {
-        json["airHumidity"] = (float)airHumidity_ / 2;
+        json[F("airHumidity")] = (float)airHumidity_ / 2;
     }
 
     if (Helpers::hasValue(dewTemperature_)) {
-        json["dewTemperature"] = dewTemperature_;
+        json[F("dewTemperature")] = dewTemperature_;
     }
 
     return json.size();
@@ -88,21 +88,21 @@ void Heatpump::register_mqtt_ha_config() {
 
     // Create the Master device
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc["name"]    = F_(EMSESP);
-    doc["uniq_id"] = F_(heatpump);
-    doc["ic"]      = F_(iconpump);
+    doc[F("name")]    = F_(EMSESP);
+    doc[F("uniq_id")] = F_(heatpump);
+    doc[F("ic")]      = F_(iconpump);
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/heatpump_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    doc[F("stat_t")] = stat_t;
 
-    doc["val_tpl"] = FJSON("{{value_json.airHumidity}}");
+    doc[F("val_tpl")] = F("{{value_json.airHumidity}}");
 
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Heat Pump");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = this->name();
+    dev[F("name")]    = F("EMS-ESP Heat Pump");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = this->name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-heatpump");
 

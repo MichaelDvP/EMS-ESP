@@ -4,6 +4,8 @@
 #include <StatefulService.h>
 #include <AsyncMqttClient.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 #define MQTT_ORIGIN_ID "mqtt"
 
 template <class T>
@@ -86,12 +88,12 @@ class MqttSub : virtual public MqttConnector<T> {
         , _subTopic(subTopic) {
         MqttConnector<T>::_mqttClient->onMessage(std::bind(&MqttSub::onMqttMessage,
                                                            this,
-                                                           std::placeholders::_1,
-                                                           std::placeholders::_2,
-                                                           std::placeholders::_3,
-                                                           std::placeholders::_4,
-                                                           std::placeholders::_5,
-                                                           std::placeholders::_6));
+                                                           _1,
+                                                           _2,
+                                                           _3,
+                                                           _4,
+                                                           _5,
+                                                           _6));
     }
 
     void setSubTopic(const String & subTopic) {

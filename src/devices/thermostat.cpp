@@ -365,23 +365,23 @@ bool Thermostat::export_values_main(JsonObject & rootThermostat) {
         // Display
         if (Helpers::hasValue(ibaMainDisplay_)) {
             if (ibaMainDisplay_ == 0) {
-                rootThermostat[F_(display)] = FJSON("internal temperature");
+                rootThermostat[F_(display)] = F("internal temperature");
             } else if (ibaMainDisplay_ == 1) {
-                rootThermostat[F_(display)] = FJSON("internal setpoint");
+                rootThermostat[F_(display)] = F("internal setpoint");
             } else if (ibaMainDisplay_ == 2) {
-                rootThermostat[F_(display)] = FJSON("external temperature");
+                rootThermostat[F_(display)] = F("external temperature");
             } else if (ibaMainDisplay_ == 3) {
-                rootThermostat[F_(display)] = FJSON("burner temperature");
+                rootThermostat[F_(display)] = F("burner temperature");
             } else if (ibaMainDisplay_ == 4) {
-                rootThermostat[F_(display)] = FJSON("WW temperature");
+                rootThermostat[F_(display)] = F("WW temperature");
             } else if (ibaMainDisplay_ == 5) {
-                rootThermostat[F_(display)] = FJSON("functioning mode");
+                rootThermostat[F_(display)] = F("functioning mode");
             } else if (ibaMainDisplay_ == 6) {
                 rootThermostat[F_(display)] = F_(time);
             } else if (ibaMainDisplay_ == 7) {
                 rootThermostat[F_(display)] = F_(date);
             } else if (ibaMainDisplay_ == 8) {
-                rootThermostat[F_(display)] = FJSON("smoke temperature");
+                rootThermostat[F_(display)] = F("smoke temperature");
             }
         }
 
@@ -827,20 +827,20 @@ std::shared_ptr<Thermostat::HeatingCircuit> Thermostat::heating_circuit(std::sha
 // homeassistant/sensor/ems-esp/thermostat/config
 void Thermostat::register_mqtt_ha_config() {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-    doc["uniq_id"] = FJSON("thermostat");
-    doc["ic"]      = FJSON("mdi:home-thermometer-outline");
+    doc[F("uniq_id")] = F("thermostat");
+    doc[F("ic")]      = F("mdi:home-thermometer-outline");
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/thermostat_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    doc[F("stat_t")] = stat_t;
 
-    doc["name"]    = FJSON("Thermostat Status");
-    doc["val_tpl"] = FJSON("{{value_json.errorcode}}"); // default value - must have one, so we use errorcode
+    doc[F("name")]    = F("Thermostat Status");
+    doc[F("val_tpl")] = F("{{value_json.errorcode}}"); // default value - must have one, so we use errorcode
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Thermostat");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = name();
+    dev[F("name")]    = F("EMS-ESP Thermostat");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-thermostat");
 
@@ -892,32 +892,32 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
 
     char str3[25];
     snprintf_P(str3, sizeof(str3), PSTR("~/%s"), str2);
-    doc["mode_cmd_t"]  = str3;
-    doc["temp_cmd_t"]  = str3;
-    doc["name"]        = str1;
-    doc["uniq_id"]     = str2;
-    doc["mode_cmd_t"]  = str3;
-    doc["temp_cmd_t"]  = str3;
-    doc["~"]           = Mqtt::base(); // ems-esp
-    doc["mode_stat_t"] = FJSON("~/thermostat_data");
-    doc["temp_stat_t"] = FJSON("~/thermostat_data");
-    doc["curr_temp_t"] = FJSON("~/thermostat_data");
+    doc[F("mode_cmd_t")]  = str3;
+    doc[F("temp_cmd_t")]  = str3;
+    doc[F("name")]        = str1;
+    doc[F("uniq_id")]     = str2;
+    doc[F("mode_cmd_t")]  = str3;
+    doc[F("temp_cmd_t")]  = str3;
+    doc[F("~")]           = Mqtt::base(); // ems-esp
+    doc[F("mode_stat_t")] = F("~/thermostat_data");
+    doc[F("temp_stat_t")] = F("~/thermostat_data");
+    doc[F("curr_temp_t")] = F("~/thermostat_data");
 
     char mode_str[30];
     snprintf_P(mode_str, sizeof(mode_str), PSTR("{{value_json.hc%d.mode}}"), hc_num);
-    doc["mode_stat_tpl"] = mode_str;
+    doc[F("mode_stat_tpl")] = mode_str;
 
     char seltemp_str[30];
     snprintf_P(seltemp_str, sizeof(seltemp_str), PSTR("{{value_json.hc%d.seltemp}}"), hc_num);
-    doc["temp_stat_tpl"] = seltemp_str;
+    doc[F("temp_stat_tpl")] = seltemp_str;
 
     char currtemp_str[30];
     snprintf_P(currtemp_str, sizeof(currtemp_str), PSTR("{{value_json.hc%d.hatemp}}"), hc_num);
-    doc["curr_temp_tpl"] = currtemp_str;
+    doc[F("curr_temp_tpl")] = currtemp_str;
 
-    doc["min_temp"]  = FJSON("5");
-    doc["max_temp"]  = FJSON("30");
-    doc["temp_step"] = FJSON("0.5");
+    doc[F("min_temp")]  = F("5");
+    doc[F("max_temp")]  = F("30");
+    doc[F("temp_step")] = F("0.5");
 
     // the HA climate component only responds to auto, heat and off
     JsonArray modes = doc.createNestedArray("modes");
@@ -926,10 +926,10 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     modes.add("off");
 
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Thermostat");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = name();
+    dev[F("name")]    = F("EMS-ESP Thermostat");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-thermostat");
 

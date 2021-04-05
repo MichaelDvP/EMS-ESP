@@ -1,9 +1,11 @@
 #include <NTPStatus.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 NTPStatus::NTPStatus(AsyncWebServer* server, SecurityManager* securityManager) {
   server->on(NTP_STATUS_SERVICE_PATH,
              HTTP_GET,
-             securityManager->wrapRequest(std::bind(&NTPStatus::ntpStatus, this, std::placeholders::_1),
+             securityManager->wrapRequest(std::bind(&NTPStatus::ntpStatus, this, _1),
                                           AuthenticationPredicates::IS_AUTHENTICATED));
 }
 
@@ -34,19 +36,19 @@ void NTPStatus::ntpStatus(AsyncWebServerRequest* request) {
   time_t now = time(nullptr);
 
   // only provide enabled/disabled status for now
-  root["status"] = sntp_enabled() ? 1 : 0;
+  root[F("status")] = sntp_enabled() ? 1 : 0;
 
   // the current time in UTC
-  root["utc_time"] = toUTCTimeString(gmtime(&now));
+  root[F("utc_time")] = toUTCTimeString(gmtime(&now));
 
   // local time with offset
-  root["local_time"] = toLocalTimeString(localtime(&now));
+  root[F("local_time")] = toLocalTimeString(localtime(&now));
 
   // the sntp server name
-  root["server"] = sntp_getservername(0);
+  root[F("server")] = sntp_getservername(0);
 
   // device uptime in seconds
-  root["uptime"] = uuid::get_uptime() / 1000;
+  root[F("uptime")] = uuid::get_uptime() / 1000;
 
   response->setLength();
   request->send(response);

@@ -1,5 +1,7 @@
 #include <WiFiSettingsService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(WiFiSettings::read, WiFiSettings::update, this, server, WIFI_SETTINGS_SERVICE_PATH, securityManager)
     , _fsPersistence(WiFiSettings::read, WiFiSettings::update, this, fs, WIFI_SETTINGS_FILE)
@@ -17,9 +19,9 @@ WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, Secur
     // Init the wifi driver on ESP32
     WiFi.mode(WIFI_MODE_MAX);
     WiFi.mode(WIFI_MODE_NULL);
-    WiFi.onEvent(std::bind(&WiFiSettingsService::onStationModeDisconnected, this, std::placeholders::_1, std::placeholders::_2),
+    WiFi.onEvent(std::bind(&WiFiSettingsService::onStationModeDisconnected, this, _1, _2),
                  WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-    WiFi.onEvent(std::bind(&WiFiSettingsService::onStationModeStop, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_STOP);
+    WiFi.onEvent(std::bind(&WiFiSettingsService::onStationModeStop, this, _1, _2), WiFiEvent_t::SYSTEM_EVENT_STA_STOP);
 #elif defined(ESP8266)
 
     // proddy added
@@ -29,7 +31,7 @@ WiFiSettingsService::WiFiSettingsService(AsyncWebServer * server, FS * fs, Secur
     // high tx power causing weird behavior, slightly lowering from 20.5 to 20.0 may help stability
     // WiFi.setOutputPower(20.0f); // in dBm
 
-    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&WiFiSettingsService::onStationModeDisconnected, this, std::placeholders::_1));
+    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&WiFiSettingsService::onStationModeDisconnected, this, _1));
 #endif
 
     addUpdateHandler([&](const String & originId) { reconfigureWiFiConnection(); }, false);

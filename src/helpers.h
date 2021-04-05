@@ -25,9 +25,6 @@
 
 #include "telegram.h" // for EMS_VALUE_* settings
 
-// #define FJSON(x) x
-#define FJSON(x) F(x)
-
 namespace emsesp {
 
 class Helpers {

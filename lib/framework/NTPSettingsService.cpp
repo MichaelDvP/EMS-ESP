@@ -1,21 +1,23 @@
 #include <NTPSettingsService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 NTPSettingsService::NTPSettingsService(AsyncWebServer * server, FS * fs, SecurityManager * securityManager)
     : _httpEndpoint(NTPSettings::read, NTPSettings::update, this, server, NTP_SETTINGS_SERVICE_PATH, securityManager)
     , _fsPersistence(NTPSettings::read, NTPSettings::update, this, fs, NTP_SETTINGS_FILE)
     , _timeHandler(TIME_PATH,
-                   securityManager->wrapCallback(std::bind(&NTPSettingsService::configureTime, this, std::placeholders::_1, std::placeholders::_2),
+                   securityManager->wrapCallback(std::bind(&NTPSettingsService::configureTime, this, _1, _2),
                                                  AuthenticationPredicates::IS_ADMIN)) {
     _timeHandler.setMethod(HTTP_POST);
     _timeHandler.setMaxContentLength(MAX_TIME_SIZE);
     server->addHandler(&_timeHandler);
 #ifdef ESP32
-    WiFi.onEvent(std::bind(&NTPSettingsService::onStationModeDisconnected, this, std::placeholders::_1, std::placeholders::_2),
+    WiFi.onEvent(std::bind(&NTPSettingsService::onStationModeDisconnected, this, _1, _2),
                  WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-    WiFi.onEvent(std::bind(&NTPSettingsService::onStationModeGotIP, this, std::placeholders::_1, std::placeholders::_2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+    WiFi.onEvent(std::bind(&NTPSettingsService::onStationModeGotIP, this, _1, _2), WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
 #elif defined(ESP8266)
-    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&NTPSettingsService::onStationModeDisconnected, this, std::placeholders::_1));
-    _onStationModeGotIPHandler        = WiFi.onStationModeGotIP(std::bind(&NTPSettingsService::onStationModeGotIP, this, std::placeholders::_1));
+    _onStationModeDisconnectedHandler = WiFi.onStationModeDisconnected(std::bind(&NTPSettingsService::onStationModeDisconnected, this, _1));
+    _onStationModeGotIPHandler        = WiFi.onStationModeGotIP(std::bind(&NTPSettingsService::onStationModeGotIP, this, _1));
 #endif
     addUpdateHandler([&](const String & originId) { configureNTP(); }, false);
 }
@@ -69,7 +71,7 @@ void NTPSettingsService::configureNTP() {
 void NTPSettingsService::configureTime(AsyncWebServerRequest * request, JsonVariant & json) {
     if (!sntp_enabled() && json.is<JsonObject>()) {
         struct tm tm        = {0};
-        String    timeLocal = json["local_time"];
+        String    timeLocal = json[F("local_time")];
         char *    s         = strptime(timeLocal.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
         if (s != nullptr) {
             time_t         time = mktime(&tm);

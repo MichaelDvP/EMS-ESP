@@ -107,25 +107,25 @@ void Switch::register_mqtt_ha_config() {
 
     char name[10];
     snprintf_P(name, sizeof(name), PSTR("Switch"));
-    doc["name"] = name;
+    doc[F("name")] = name;
 
     char uniq_id[10];
     snprintf_P(uniq_id, sizeof(uniq_id), PSTR("switch"));
-    doc["uniq_id"] = uniq_id;
+    doc[F("uniq_id")] = uniq_id;
 
-    doc["ic"] = FJSON("mdi:home-thermometer-outline");
+    doc[F("ic")] = F("mdi:home-thermometer-outline");
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/switch_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    doc[F("stat_t")] = stat_t;
 
-    doc["val_tpl"] = FJSON("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
+    doc[F("val_tpl")] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
 
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Switch");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = this->name();
+    dev[F("name")]    = F("EMS-ESP Switch");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = this->name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-switch");
 

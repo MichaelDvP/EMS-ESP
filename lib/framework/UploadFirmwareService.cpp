@@ -1,18 +1,13 @@
 #include <UploadFirmwareService.h>
 
+using namespace std::placeholders; // for `_1` etc
+
 UploadFirmwareService::UploadFirmwareService(AsyncWebServer * server, SecurityManager * securityManager)
     : _securityManager(securityManager) {
     server->on(UPLOAD_FIRMWARE_PATH,
                HTTP_POST,
-               std::bind(&UploadFirmwareService::uploadComplete, this, std::placeholders::_1),
-               std::bind(&UploadFirmwareService::handleUpload,
-                         this,
-                         std::placeholders::_1,
-                         std::placeholders::_2,
-                         std::placeholders::_3,
-                         std::placeholders::_4,
-                         std::placeholders::_5,
-                         std::placeholders::_6));
+               std::bind(&UploadFirmwareService::uploadComplete, this, _1),
+               std::bind(&UploadFirmwareService::handleUpload, this, _1, _2, _3, _4, _5, _6));
 #ifdef ESP8266
     Update.runAsync(true);
 #endif

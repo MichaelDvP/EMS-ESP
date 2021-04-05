@@ -39,7 +39,7 @@ Authentication SecuritySettingsService::authenticateJWT(String & jwt) {
     _jwtHandler.parseJWT(jwt, payloadDocument);
     if (payloadDocument.is<JsonObject>()) {
         JsonObject parsedPayload = payloadDocument.as<JsonObject>();
-        String     username      = parsedPayload["username"];
+        String     username      = parsedPayload[F("username")];
         for (User _user : _state.users) {
             if (_user.username == username && validatePayload(parsedPayload, &_user)) {
                 return Authentication(_user);
@@ -59,9 +59,9 @@ Authentication SecuritySettingsService::authenticate(const String & username, co
 }
 
 inline void populateJWTPayload(JsonObject & payload, User * user) {
-    payload["username"] = user->username;
-    payload["admin"]    = user->admin;
-    payload["version"]  = EMSESP_APP_VERSION; // proddy added
+    payload[F("username")] = user->username;
+    payload[F("admin")]    = user->admin;
+    payload[F("version")]  = EMSESP_APP_VERSION; // proddy added
 }
 
 boolean SecuritySettingsService::validatePayload(JsonObject & parsedPayload, User * user) {

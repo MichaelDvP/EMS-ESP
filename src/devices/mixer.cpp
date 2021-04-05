@@ -142,25 +142,25 @@ void Mixer::register_mqtt_ha_config() {
 
     char name[20];
     snprintf_P(name, sizeof(name), PSTR("Mixer %02X"), device_id() - 0x20 + 1);
-    doc["name"] = name;
+    doc[F("name")] = name;
 
     char uniq_id[20];
     snprintf_P(uniq_id, sizeof(uniq_id), PSTR("mixer%02X"), device_id() - 0x20 + 1);
-    doc["uniq_id"] = uniq_id;
+    doc[F("uniq_id")] = uniq_id;
 
-    doc["ic"] = FJSON("mdi:home-thermometer-outline");
+    doc[F("ic")] = F("mdi:home-thermometer-outline");
 
     char stat_t[128];
     snprintf_P(stat_t, sizeof(stat_t), PSTR("%s/mixer_data"), Mqtt::base().c_str());
-    doc["stat_t"] = stat_t;
+    doc[F("stat_t")] = stat_t;
 
-    doc["val_tpl"] = FJSON("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
+    doc[F("val_tpl")] = F("{{value_json.type}}"); // HA needs a single value. We take the type which is wwc or hc
 
     JsonObject dev = doc.createNestedObject("dev");
-    dev["name"]    = FJSON("EMS-ESP Mixer");
-    dev["sw"]      = EMSESP_APP_VERSION;
-    dev["mf"]      = brand_to_string();
-    dev["mdl"]     = this->name();
+    dev[F("name")]    = F("EMS-ESP Mixer");
+    dev[F("sw")]      = EMSESP_APP_VERSION;
+    dev[F("mf")]      = brand_to_string();
+    dev[F("mdl")]     = this->name();
     JsonArray ids  = dev.createNestedArray("ids");
     ids.add("ems-esp-mixer");
 
@@ -212,16 +212,16 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         snprintf_P(hc_name, sizeof(hc_name), PSTR("hc%d"), hc_);
         if (mqtt_format == Mqtt::Format::SINGLE) {
             json_hc      = json;
-            json["type"] = FJSON("hc");
+            json[F("type")] = F("hc");
         } else if (mqtt_format == Mqtt::Format::HA) {
             json_hc         = json.createNestedObject(hc_name);
-            json_hc["type"] = FJSON("hc");
+            json_hc[F("type")] = F("hc");
         } else {
             json_hc = json.createNestedObject(hc_name);
         }
         // T0: flow temperature on the low loss header
         // if (Helpers::hasValue(flowTempLowLoss_)) {
-        //     json_hc["flowTempLowLoss"] = flowTempLowLoss_;
+        //     json_hc[F("flowTempLowLoss")] = flowTempLowLoss_;
         // }
         // Setpoint for heating circuit
         if (Helpers::hasValue(flowSetTemp_)) {
@@ -249,10 +249,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     snprintf_P(hc_name, sizeof(hc_name), PSTR("wwc%d"), hc_);
     if (mqtt_format == Mqtt::Format::SINGLE) {
         json_hc      = json;
-        json[F_(type)] = FJSON("wwc");
+        json[F_(type)] = F("wwc");
     } else if (mqtt_format == Mqtt::Format::HA) {
         json_hc         = json.createNestedObject(hc_name);
-        json_hc[F_(type)] = FJSON("wwc");
+        json_hc[F_(type)] = F("wwc");
     } else {
         json_hc = json.createNestedObject(hc_name);
     }

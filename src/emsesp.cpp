@@ -433,19 +433,19 @@ void EMSESP::publish_response(std::shared_ptr<const Telegram> telegram) {
     StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
 
     char buffer[100];
-    doc["src"]    = Helpers::hextoa(buffer, telegram->src);
-    doc["dest"]   = Helpers::hextoa(buffer, telegram->dest);
-    doc["type"]   = Helpers::hextoa(buffer, telegram->type_id);
-    doc["offset"] = Helpers::hextoa(buffer, telegram->offset);
+    doc[F("src")]    = Helpers::hextoa(buffer, telegram->src);
+    doc[F("dest")]   = Helpers::hextoa(buffer, telegram->dest);
+    doc[F("type")]   = Helpers::hextoa(buffer, telegram->type_id);
+    doc[F("offset")] = Helpers::hextoa(buffer, telegram->offset);
     strcpy(buffer, Helpers::data_to_hex(telegram->message_data, telegram->message_length).c_str());
-    doc["data"] = buffer;
+    doc[F("data")] = buffer;
 
     if (telegram->message_length <= 4) {
         uint32_t value = 0;
         for (uint8_t i = 0; i < telegram->message_length; i++) {
             value = (value << 8) + telegram->message_data[i];
         }
-        doc["value"] = value;
+        doc[F("value")] = value;
     }
 
     Mqtt::publish(F("response"), doc.as<JsonObject>());
@@ -714,7 +714,7 @@ void EMSESP::device_info_web(const uint8_t unique_id, JsonObject & root) {
     for (const auto & emsdevice : emsdevices) {
         if (emsdevice) {
             if (emsdevice->unique_id() == unique_id) {
-                root["name"]   = emsdevice->to_string_short(); // can't use c_str() because of scope
+                root[F("name")]   = emsdevice->to_string_short(); // can't use c_str() because of scope
                 JsonArray data = root.createNestedArray("data");
                 uint8_t   part = 0;
                 do {

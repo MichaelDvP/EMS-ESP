@@ -139,14 +139,14 @@ void Shower::publish_values() {
 
     Helpers::json_boolean(json, F("shower_timer"), shower_timer_);
     Helpers::json_boolean(json, F("shower_alert"), shower_alert_);
-    // doc["shower_timer"] = Helpers::render_boolean(s, shower_timer_);
-    // doc["shower_alert"] = Helpers::render_boolean(s, shower_alert_);
+    // doc[F("shower_timer")] = Helpers::render_boolean(s, shower_timer_);
+    // doc[F("shower_alert")] = Helpers::render_boolean(s, shower_alert_);
 
     // only publish shower duration if there is a value
     if (duration_ > SHOWER_MIN_DURATION) {
         // char s[40];
         // snprintf_P(s, 40, PSTR("%d minutes and %d seconds"), (uint8_t)(duration_ / 60000), (uint8_t)((duration_ / 1000) % 60));
-        json["duration"] = duration_ / 1000;
+        json[F("duration")] = duration_ / 1000;
     }
 
     Mqtt::publish(F("shower_data"), doc.as<JsonObject>());
@@ -161,13 +161,13 @@ void Shower::send_MQTT_discovery_config() {
     //send the config depending on the MQTT format used
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
         StaticJsonDocument<EMSESP_MAX_JSON_SIZE_HA_CONFIG> doc;
-        doc["name"]        = FJSON("Shower Data");
-        doc["uniq_id"]     = FJSON("shower_data");
-        doc["~"]           = Mqtt::base();
-        doc["json_attr_t"] = FJSON("~/shower_data");
-        doc["stat_t"]      = FJSON("~/shower_data");
-        doc["val_tpl"]     = FJSON("{{value_json['duration']}}");
-        doc["ic"]          = FJSON("mdi:shower");
+        doc[F("name")]        = F("Shower Data");
+        doc[F("uniq_id")]     = F("shower_data");
+        doc[F("~")]           = Mqtt::base();
+        doc[F("json_attr_t")] = F("~/shower_data");
+        doc[F("stat_t")]      = F("~/shower_data");
+        doc[F("val_tpl")]     = F("{{value_json['duration']}}");
+        doc[F("ic")]          = F("mdi:shower");
         JsonObject dev     = doc.createNestedObject("dev");
         JsonArray  ids     = dev.createNestedArray("ids");
         ids.add("ems-esp-boiler");

@@ -10,6 +10,8 @@
 #define WEB_SOCKET_ORIGIN "websocket"
 #define WEB_SOCKET_ORIGIN_CLIENT_ID_PREFIX "websocket:"
 
+using namespace std::placeholders; // for `_1` etc
+
 template <class T>
 class WebSocketConnector {
   protected:
@@ -29,16 +31,9 @@ class WebSocketConnector {
         , _webSocket(webSocketPath)
         , _bufferSize(bufferSize) {
         _webSocket.setFilter(securityManager->filterRequest(authenticationPredicate));
-        _webSocket.onEvent(std::bind(&WebSocketConnector::onWSEvent,
-                                     this,
-                                     std::placeholders::_1,
-                                     std::placeholders::_2,
-                                     std::placeholders::_3,
-                                     std::placeholders::_4,
-                                     std::placeholders::_5,
-                                     std::placeholders::_6));
+        _webSocket.onEvent(std::bind(&WebSocketConnector::onWSEvent, this, _1, _2, _3, _4, _5, _6));
         _server->addHandler(&_webSocket);
-        _server->on(webSocketPath, HTTP_GET, std::bind(&WebSocketConnector::forbidden, this, std::placeholders::_1));
+        _server->on(webSocketPath, HTTP_GET, std::bind(&WebSocketConnector::forbidden, this, _1));
     }
 
     WebSocketConnector(StatefulService<T> * statefulService, AsyncWebServer * server, const char * webSocketPath, size_t bufferSize)
@@ -46,14 +41,7 @@ class WebSocketConnector {
         , _server(server)
         , _webSocket(webSocketPath)
         , _bufferSize(bufferSize) {
-        _webSocket.onEvent(std::bind(&WebSocketConnector::onWSEvent,
-                                     this,
-                                     std::placeholders::_1,
-                                     std::placeholders::_2,
-                                     std::placeholders::_3,
-                                     std::placeholders::_4,
-                                     std::placeholders::_5,
-                                     std::placeholders::_6));
+        _webSocket.onEvent(std::bind(&WebSocketConnector::onWSEvent, this, _1, _2, _3, _4, _5, _6));
         _server->addHandler(&_webSocket);
     }
 
