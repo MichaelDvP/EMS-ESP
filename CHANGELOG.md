@@ -8,14 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.2.1] March 18 2021
 
 ### Added
-
 - Boiler WB Greenstar 8000 (195) and Cascade Modul MC400 (210)
 - show cascaded boilers
 - optional id to info command to output heatingcircuits separated
 - Reset to factory setting with PButton (io0 to GND for >9 sec)
 
 ### Fixed
-
 - telegrams matched to masterthermostat 0x18
 - Boiler Junkers Cerapur Aero
 - multiple roomcontrollers
@@ -31,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix ems+ values #723, #732
 
 ### Changed
-
 - split `show values` in smaller packages and separate heating circuits
 - extended length of IP/hostname from 32 to 48 chars (#676)
 - check flowsensor for `tap_water_active`
@@ -47,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.2.0] December 28 2020
 
 ### Added
-
 - function keys in editor: cursor, del, home, end. F1=help, F2=show, and other shortcuts
 - SM100 pump working time and energy units
 - heating curve parameters and commands for RC300
@@ -64,7 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RC35 holiday setting with `+` for 'at home'
 
 ### Fixed
-
 - mixer IPM pumpstatus
 - mixer devices in HA were incorrectly named
 - Prevent HA MQTT config messages for thermostat that has no 'currtemp' (#582)
@@ -74,7 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - heating_active for ems+
 
 ### Changed
-
 - optimized MQTT for HA to reduce heap fragmentation issues
 - change syslog settings without reboot
 - HA-config split in smaller blocks
@@ -89,14 +83,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - optimized how console and web display device data ([#632](https://github.com/emsesp/EMS-ESP/issues/632))
 
 ### Removed
-
 - old shell and python build scripts
 
 
 ## [2.1.0] October 31 2020
 
 ### Added
-
 - boiler `heatingactivated`, automatic select parameter telegrams for write
 - boiler `wWType` parameter, in Console and MQTT
 - support for uploading compressed firmware binaries in web UI
@@ -120,7 +112,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added RC300 floordrying, building, damped temperature 
 
 ### Fixed
-
 - fix wwontime readback
 - fixed support for RC300 via MQTT commands (#505)
 - Some minor optimizations to memory handling in the MQTT service
@@ -133,7 +124,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix month for setting clock from NTP
 
 ### Changed
-
 - renamed wWCircPumpType to wWChargeType
 - Installation and Configuration notes moved to the official EMS-ESP documentation site
 - `call` commands can be done from the Console root for all devices
@@ -144,14 +134,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mixing renamed to Mixer
 
 ### Removed
-
 - Console contexts for thermostat and boiler
 - Removed option to enable/disable the MQTT Heartbeat. It's always on.
 
 ## [2.0.1] September 13 2020
 
 ### Added
-
 - Able to set individual MQTT publish intervals per device
 - Option to automatically MQTT publish when device data is updated
 - Immediately send out Rx read request after a successful write, and publish via MQTT
@@ -163,7 +151,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `read <device ID> <type ID>` command in console
 
 ### Fixed
-
 - Sometimes the automatic upgrade from 1.9 to 2.0 bricked the ESP8266
 - Thermostat `set master` wasn't preserved after restart
 - Correctly detect Thermostat heating circuits in Home Assistant
@@ -173,7 +160,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - External Dallas sensor support for DS18S20
 
 ### Changed
-
 - Web user-interface improvements, table alignment and number formatting
 - Spelling of disinfection in MQTT payload
 - Many small minor code improvements and optimizations
@@ -181,7 +167,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Syslog hostname always shown in Web
 
 ### Removed
-
 - NO_LED build option
 
 ## [2.0.0] 29-08-2020
@@ -201,7 +186,6 @@ See README.me for more details.
 ## [1.9.5] 30-04-2020
 
 ### Added
-
 - Solar Module SM200 support
 - Support writing to Junkers FR100 thermostats
 - Support writing to RC100, Moduline 1000/1010 thermostats
@@ -221,13 +205,11 @@ See README.me for more details.
 - Merged with PR https://github.com/emsesp/EMS-ESP/pull/366 from @MichaelDvP fixing RC20 and MM50
 
 ### Fixed
-
 - set boiler warm water temp on Junkers/Bosch HT3
 - fixed detection of the Moduline 400 thermostat
 - RC35 setting temperature also forces the current select temp to change, irrespective of the mode
 
 ### Changed
-
 - improved MQTT publishing to stop network flooding. `publish_time` of -1 is no publish, 0 is automatic otherwise its a time interval
 - External sensors (like Dallas DS18*) are sent as a nested MQTT topic including their unique identifier
 - `mqttlog` console command renamed to `mqttqueue` to only show the current publish queue
@@ -237,7 +219,6 @@ See README.me for more details.
 - `queue` renamed to `txqueue`
 
 ### Removed
-
  - `autodetect scan`. Replaced with `devices scan` and `devices scan+` for deep scanning
  - `mqttlog all` and showing MQTT log in the web interface - no point showing history of previous mqtt publishes in ESP's precious memory. For debugging I recommend using MQTT Explorer or another external tool.
 
@@ -300,7 +281,6 @@ There are breaking changes in this release. See `publish_time` below and make su
 ## [1.9.2] 2019-10-19
 
 #### Important! This build has breaking changes:
-
  - MQTT topics have changed. Use the `mqttlog` command to see the names of the subscriptions and the format of the payload data.
  - Home Assistant `.yaml` files need updating to reflect the recent MQTT changes
  - The web builder has been upgraded to use Gulp 4. Remove `tools/webfilesbuilder/node_modules` and re-install the libraries using `npm ci` from within the `tools/webfilesbuilder` folder
