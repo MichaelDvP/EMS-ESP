@@ -408,7 +408,7 @@ void System::send_heartbeat() {
     }
 
     doc[F("rssi")]         = rssi;
-    doc[F("uptime")]       = uuid::log::format_timestamp_s(uuid::get_uptime_ms(), 3);
+    doc[F("uptime")]       = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).substr(0, 12);
     doc[F("uptime_sec")]   = uuid::get_uptime_sec();
     doc[F("mqtt_fails")]   = Mqtt::publish_fails();
     doc[F("rx_received")]  = EMSESP::rxservice_.telegram_count();
@@ -570,7 +570,7 @@ void System::show_users(uuid::console::Shell & shell) {
 }
 
 void System::show_system(uuid::console::Shell & shell) {
-    shell.printfln(F("Uptime:        %s"), uuid::log::format_timestamp_s(uuid::get_uptime_ms(), 3).c_str());
+    shell.printfln(F("Uptime:        %s"), uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).substr(0, 12).c_str());
 
 #ifndef EMSESP_STANDALONE
 #if defined(ESP8266)

@@ -42,7 +42,7 @@ void SystemStatus::systemStatus(AsyncWebServerRequest * request) {
     root[F("fs_used")]  = fs_info.usedBytes;
 #endif
 
-    root[F("uptime")]   = uuid::log::format_timestamp_s(uuid::get_uptime_ms(), 3) + " (" + ESP.getResetInfo().c_str() + ")"; // proddy added
+    root[F("uptime")]   = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).substr(0, 12) + " (" + ESP.getResetInfo().c_str() + ")"; // proddy added
     root[F("free_mem")] = free_mem_percent; // proddy added
 
     response->setLength();
