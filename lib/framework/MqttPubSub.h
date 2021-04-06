@@ -86,14 +86,7 @@ class MqttSub : virtual public MqttConnector<T> {
         : MqttConnector<T>(statefulService, mqttClient, bufferSize)
         , _stateUpdater(stateUpdater)
         , _subTopic(subTopic) {
-        MqttConnector<T>::_mqttClient->onMessage(std::bind(&MqttSub::onMqttMessage,
-                                                           this,
-                                                           _1,
-                                                           _2,
-                                                           _3,
-                                                           _4,
-                                                           _5,
-                                                           _6));
+        MqttConnector<T>::_mqttClient->onMessage(std::bind(&MqttSub::onMqttMessage, this, _1, _2, _3, _4, _5, _6));
     }
 
     void setSubTopic(const String & subTopic) {

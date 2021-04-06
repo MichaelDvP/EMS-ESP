@@ -110,7 +110,7 @@ void Solar::publish_values(JsonObject & json, bool force) {
         if (device_id() == 0x2A) {
             Mqtt::publish(F("ww_data"), doc.as<JsonObject>());
         } else {
-            Mqtt::publish(F("solar_data"), doc.as<JsonObject>());
+            Mqtt::publish(F_(solar_data), doc.as<JsonObject>());
         }
     }
 }

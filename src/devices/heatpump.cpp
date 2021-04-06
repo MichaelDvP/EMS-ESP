@@ -37,11 +37,11 @@ Heatpump::Heatpump(uint8_t device_type, uint8_t device_id, uint8_t product_id, c
 // returns false if empty
 bool Heatpump::export_values(JsonObject & json, int8_t id) {
     if (Helpers::hasValue(airHumidity_)) {
-        json[F("airHumidity")] = (float)airHumidity_ / 2;
+        json[F_(airhumidity)] = (float)airHumidity_ / 2;
     }
 
     if (Helpers::hasValue(dewTemperature_)) {
-        json[F("dewTemperature")] = dewTemperature_;
+        json[F_(dewtemperature)] = dewTemperature_;
     }
 
     return json.size();
@@ -77,7 +77,7 @@ void Heatpump::publish_values(JsonObject & json, bool force) {
     JsonObject          json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
         doc.shrinkToFit();
-        Mqtt::publish(F("heatpump_data"), doc.as<JsonObject>());
+        Mqtt::publish(F_(heatpump_data), doc.as<JsonObject>());
     }
 }
 

@@ -60,8 +60,8 @@ void WiFiStatus::wifiStatus(AsyncWebServerRequest * request) {
         root[F("channel")]     = WiFi.channel();
         root[F("subnet_mask")] = WiFi.subnetMask().toString();
         root[F("gateway_ip")]  = WiFi.gatewayIP().toString();
-        IPAddress dnsIP1    = WiFi.dnsIP(0);
-        IPAddress dnsIP2    = WiFi.dnsIP(1);
+        IPAddress dnsIP1       = WiFi.dnsIP(0);
+        IPAddress dnsIP2       = WiFi.dnsIP(1);
         if (dnsIP1 != INADDR_NONE) {
             root[F("dns_ip_1")] = dnsIP1.toString();
         }

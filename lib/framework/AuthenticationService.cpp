@@ -34,7 +34,7 @@ void AuthenticationService::signIn(AsyncWebServerRequest * request, JsonVariant 
             User *              user       = authentication.user;
             AsyncJsonResponse * response   = new AsyncJsonResponse(false, MAX_AUTHENTICATION_SIZE);
             JsonObject          jsonObject = response->getRoot();
-            jsonObject[F("access_token")]     = _securityManager->generateJWT(user);
+            jsonObject[F("access_token")]  = _securityManager->generateJWT(user);
             response->setLength();
             request->send(response);
             return;

@@ -178,7 +178,7 @@ void Mixer::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(hc_name, nullptr, F_(valvestatus_), device_type(), F_(valvestatus), F_(percent), F_(iconpercent));
     } else {
         // WWC
-        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/sensor/%s/mixer_wwc%d/config"), Mqtt::base().c_str(), hc_);
+        snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s_wwc%d/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(mixer), hc_, Fc_(config));
         Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
         char wwc_name[10];
         snprintf_P(wwc_name, sizeof(wwc_name), PSTR("wwc%d"), hc_);
@@ -212,10 +212,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
         snprintf_P(hc_name, sizeof(hc_name), PSTR("hc%d"), hc_);
         if (mqtt_format == Mqtt::Format::SINGLE) {
             json_hc      = json;
-            json[F("type")] = F("hc");
+            json[F_(type)] = F_(hc);
         } else if (mqtt_format == Mqtt::Format::HA) {
             json_hc         = json.createNestedObject(hc_name);
-            json_hc[F("type")] = F("hc");
+            json_hc[F_(type)] = F_(hc);
         } else {
             json_hc = json.createNestedObject(hc_name);
         }
@@ -249,10 +249,10 @@ bool Mixer::export_values_format(uint8_t mqtt_format, JsonObject & json) {
     snprintf_P(hc_name, sizeof(hc_name), PSTR("wwc%d"), hc_);
     if (mqtt_format == Mqtt::Format::SINGLE) {
         json_hc      = json;
-        json[F_(type)] = F("wwc");
+        json[F_(type)] = F_(wwc);
     } else if (mqtt_format == Mqtt::Format::HA) {
         json_hc         = json.createNestedObject(hc_name);
-        json_hc[F_(type)] = F("wwc");
+        json_hc[F_(type)] = F_(wwc);
     } else {
         json_hc = json.createNestedObject(hc_name);
     }

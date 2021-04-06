@@ -388,10 +388,10 @@ MAKE_PSTR_WORD(tankheated)
 MAKE_PSTR_WORD(collectorshutdown)
 
 // mixer
-MAKE_PSTR_WORD(ww_hc)
 MAKE_PSTR_WORD(wwtemp)
 MAKE_PSTR_WORD(tempstatus)
 MAKE_PSTR_WORD(hc)
+MAKE_PSTR_WORD(wwc)
 MAKE_PSTR_WORD(tempswitch)
 MAKE_PSTR_WORD(pumpstatus)
 MAKE_PSTR_WORD(flowtempvf)

@@ -12,27 +12,27 @@ void FeaturesService::features(AsyncWebServerRequest * request) {
 #if FT_ENABLED(FT_PROJECT)
     root[F("project")] = true;
 #else
-    root[F("project")]         = false;
+    root[F("project")] = false;
 #endif
 #if FT_ENABLED(FT_SECURITY)
     root[F("security")] = true;
 #else
-    root[F("security")]        = false;
+    root[F("security")] = false;
 #endif
 #if FT_ENABLED(FT_MQTT)
     root[F("mqtt")] = true;
 #else
-    root[F("mqtt")]            = false;
+    root[F("mqtt")] = false;
 #endif
 #if FT_ENABLED(FT_NTP)
     root[F("ntp")] = true;
 #else
-    root[F("ntp")]             = false;
+    root[F("ntp")] = false;
 #endif
 #if FT_ENABLED(FT_OTA)
     root[F("ota")] = true;
 #else
-    root[F("ota")]             = false;
+    root[F("ota")] = false;
 #endif
 #if FT_ENABLED(FT_UPLOAD_FIRMWARE)
     root[F("upload_firmware")] = true;
