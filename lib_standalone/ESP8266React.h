@@ -19,6 +19,7 @@ class DummySettings {
     int8_t   syslog_level            = 3; // uuid::log::Level
     uint32_t syslog_mark_interval    = 0;
     String   syslog_host             = "192.168.1.4";
+    uint16_t syslog_port             = 514;
     uint8_t  master_thermostat       = 0;
     bool     shower_timer            = false;
     bool     shower_alert            = false;
@@ -30,6 +31,7 @@ class DummySettings {
     bool     mqtt_retain             = false;
     String   base                    = "ems-esp";
     bool     enabled                 = true; // MQTT
+    uint8_t  dallas_format           = 1;
     String   hostname                = "ems-esp";
     String   jwtSecret               = "ems-esp";
     String   ssid                    = "ems-esp";
