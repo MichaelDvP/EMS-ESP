@@ -145,6 +145,7 @@ class EMSdevice {
     virtual bool updated_values()                                      = 0;
     virtual void device_info_web(JsonArray & root, uint8_t & part)     = 0;
 
+    bool has_telegram_id(uint16_t id);
     std::string telegram_type_name(std::shared_ptr<const Telegram> telegram);
 
     void fetch_values();
@@ -201,8 +202,9 @@ class EMSdevice {
     static constexpr uint8_t EMS_DEVICE_FLAG_NONE = 0;
 
     // Boiler
-    static constexpr uint8_t EMS_DEVICE_FLAG_EMS  = 1;
-    static constexpr uint8_t EMS_DEVICE_FLAG_PLUS = 2;
+    static constexpr uint8_t EMS_DEVICE_FLAG_EMS      = 1;
+    static constexpr uint8_t EMS_DEVICE_FLAG_EMSPLUS  = 2;
+    static constexpr uint8_t EMS_DEVICE_FLAG_HEATPUMP = 3;
 
     // Solar Module
     static constexpr uint8_t EMS_DEVICE_FLAG_SM10  = 1;
