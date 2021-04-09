@@ -77,8 +77,9 @@ class Boiler : public EMSdevice {
     uint8_t wWChargeType_       = EMS_VALUE_BOOL_NOTSET; // Warm Water charge type (pump or 3-way-valve)
     uint8_t wWDisinfectionTemp_ = EMS_VALUE_UINT_NOTSET; // Warm Water disinfection temperature to prevent infection
     uint8_t wWComfort_          = EMS_VALUE_UINT_NOTSET; // WW comfort mode
+    uint8_t wWMaxPower_         = EMS_VALUE_UINT_NOTSET;
 
-    // MC10Status
+    // MC110Status
     uint16_t mixerTemp_      = EMS_VALUE_USHORT_NOTSET; // mixer temperature
     uint16_t tankMiddleTemp_ = EMS_VALUE_USHORT_NOTSET; // tank middle temperature (TS3)
 
@@ -201,9 +202,10 @@ class Boiler : public EMSdevice {
     void process_UBAMaintenanceStatus(std::shared_ptr<const Telegram> telegram);
     void process_UBAMaintenanceData(std::shared_ptr<const Telegram> telegram);
     void process_UBAErrorMessage(std::shared_ptr<const Telegram> telegram);
-    void process_UBADHWStatus(std::shared_ptr<const Telegram> telegram);
+    void process_UBAMonitorWWPlus(std::shared_ptr<const Telegram> telegram);
     void process_UBAInformation(std::shared_ptr<const Telegram> telegram);
     void process_UBAEnergySupplied(std::shared_ptr<const Telegram> telegram);
+    void process_UBASettingsWW(std::shared_ptr<const Telegram> telegram);
 
     // commands - none of these use the additional id parameter
     bool set_warmwater_mode(const char * value, const int8_t id);

@@ -340,6 +340,7 @@ MAKE_PSTR_WORD(burnworkmin)
 MAKE_PSTR_WORD(heatworkmin)
 MAKE_PSTR_WORD(ubauptime)
 MAKE_PSTR_WORD(wwcomfort)
+MAKE_PSTR_WORD(wwmaxpower)
 
 // boiler info
 MAKE_PSTR_WORD(uptimecontrol)
@@ -526,6 +527,7 @@ MAKE_PSTR(burnstarts_, "burner starts")
 MAKE_PSTR(burnworkmin_, "burner active time")
 MAKE_PSTR(heatworkmin_, "heating active time")
 MAKE_PSTR(ubauptime_, "boiler total uptime")
+MAKE_PSTR(wwmaxpower_, "warm water max power")
 
 MAKE_PSTR(uptimecontrol_, "operating time control")
 MAKE_PSTR(uptimecompheating_, "operating time compressor heating")

@@ -53,13 +53,14 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0x34, F("UBAMonitorWW"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWW(t); });
     // only EMS+
     if ((flags & 0x0F) != EMSdevice::EMS_DEVICE_FLAG_EMS) {
+        register_telegram_type(0x26, F("UBASettingsWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBASettingsWW(t); });
         register_telegram_type(0x2A, F("MC110Status"), false, [&](std::shared_ptr<const Telegram> t) { process_MC110Status(t); });
         register_telegram_type(0xD1, F("UBAOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAOutdoorTemp(t); });
         register_telegram_type(0xE3, F("UBAMonitorSlowPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorSlowPlus2(t); });
         register_telegram_type(0xE4, F("UBAMonitorFastPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorFastPlus(t); });
         register_telegram_type(0xE5, F("UBAMonitorSlowPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorSlowPlus(t); });
         register_telegram_type(0xE6, F("UBAParametersPlus"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParametersPlus(t); });
-        register_telegram_type(0xE9, F("UBADHWStatus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBADHWStatus(t); });
+        register_telegram_type(0xE9, F("UBAMonitorWWPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWWPlus(t); });
         register_telegram_type(0xEA, F("UBAParameterWWPlus"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWWPlus(t); });
     }
     if ((flags & 0x0F) == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
@@ -227,6 +228,7 @@ void Boiler::register_mqtt_ha_config_ww() {
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwsetpumppower_), device_type(), F_(wwsetpumppower), F_(percent), F_(iconpump));
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwstarts_), device_type(), F_(wwstarts), nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwworkm_), device_type(), F_(wwworkm), F_(min), nullptr);
+    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwmaxpower_), device_type(), F_(wwmaxpower), F_(percent), nullptr);
 
     mqtt_ha_config_ww_ = true; // done
 }
@@ -322,6 +324,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F_(wwsetpumppower), nullptr, F_(wwsetpumppower_), F_(percent), json);
         create_value_json(root, F_(wwstarts), nullptr, F_(wwstarts_), nullptr, json);
         create_value_json(root, F_(wwworkm), nullptr, F_(wwworkm_), nullptr, json);
+        create_value_json(root, F_(wwmaxpower), nullptr, F_(wwmaxpower_), F_(percent), json);
     } else if (part == 2) {
         part = 0;                              // no more parts
         if (!export_values_info(json, true)) { // append info values
@@ -481,6 +484,11 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
 
     // Warm Water active time
     Helpers::json_time(json, F_(wwworkm), wWWorkM_, textformat);
+
+    // Warm Water # starts
+    if (Helpers::hasValue(wWMaxPower_)) {
+        json[F_(wwmaxpower)] = wWMaxPower_;
+    }
 
     return (json.size());
 }
@@ -1069,6 +1077,14 @@ void Boiler::process_UBAMonitorSlow(std::shared_ptr<const Telegram> telegram) {
 }
 
 /*
+ * UBASettingsWW - type 0x26 - max power on offset 7, #740
+ * Boiler(0x08) -> Me(0x0B), ?(0x26), data: 01 05 00 0F 00 1E 58 5A
+ */
+void Boiler::process_UBASettingsWW(std::shared_ptr<const Telegram> telegram) {
+    changed_ |= telegram->read_value(wWMaxPower_, 7);
+}
+
+/*
  * UBAMonitorSlowPlus2 - type 0xE3
  * 88 00 E3 00 04 00 00 00 00 01 00 00 00 00 00 02 22 2B 64 46 01 00 00 61
  */
@@ -1122,9 +1138,9 @@ void Boiler::process_UBAParameterWWPlus(std::shared_ptr<const Telegram> telegram
     // changed_ |= telegram->read_value(wWSelTemp_, 6);        // settings, status in E9
 }
 
-// 0xE9 - DHW Status
+// 0xE9 - Monitor WW Plus
 // e.g. 08 00 E9 00 37 01 F6 01 ED 00 00 00 00 41 3C 00 00 00 00 00 00 00 00 00 00 00 00 37 00 00 00 (CRC=77) #data=27
-void Boiler::process_UBADHWStatus(std::shared_ptr<const Telegram> telegram) {
+void Boiler::process_UBAMonitorWWPlus(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(wWSetTemp_, 0);
     changed_ |= telegram->read_value(wWCurTemp_, 1);
     changed_ |= telegram->read_value(wWCurTemp2_, 3);
