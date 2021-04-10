@@ -167,7 +167,6 @@ MAKE_PSTR(iconpump, "mdi:pump")
 // HA keys
 MAKE_PSTR(homeassistant, "homeassistant/")
 MAKE_PSTR(hasensor, "sensor/")
-MAKE_PSTR(hasclimate, "climate/")
 MAKE_PSTR(emsespboiler, "ems-esp-boiler")
 MAKE_PSTR_WORD(config)
 MAKE_PSTR_WORD(stat_t)
@@ -184,7 +183,6 @@ MAKE_PSTR_WORD(mf)
 MAKE_PSTR_WORD(mdl)
 
 // MQTT topics and suffix
-MAKE_PSTR(thermostat_data_hc, "thermostat_data_hc%d")
 MAKE_PSTR_WORD(thermostat_data)
 MAKE_PSTR_WORD(boiler_data)
 MAKE_PSTR_WORD(boiler_data_ww)
