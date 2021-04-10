@@ -52,7 +52,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0x33, F("UBAParameterWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWW(t); });
     register_telegram_type(0x34, F("UBAMonitorWW"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWW(t); });
     // only EMS+
-    if ((flags & 0x0F) != EMSdevice::EMS_DEVICE_FLAG_EMS) {
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS) {
         register_telegram_type(0x26, F("UBASettingsWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBASettingsWW(t); });
         register_telegram_type(0x2A, F("MC110Status"), false, [&](std::shared_ptr<const Telegram> t) { process_MC110Status(t); });
         register_telegram_type(0xD1, F("UBAOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAOutdoorTemp(t); });
@@ -63,7 +63,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
         register_telegram_type(0xE9, F("UBAMonitorWWPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWWPlus(t); });
         register_telegram_type(0xEA, F("UBAParameterWWPlus"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWWPlus(t); });
     }
-    if ((flags & 0x0F) == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
+    if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         register_telegram_type(0x494, F("UBAEnergySupplied"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAEnergySupplied(t); });
         register_telegram_type(0x495, F("UBAInformation"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAInformation(t); });
     }
@@ -172,7 +172,7 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenancedate_), device_type(), F_(maintenancedate), nullptr, nullptr);
 
     // information
-    if (has_telegram_id(0x494)) {
+    if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(uptimecontrol_), device_type(), F_(uptimecontrol), F_(min), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(uptimecompheating_), device_type(), F_(uptimecompheating), F_(min), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(uptimecompcooling_), device_type(), F_(uptimecompcooling), F_(min), nullptr);
@@ -725,7 +725,7 @@ bool Boiler::export_values_main(JsonObject & json, const bool textformat) {
 
 // creates JSON doc from values,  returns false if empty
 bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
-    if (!has_telegram_id(0x494)) {
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         return false;
     }
     // Total heat operating time

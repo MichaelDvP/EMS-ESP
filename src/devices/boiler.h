@@ -53,6 +53,11 @@ class Boiler : public EMSdevice {
     bool export_values_ww(JsonObject & doc, const bool textformat = false);
     bool export_values_info(JsonObject & doc, const bool textformat = false);
 
+    // specific boiler characteristics, stripping the top 4 bits
+    inline uint8_t model() const {
+        return (flags() & 0x0F);
+    }
+
     bool changed_           = false;
     bool mqtt_ha_config_    = false; // HA MQTT Discovery
     bool mqtt_ha_config_ww_ = false; // HA MQTT Discovery

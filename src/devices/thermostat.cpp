@@ -932,7 +932,7 @@ void Thermostat::register_mqtt_ha_config(uint8_t hc_num) {
     ids.add(F("ems-esp-thermostat"));
 
     std::string topic(128, '\0');
-    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("homeassistant/climate/&s/thermostat_hc%d/config"), Mqtt::base().c_str(), hc_num);
+    snprintf_P(&topic[0], topic.capacity() + 1, PSTR("climate/&s/thermostat_hc%d/config"), Mqtt::base().c_str(), hc_num);
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     // enable the a special "thermostat_hc<n>" topic to take both mode strings and floats for each of the heating circuits

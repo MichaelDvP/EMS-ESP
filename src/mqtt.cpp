@@ -706,10 +706,11 @@ void Mqtt::publish_ha(const std::string & topic, const JsonObject & payload) {
     payload_text.reserve(measureJson(payload) + 1);
     serializeJson(payload, payload_text); // convert json to string
 
+    std::string fulltopic = uuid::read_flash_string(F_(homeassistant)) + topic;
 #if defined(EMSESP_STANDALONE)
-    LOG_DEBUG(F("Publishing HA topic=%s, payload=%s"), topic.c_str(), payload_text.c_str());
+    LOG_DEBUG(F("Publishing HA topic=%s, payload=%s"), fulltopic.c_str(), payload_text.c_str());
 #else
-    LOG_DEBUG(F("Publishing HA topic %s"), topic.c_str());
+    LOG_DEBUG(F("Publishing HA topic %s"), fulltopic.c_str());
 #endif
 
 #if defined(ESP32)
@@ -724,12 +725,12 @@ void Mqtt::publish_ha(const std::string & topic, const JsonObject & payload) {
     }
 
     if (queued) {
-        queue_publish_message(topic, payload_text, true); // with retain true
+        queue_publish_message(fulltopic, payload_text, true); // with retain true
         return;
     }
 
     // send immediately and then wait a while
-    if (!mqttClient_->publish(topic.c_str(), 0, true, payload_text.c_str())) {
+    if (!mqttClient_->publish(fulltopic.c_str(), 0, true, payload_text.c_str())) {
         LOG_ERROR(F("Failed to publish topic %s"), topic.c_str());
     }
 
@@ -747,7 +748,7 @@ void Mqtt::process_queue() {
     auto mqtt_message = mqtt_messages_.front();
     auto message      = mqtt_message.content_;
     char topic[MQTT_TOPIC_MAX_SIZE];
-    if ((strncmp_P(message->topic.c_str(), PSTR("homeassistant/"), 13) == 0)) {
+    if (message->topic.find(uuid::read_flash_string(F_(homeassistant))) == 0) {
         // leave topic as it is
         strcpy(topic, message->topic.c_str());
     } else {
