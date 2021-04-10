@@ -388,6 +388,13 @@ MAKE_PSTR_WORD(solarpump)
 MAKE_PSTR_WORD(valvestatus)
 MAKE_PSTR_WORD(tankheated)
 MAKE_PSTR_WORD(collectorshutdown)
+// solar ww
+MAKE_PSTR_WORD(wwtemp1)
+MAKE_PSTR_WORD(wwtemp3)
+MAKE_PSTR_WORD(wwtemp4)
+MAKE_PSTR_WORD(wwtemp5)
+MAKE_PSTR_WORD(wwtemp7)
+MAKE_PSTR_WORD(wwpump)
 
 // mixer
 MAKE_PSTR_WORD(wwtemp)
@@ -574,6 +581,13 @@ MAKE_PSTR(solarpump_, "pump (PS1)")
 MAKE_PSTR(valvestatus_, "valve status")
 MAKE_PSTR(tankheated_, "tank heated")
 MAKE_PSTR(collectorshutdown_, "collector shutdown")
+// solar ww
+MAKE_PSTR(wwtemp1_, "warm water temperature 1")
+MAKE_PSTR(wwtemp3_, "warm water temperature 3")
+MAKE_PSTR(wwtemp4_, "warm water temperature 4")
+MAKE_PSTR(wwtemp5_, "warm water temperature 5")
+MAKE_PSTR(wwtemp7_, "warm water temperature 7")
+MAKE_PSTR(wwpump_, "warm water pump")
 
 // mixer
 MAKE_PSTR(ww_hc_, "  warm water circuit %d:")

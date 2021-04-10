@@ -90,6 +90,15 @@ class Solar : public EMSdevice {
     uint16_t collector1Area_ = EMS_VALUE_USHORT_NOTSET; // Area of collector field 1
     uint8_t  collector1Type_ = EMS_VALUE_UINT_NOTSET;   // Type of collector field 1, 01=flat, 02=vacuum
 
+    // SM100wwTemperature - 0x07D6
+    uint8_t wwTemp_1_ = EMS_VALUE_UINT_NOTSET;
+    uint8_t wwTemp_3_ = EMS_VALUE_UINT_NOTSET;
+    uint8_t wwTemp_4_ = EMS_VALUE_UINT_NOTSET;
+    uint8_t wwTemp_5_ = EMS_VALUE_UINT_NOTSET;
+    uint8_t wwTemp_7_ = EMS_VALUE_UINT_NOTSET;
+    // SM100wwStatus - 0x07AA
+    uint8_t wwPump_ = EMS_VALUE_UINT_NOTSET;
+
     bool changed_        = false;
     bool mqtt_ha_config_ = false; // for HA MQTT Discovery
 
