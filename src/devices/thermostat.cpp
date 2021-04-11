@@ -211,11 +211,11 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
             create_value_json(root, F_(building), nullptr, F_(building_), nullptr, json);
             create_value_json(root, F_(floordry), nullptr, F_(floordry_), nullptr, json);
             create_value_json(root, F_(floordrytemp), nullptr, F_(floordrytemp_), F_(degrees), json);
-            create_value_json(root, F_(wwmode), nullptr, F_(wwmode_), nullptr, json);
-            create_value_json(root, F_(wwsettemp), nullptr, F_(wwsettemp_), nullptr, json);
-            create_value_json(root, F_(wwsettemplow), nullptr, F_(wwsettemplow_), nullptr, json);
-            create_value_json(root, F_(wwextra1), nullptr, F_(wwextra1_), nullptr, json);
-            create_value_json(root, F_(wwcircmode), nullptr, F_(wwcircmode_), nullptr, json);
+            create_value_json(root, F_(wwmode), F_(ww), F_(wwmode_), nullptr, json);
+            create_value_json(root, F_(wwsettemp), F_(ww), F_(wwsettemp_), nullptr, json);
+            create_value_json(root, F_(wwsettemplow), F_(ww), F_(wwsettemplow_), nullptr, json);
+            create_value_json(root, F_(wwextra1), F_(ww), F_(wwextra1_), nullptr, json);
+            create_value_json(root, F_(wwcircmode), F_(ww), F_(wwcircmode_), nullptr, json);
         }
         if (heating_circuits_.size() > 0) {
             part = 1;

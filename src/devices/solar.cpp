@@ -89,6 +89,14 @@ void Solar::device_info_web(JsonArray & root, uint8_t & part) {
     create_value_json(root, F_(energytotal), nullptr, F_(energytotal_), F_(kwh), json);
     // create_value_json(root, F_(pumpworktime), nullptr, F_(pumpworktime_), F_(min), json);
     create_value_json(root, F_(pumpworktimetext), nullptr, F_(pumpworktimetext_), nullptr, json);
+
+    create_value_json(root, F_(wwtemp1), F_(ww), F_(wwtemp1_), F_(degrees), json);
+    create_value_json(root, F_(wwtemp3), F_(ww), F_(wwtemp3_), F_(degrees), json);
+    create_value_json(root, F_(wwtemp4), F_(ww), F_(wwtemp4_), F_(degrees), json);
+    create_value_json(root, F_(wwtemp5), F_(ww), F_(wwtemp5_), F_(degrees), json);
+    create_value_json(root, F_(wwtemp7), F_(ww), F_(wwtemp7_), F_(degrees), json);
+    create_value_json(root, F_(wwpump), F_(ww), F_(wwpump_), F_(degrees), json);
+
 }
 
 // publish values via MQTT

@@ -171,7 +171,7 @@ class Boiler : public EMSdevice {
     uint32_t nrgConsTotal_              = EMS_VALUE_ULONG_NOTSET; // Energy consumption total
     uint32_t auxElecHeatNrgConsTotal_   = EMS_VALUE_ULONG_NOTSET; // Auxiliary electrical heater energy consumption total
     uint32_t auxElecHeatNrgConsHeating_ = EMS_VALUE_ULONG_NOTSET; // Auxiliary electrical heater energy consumption heating
-    uint32_t auxElecHeatNrgConsDHW_     = EMS_VALUE_ULONG_NOTSET; // Auxiliary electrical heater energ consumption DHW
+    uint32_t auxElecHeatNrgConsWW_      = EMS_VALUE_ULONG_NOTSET; // Auxiliary electrical heater energ consumption DHW
     uint32_t nrgConsCompTotal_          = EMS_VALUE_ULONG_NOTSET; // Energy consumption compressor total
     uint32_t nrgConsCompHeating_        = EMS_VALUE_ULONG_NOTSET; // Energy consumption compressor heating
     uint32_t nrgConsCompWw_             = EMS_VALUE_ULONG_NOTSET; // Energy consumption compressor warm water

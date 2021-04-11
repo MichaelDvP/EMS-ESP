@@ -183,7 +183,7 @@ void Boiler::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgconstotal_), device_type(), F_(nrgconstotal), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxelecheatnrgconstotal_), device_type(), F_(auxelecheatnrgconstotal_), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxelecheatnrgconsheating_), device_type(), F_(auxelecheatnrgconsheating), F_(kwh), nullptr);
-        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxelecheatnrgconsdhw_), device_type(), F_(auxelecheatnrgconsdhw), F_(kwh), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(auxelecheatnrgconsww_), device_type(), F_(auxelecheatnrgconsww), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgconscomptotal_), device_type(), F_(nrgconscomptotal), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgconscompheating_), device_type(), F_(nrgconscompheating), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgconscompww_), device_type(), F_(nrgconscompww), F_(kwh), nullptr);
@@ -298,33 +298,33 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         }
         doc.shrinkToFit();
         // ww
-        create_value_json(root, F_(wwcomfort), nullptr, F_(wwcomfort_), nullptr, json);
-        create_value_json(root, F_(wwseltemp), nullptr, F_(wwseltemp_), F_(degrees), json);
-        create_value_json(root, F_(wwsettemp), nullptr, F_(wwsettemp_), F_(degrees), json);
-        create_value_json(root, F_(wwdisinfectiontemp), nullptr, F_(wwdisinfectiontemp_), F_(degrees), json);
-        create_value_json(root, F_(wwtype), nullptr, F_(wwtype_), nullptr, json);
-        create_value_json(root, F_(wwchargetype), nullptr, F_(wwchargetype_), nullptr, json);
-        create_value_json(root, F_(wwcircpump), nullptr, F_(wwcircpump_), nullptr, json);
-        create_value_json(root, F_(wwcircpumpmode), nullptr, F_(wwcircpumpmode_), nullptr, json);
-        create_value_json(root, F_(wwcirc), nullptr, F_(wwcirc_), nullptr, json);
-        create_value_json(root, F_(wwcurtemp), nullptr, F_(wwcurtemp_), F_(degrees), json);
-        create_value_json(root, F_(wwcurtemp2), nullptr, F_(wwcurtemp2_), F_(degrees), json);
-        create_value_json(root, F_(wwcurflow), nullptr, F_(wwcurflow_), F_(lpm), json);
-        create_value_json(root, F_(wwstoragetemp1), nullptr, F_(wwstoragetemp1_), F_(degrees), json);
-        create_value_json(root, F_(wwstoragetemp2), nullptr, F_(wwstoragetemp2_), F_(degrees), json);
-        create_value_json(root, F_(exhausttemp), nullptr, F_(exhausttemp_), F_(degrees), json);
-        create_value_json(root, F_(wwactivated), nullptr, F_(wwactivated_), nullptr, json);
-        create_value_json(root, F_(wwonetime), nullptr, F_(wwonetime_), nullptr, json);
-        create_value_json(root, F_(wwdisinfecting), nullptr, F_(wwdisinfecting_), nullptr, json);
-        create_value_json(root, F_(wwcharging), nullptr, F_(wwcharging_), nullptr, json);
-        create_value_json(root, F_(wwrecharging), nullptr, F_(wwrecharging_), nullptr, json);
-        create_value_json(root, F_(wwtempok), nullptr, F_(wwtempok_), nullptr, json);
-        create_value_json(root, F_(wwactive), nullptr, F_(wwactive_), nullptr, json);
-        create_value_json(root, F_(wwheat), nullptr, F_(wwheat_), nullptr, json);
-        create_value_json(root, F_(wwsetpumppower), nullptr, F_(wwsetpumppower_), F_(percent), json);
-        create_value_json(root, F_(wwstarts), nullptr, F_(wwstarts_), nullptr, json);
-        create_value_json(root, F_(wwworkm), nullptr, F_(wwworkm_), nullptr, json);
-        create_value_json(root, F_(wwmaxpower), nullptr, F_(wwmaxpower_), F_(percent), json);
+        create_value_json(root, F_(wwcomfort), F_(ww), F_(wwcomfort_), nullptr, json);
+        create_value_json(root, F_(wwseltemp), F_(ww), F_(wwseltemp_), F_(degrees), json);
+        create_value_json(root, F_(wwsettemp), F_(ww), F_(wwsettemp_), F_(degrees), json);
+        create_value_json(root, F_(wwdisinfectiontemp), F_(ww), F_(wwdisinfectiontemp_), F_(degrees), json);
+        create_value_json(root, F_(wwtype), F_(ww), F_(wwtype_), nullptr, json);
+        create_value_json(root, F_(wwchargetype), F_(ww), F_(wwchargetype_), nullptr, json);
+        create_value_json(root, F_(wwcircpump), F_(ww), F_(wwcircpump_), nullptr, json);
+        create_value_json(root, F_(wwcircpumpmode), F_(ww), F_(wwcircpumpmode_), nullptr, json);
+        create_value_json(root, F_(wwcirc), F_(ww), F_(wwcirc_), nullptr, json);
+        create_value_json(root, F_(wwcurtemp), F_(ww), F_(wwcurtemp_), F_(degrees), json);
+        create_value_json(root, F_(wwcurtemp2), F_(ww), F_(wwcurtemp2_), F_(degrees), json);
+        create_value_json(root, F_(wwcurflow), F_(ww), F_(wwcurflow_), F_(lpm), json);
+        create_value_json(root, F_(wwstoragetemp1), F_(ww), F_(wwstoragetemp1_), F_(degrees), json);
+        create_value_json(root, F_(wwstoragetemp2), F_(ww), F_(wwstoragetemp2_), F_(degrees), json);
+        create_value_json(root, F_(exhausttemp), F_(ww), F_(exhausttemp_), F_(degrees), json);
+        create_value_json(root, F_(wwactivated), F_(ww), F_(wwactivated_), nullptr, json);
+        create_value_json(root, F_(wwonetime), F_(ww), F_(wwonetime_), nullptr, json);
+        create_value_json(root, F_(wwdisinfecting), F_(ww), F_(wwdisinfecting_), nullptr, json);
+        create_value_json(root, F_(wwcharging), F_(ww), F_(wwcharging_), nullptr, json);
+        create_value_json(root, F_(wwrecharging), F_(ww), F_(wwrecharging_), nullptr, json);
+        create_value_json(root, F_(wwtempok), F_(ww), F_(wwtempok_), nullptr, json);
+        create_value_json(root, F_(wwactive), F_(ww), F_(wwactive_), nullptr, json);
+        create_value_json(root, F_(wwheat), F_(ww), F_(wwheat_), nullptr, json);
+        create_value_json(root, F_(wwsetpumppower), F_(ww), F_(wwsetpumppower_), F_(percent), json);
+        create_value_json(root, F_(wwstarts), F_(ww), F_(wwstarts_), nullptr, json);
+        create_value_json(root, F_(wwworkm), F_(ww), F_(wwworkm_), nullptr, json);
+        create_value_json(root, F_(wwmaxpower), F_(ww), F_(wwmaxpower_), F_(percent), json);
     } else if (part == 2) {
         part = 0;                              // no more parts
         if (!export_values_info(json, true)) { // append info values
@@ -334,21 +334,21 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F_(uptimecontrol), nullptr, F_(uptimecontrol_), nullptr, json);
         create_value_json(root, F_(uptimecompheating), nullptr, F_(uptimecompheating_), nullptr, json);
         create_value_json(root, F_(uptimecompcooling), nullptr, F_(uptimecompcooling_), nullptr, json);
-        create_value_json(root, F_(uptimecompww), nullptr, F_(uptimecompww_), nullptr, json);
+        create_value_json(root, F_(uptimecompww), F_(ww), F_(uptimecompww_), nullptr, json);
         create_value_json(root, F_(heatingstarts), nullptr, F_(heatingstarts_), nullptr, json);
         create_value_json(root, F_(coolingstarts), nullptr, F_(coolingstarts_), nullptr, json);
-        create_value_json(root, F_(wwstarts2), nullptr, F_(wwstarts2_), nullptr, json);
+        create_value_json(root, F_(wwstarts2), F_(ww), F_(wwstarts2_), nullptr, json);
         create_value_json(root, F_(nrgconstotal), nullptr, F_(nrgconstotal_), F_(kwh), json);
         create_value_json(root, F_(auxelecheatnrgconstotal), nullptr, F_(auxelecheatnrgconstotal_), F_(kwh), json);
         create_value_json(root, F_(auxelecheatnrgconsheating), nullptr, F_(auxelecheatnrgconsheating_), F_(kwh), json);
-        create_value_json(root, F_(auxelecheatnrgconsdhw), nullptr, F_(auxelecheatnrgconsdhw_), F_(kwh), json);
+        create_value_json(root, F_(auxelecheatnrgconsww), F_(ww), F_(auxelecheatnrgconsww_), F_(kwh), json);
         create_value_json(root, F_(nrgconscomptotal), nullptr, F_(nrgconscomptotal_), F_(kwh), json);
         create_value_json(root, F_(nrgconscompheating), nullptr, F_(nrgconscompheating_), F_(kwh), json);
-        create_value_json(root, F_(nrgconscompww), nullptr, F_(nrgconscompww_), F_(kwh), json);
+        create_value_json(root, F_(nrgconscompww), F_(ww), F_(nrgconscompww_), F_(kwh), json);
         create_value_json(root, F_(nrgconscompcooling), nullptr, F_(nrgconscompcooling_), F_(kwh), json);
         create_value_json(root, F_(nrgsupptotal), nullptr, F_(nrgsupptotal_), F_(kwh), json);
         create_value_json(root, F_(nrgsuppheating), nullptr, F_(nrgsuppheating_), F_(kwh), json);
-        create_value_json(root, F_(nrgsuppww), nullptr, F_(nrgsuppww_), F_(kwh), json);
+        create_value_json(root, F_(nrgsuppww), F_(ww), F_(nrgsuppww_), F_(kwh), json);
         create_value_json(root, F_(nrgsuppcooling), nullptr, F_(nrgsuppcooling_), F_(kwh), json);
     }
 }
@@ -771,8 +771,8 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
     }
 
     // Auxiliary electrical heater energy DHW
-    if (Helpers::hasValue(auxElecHeatNrgConsDHW_)) {
-        json[F_(auxelecheatnrgconsdhw)] = auxElecHeatNrgConsDHW_;
+    if (Helpers::hasValue(auxElecHeatNrgConsWW_)) {
+        json[F_(auxelecheatnrgconsww)] = auxElecHeatNrgConsWW_;
     }
 
     // Energy consumption compressor total
@@ -1183,7 +1183,7 @@ void Boiler::process_UBAInformation(std::shared_ptr<const Telegram> telegram) {
 
     changed_ |= telegram->read_value(auxElecHeatNrgConsTotal_, 40);
     changed_ |= telegram->read_value(auxElecHeatNrgConsHeating_, 48);
-    changed_ |= telegram->read_value(auxElecHeatNrgConsDHW_, 44);
+    changed_ |= telegram->read_value(auxElecHeatNrgConsWW_, 44);
 
     changed_ |= telegram->read_value(nrgConsCompTotal_, 56);
     changed_ |= telegram->read_value(nrgConsCompHeating_, 68);
