@@ -445,16 +445,19 @@ void EMSESPShell::add_console_commands() {
 
             return {};
         });
-
+/*
     // System context menu
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(system)},
                           [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                              System::console_commands(shell, ShellContext::SYSTEM);
+                              Console::load_system_commands(ShellContext::SYSTEM);
+                              // enter the context
+                              Console::enter_custom_context(shell, ShellContext::SYSTEM);
                           });
-
+*/
     Console::load_standard_commands(ShellContext::MAIN);
+    Console::load_system_commands(ShellContext::MAIN);
 
     console_commands_loaded_ = true;
 }
@@ -548,7 +551,7 @@ void Console::load_standard_commands(unsigned int context) {
                                        flash_string_vector{F_(exit)},
                                        [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
                                            // delete MAIN console stuff first to save memory
-                                           EMSESPShell::commands->remove_context_commands(context);
+                                           // EMSESPShell::commands->remove_context_commands(context);
                                            shell.exit_context();
                                        });
 
@@ -583,6 +586,154 @@ void Console::load_standard_commands(unsigned int context) {
                                            }
                                        });
 }
+
+// console commands to add
+void Console::load_system_commands(unsigned int context) {
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(restart)},
+                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           EMSESP::system_.restart();
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(wifi), F_(reconnect)},
+                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           EMSESP::system_.wifi_reconnect();
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(format)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           shell.enter_password(F_(password_prompt), [=](Shell & shell, bool completed, const std::string & password) {
+                                               if (completed) {
+                                                   EMSESP::esp8266React.getSecuritySettingsService()->read([&](SecuritySettings & securitySettings) {
+                                                       if (securitySettings.jwtSecret.equals(password.c_str())) {
+                                                           EMSESP::system_.format(shell);
+                                                       } else {
+                                                           shell.println(F("incorrect password"));
+                                                       }
+                                                   });
+                                               }
+                                           });
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(passwd)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
+                                               if (completed) {
+                                                   shell.enter_password(F_(new_password_prompt2),
+                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
+                                                                            if (completed) {
+                                                                                if (password1 == password2) {
+                                                                                    EMSESP::esp8266React.getSecuritySettingsService()->update(
+                                                                                        [&](SecuritySettings & securitySettings) {
+                                                                                            securitySettings.jwtSecret = password2.c_str();
+                                                                                            return StateUpdateResult::CHANGED;
+                                                                                        },
+                                                                                        "local");
+                                                                                    shell.println(F("su password updated"));
+                                                                                } else {
+                                                                                    shell.println(F("Passwords do not match"));
+                                                                                }
+                                                                            }
+                                                                        });
+                                               }
+                                           });
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::USER,
+                                       flash_string_vector{F_(show), F_(system)},
+                                       [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           EMSESP::system_.show_system(shell);
+                                           shell.println();
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(set), F_(wifi), F_(hostname)},
+                                       flash_string_vector{F_(name_mandatory)},
+                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
+                                           shell.println("The wifi connection will be reset...");
+                                           Shell::loop_all();
+                                           delay(1000); // wait a second
+                                           EMSESP::esp8266React.getWiFiSettingsService()->update(
+                                               [&](WiFiSettings & wifiSettings) {
+                                                   wifiSettings.hostname = arguments.front().c_str();
+                                                   return StateUpdateResult::CHANGED;
+                                               },
+                                               "local");
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(set), F_(wifi), F_(ssid)},
+                                       flash_string_vector{F_(name_mandatory)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments) {
+                                           EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation([&](WiFiSettings & wifiSettings) {
+                                               wifiSettings.ssid = arguments.front().c_str();
+                                               return StateUpdateResult::CHANGED;
+                                           });
+                                           shell.println("Use `wifi reconnect` to apply the new settings");
+                                       });
+
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(set), F_(wifi), F_(password)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
+                                               if (completed) {
+                                                   shell.enter_password(F_(new_password_prompt2),
+                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
+                                                                            if (completed) {
+                                                                                if (password1 == password2) {
+                                                                                    EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation(
+                                                                                        [&](WiFiSettings & wifiSettings) {
+                                                                                            wifiSettings.password = password2.c_str();
+                                                                                            return StateUpdateResult::CHANGED;
+                                                                                        });
+                                                                                    shell.println("Use `wifi reconnect` to apply the new settings");
+                                                                                } else {
+                                                                                    shell.println(F("Passwords do not match"));
+                                                                                }
+                                                                            }
+                                                                        });
+                                               }
+                                           });
+                                       });
+/*
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::USER,
+                                       flash_string_vector{F_(set)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
+                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
+                                               shell.print(F_(1space));
+                                               shell.printfln(F_(hostname_fmt),
+                                                              wifiSettings.hostname.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
+                                                                                              : wifiSettings.hostname.c_str());
+                                           });
+
+                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
+                                               shell.print(F_(1space));
+                                               shell.printfln(F_(wifi_ssid_fmt),
+                                                              wifiSettings.ssid.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
+                                                                                          : wifiSettings.ssid.c_str());
+                                               shell.print(F_(1space));
+                                               shell.printfln(F_(wifi_password_fmt), wifiSettings.ssid.isEmpty() ? F_(unset) : F_(asterisks));
+                                           });
+                                       });
+*/
+    EMSESPShell::commands->add_command(context,
+                                       CommandFlags::ADMIN,
+                                       flash_string_vector{F_(show), F_(users)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { System::show_users(shell); });
+}
+
 
 // prompt, change per context
 std::string EMSESPShell::context_text() {

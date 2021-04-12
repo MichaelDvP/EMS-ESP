@@ -46,8 +46,12 @@ class System {
     // commands
     static void restart();
     static void format(uuid::console::Shell & shell);
+    static void show_system(uuid::console::Shell & shell);
+    static void show_users(uuid::console::Shell & shell);
+    static void wifi_reconnect();
 
-    static void console_commands(Shell & shell, unsigned int context);
+
+    // static void console_commands(Shell & shell, unsigned int context);
 
     static bool command_pin(const char * value, const int8_t id);
     static bool command_send(const char * value, const int8_t id);
@@ -106,9 +110,6 @@ class System {
     void system_check();
     void measure_analog();
 
-    static void   show_system(uuid::console::Shell & shell);
-    static void   show_users(uuid::console::Shell & shell);
-    static void   wifi_reconnect();
     static int8_t wifi_quality();
 
     bool     system_healthy_  = false;

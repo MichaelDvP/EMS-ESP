@@ -443,7 +443,7 @@ void System::send_heartbeat() {
 #endif
     }
     doc.shrinkToFit();
-    Mqtt::publish(F("heartbeat"), doc.as<JsonObject>()); // send to MQTT with retain off. This will add to MQTT queue.
+    Mqtt::publish(F_(heartbeat), doc.as<JsonObject>()); // send to MQTT with retain off. This will add to MQTT queue.
 }
 
 // measure and moving average adc
@@ -665,7 +665,7 @@ void System::show_system(uuid::console::Shell & shell) {
 #endif
 }
 
-// console commands to add
+/*/ console commands to add
 void System::console_commands(Shell & shell, unsigned int context) {
     EMSESPShell::commands->add_command(ShellContext::SYSTEM,
                                        CommandFlags::ADMIN,
@@ -814,7 +814,7 @@ void System::console_commands(Shell & shell, unsigned int context) {
     // enter the context
     Console::enter_custom_context(shell, context);
 }
-
+*/
 // upgrade from previous versions of EMS-ESP, based on SPIFFS on an ESP8266
 // returns true if an upgrade was done
 // the logic is bit abnormal (loading both filesystems and testing) but this was the only way I could get it to work reliably
