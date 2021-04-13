@@ -42,17 +42,17 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0x14, F("UBATotalUptime"), true, [&](std::shared_ptr<const Telegram> t) { process_UBATotalUptime(t); });
     register_telegram_type(0x15, F("UBAMaintenanceData"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMaintenanceData(t); });
     register_telegram_type(0x1C, F("UBAMaintenanceStatus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMaintenanceStatus(t); });
-    // EMS1.0 and maybe EMS+?
+    // EMS1.0 and HT3 and maybe EMS+?
     register_telegram_type(0x18, F("UBAMonitorFast"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorFast(t); });
     register_telegram_type(0x19, F("UBAMonitorSlow"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorSlow(t); });
     register_telegram_type(0x1A, F("UBASetPoints"), false, [&](std::shared_ptr<const Telegram> t) { process_UBASetPoints(t); });
     register_telegram_type(0x35, F("UBAFlags"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAFlags(t); });
-    // only EMS 1.0
+    // only EMS 1.0 + HT3
     register_telegram_type(0x16, F("UBAParameters"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameters(t); });
     register_telegram_type(0x33, F("UBAParameterWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWW(t); });
     register_telegram_type(0x34, F("UBAMonitorWW"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWW(t); });
-    // only EMS+
-    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS) {
+    // only EMS+ and Heatpump
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
         register_telegram_type(0x26, F("UBASettingsWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBASettingsWW(t); });
         register_telegram_type(0x2A, F("MC110Status"), false, [&](std::shared_ptr<const Telegram> t) { process_MC110Status(t); });
         register_telegram_type(0xD1, F("UBAOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAOutdoorTemp(t); });
@@ -139,8 +139,6 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(outdoortemp_), device_type(), F_(outdoortemp), F_(degrees), F_(iconexport));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(curflowtemp_), device_type(), F_(curflowtemp), F_(degrees), F_(iconwatertemp));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(rettemp_), device_type(), F_(rettemp), F_(degrees), F_(iconwatertemp));
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(mixertemp_), device_type(), F_(mixertemp), F_(degrees), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankmiddletemp_), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(switchtemp_), device_type(), F_(switchtemp), F_(degrees), F_(iconwatertemp));
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(syspress_), device_type(), F_(syspress), F_(bar), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(boiltemp_), device_type(), F_(boiltemp), F_(degrees), nullptr);
@@ -170,7 +168,10 @@ void Boiler::register_mqtt_ha_config() {
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenance_), device_type(), F_(maintenance), nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenancetime_), device_type(), F_(maintenancetime), F_(hours), nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenancedate_), device_type(), F_(maintenancedate), nullptr, nullptr);
-
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(mixertemp_), device_type(), F_(mixertemp), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankmiddletemp_), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
+    }
     // information
     if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(uptimecontrol_), device_type(), F_(uptimecontrol), F_(min), nullptr);
@@ -228,8 +229,9 @@ void Boiler::register_mqtt_ha_config_ww() {
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwsetpumppower_), device_type(), F_(wwsetpumppower), F_(percent), F_(iconpump));
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwstarts_), device_type(), F_(wwstarts), nullptr, nullptr);
     Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwworkm_), device_type(), F_(wwworkm), F_(min), nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwmaxpower_), device_type(), F_(wwmaxpower), F_(percent), nullptr);
-
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwmaxpower_), device_type(), F_(wwmaxpower), F_(percent), nullptr);
+    }
     mqtt_ha_config_ww_ = true; // done
 }
 
