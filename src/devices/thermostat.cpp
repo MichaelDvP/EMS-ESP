@@ -675,7 +675,7 @@ bool Thermostat::ha_config(bool force) {
     }
 
     // set up the main controller
-    if (!ha_registered()) {
+    if (!ha_registered() && uuid::get_uptime_sec() > 60) {
         register_mqtt_ha_config();
         ha_registered(true);
         // return false; // heating circuits in next cycle
@@ -859,7 +859,9 @@ void Thermostat::register_mqtt_ha_config() {
     }
 
     if (model == EMS_DEVICE_FLAG_RC300 || model == EMS_DEVICE_FLAG_RC100) {
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        if (Helpers::hasValue(dampedoutdoortemp2_)) {
+            Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        }
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordry_), device_type(), F_(floordry), nullptr, nullptr);
@@ -871,7 +873,9 @@ void Thermostat::register_mqtt_ha_config() {
 
     if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
         // excluding inttemp1, inttemp2, intoffset, minexttemp
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        if (Helpers::hasValue(dampedoutdoortemp2_)) {
+            Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
+        }
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode_), device_type(), F_(wwmode), nullptr, nullptr);
