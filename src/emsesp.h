@@ -171,6 +171,10 @@ class EMSESP {
     static void scan_devices();
     static void clear_all_devices();
 
+    static uint32_t tx_delay() {
+        return (uint32_t) (tx_delay_ / 1000ul);
+    }
+
     static std::vector<std::unique_ptr<EMSdevice>> emsdevices;
 
     // services
