@@ -835,7 +835,7 @@ void Thermostat::register_mqtt_ha_config() {
     doc[F_(stat_t)] = stat_t;
 
     doc[F_(name)]    = F("Thermostat Status");
-    doc[F_(val_tpl)] = F("{{value_json.errorcode}}"); // default value - must have one, so we use errorcode
+    doc[F_(val_tpl)] = F("{{value_json.datetime}}"); // default value - must have one, so we use datetime
     JsonObject dev   = doc.createNestedObject(F_(dev));
     dev[F_(name)]    = F("EMS-ESP Thermostat");
     dev[F_(sw)]      = EMSESP_APP_VERSION;
@@ -849,9 +849,12 @@ void Thermostat::register_mqtt_ha_config() {
     Mqtt::publish_ha(topic, doc.as<JsonObject>()); // publish the config payload with retain flag
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(datetime_), device_type(), F_(datetime), nullptr, nullptr);
-    Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
 
     uint8_t model = this->model();
+
+    if (model == EMS_DEVICE_FLAG_RC20_2) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
+    }
 
     if (model == EMS_DEVICE_FLAG_RC30_1) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(display_), device_type(), F_(display), nullptr, nullptr);
@@ -862,6 +865,7 @@ void Thermostat::register_mqtt_ha_config() {
         if (Helpers::hasValue(dampedoutdoortemp2_)) {
             Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
         }
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordry_), device_type(), F_(floordry), nullptr, nullptr);
@@ -876,6 +880,7 @@ void Thermostat::register_mqtt_ha_config() {
         if (Helpers::hasValue(dampedoutdoortemp2_)) {
             Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
         }
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode_), device_type(), F_(wwmode), nullptr, nullptr);
