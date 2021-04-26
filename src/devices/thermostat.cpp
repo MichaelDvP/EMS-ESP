@@ -877,7 +877,7 @@ void Thermostat::register_mqtt_ha_config() {
 
     if (model == EMS_DEVICE_FLAG_RC35 || model == EMS_DEVICE_FLAG_RC30_1) {
         // excluding inttemp1, inttemp2, intoffset, minexttemp
-        if (Helpers::hasValue(dampedoutdoortemp2_)) {
+        if (Helpers::hasValue(dampedoutdoortemp_)) {
             Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
         }
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);

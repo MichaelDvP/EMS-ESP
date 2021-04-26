@@ -52,9 +52,11 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0x33, F("UBAParameterWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWW(t); });
     register_telegram_type(0x34, F("UBAMonitorWW"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWW(t); });
     // only EMS+ and Heatpump
-    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS) {
         register_telegram_type(0x26, F("UBASettingsWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBASettingsWW(t); });
         register_telegram_type(0x2A, F("MC110Status"), false, [&](std::shared_ptr<const Telegram> t) { process_MC110Status(t); });
+    }
+    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
         register_telegram_type(0xD1, F("UBAOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAOutdoorTemp(t); });
         register_telegram_type(0xE3, F("UBAMonitorSlowPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorSlowPlus2(t); });
         register_telegram_type(0xE4, F("UBAMonitorFastPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorFastPlus(t); });
@@ -244,14 +246,11 @@ void Boiler::register_mqtt_ha_config() {
     if (strlen(maintenanceDate_) > 0) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(maintenancedate_), device_type(), F_(maintenancedate), nullptr, nullptr);
     }
-    // ems+ and heatpumps only
-    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
-        if (Helpers::hasValue(mixerTemp_)) {
-            Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(mixertemp_), device_type(), F_(mixertemp), F_(degrees), nullptr);
-		}
-        if (Helpers::hasValue(tankMiddleTemp_)) {
-            Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankmiddletemp_), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
-		}
+    if (Helpers::hasValue(mixerTemp_)) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(mixertemp_), device_type(), F_(mixertemp), F_(degrees), nullptr);
+    }
+    if (Helpers::hasValue(tankMiddleTemp_)) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankmiddletemp_), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
     }
     // information for heatpumps
     if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {

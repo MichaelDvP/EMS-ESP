@@ -421,7 +421,7 @@ bool SyslogService::transmit(const QueuedLogMessage & message) {
         udp_.print('-');
     }
 
-    udp_.printf_P(PSTR(" %s %s: - - - \xEF\xBB\xBF"), hostname_.c_str(), uuid::read_flash_string(message.content_->name).c_str());
+    udp_.printf_P(PSTR(" %s %s - - - \xEF\xBB\xBF"), hostname_.c_str(), uuid::read_flash_string(message.content_->name).c_str());
     udp_.print(uuid::log::format_timestamp_ms(message.content_->uptime_ms, 3).c_str());
 
     udp_.printf_P(PSTR(" %c %lu: "), uuid::log::format_level_char(message.content_->level), message.id_);
