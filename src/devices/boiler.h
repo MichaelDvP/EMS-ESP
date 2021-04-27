@@ -177,6 +177,20 @@ class Boiler : public EMSdevice {
     uint32_t nrgConsCompWw_             = EMS_VALUE_ULONG_NOTSET; // Energy consumption compressor warm water
     uint32_t nrgConsCompCooling_        = EMS_VALUE_ULONG_NOTSET; // Energy consumption compressor cooling
 
+// heatpump
+    uint8_t hpPower_ = EMS_VALUE_UINT_NOTSET;
+    int16_t hpTc0_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTc1_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTc3_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTr3_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTr4_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTr5_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTr6_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTr7_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpTl2_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpPl1_   = EMS_VALUE_SHORT_NOTSET;
+    int16_t hpPh1_   = EMS_VALUE_SHORT_NOTSET;
+
     // UBAEnergySupplied
     uint32_t nrgSuppTotal_   = EMS_VALUE_ULONG_NOTSET; // Energy supplied total
     uint32_t nrgSuppHeating_ = EMS_VALUE_ULONG_NOTSET; // Energy supplied heating
@@ -211,6 +225,8 @@ class Boiler : public EMSdevice {
     void process_UBAInformation(std::shared_ptr<const Telegram> telegram);
     void process_UBAEnergySupplied(std::shared_ptr<const Telegram> telegram);
     void process_UBASettingsWW(std::shared_ptr<const Telegram> telegram);
+    void process_HpPower(std::shared_ptr<const Telegram> telegram);
+    void process_HpOutdoor(std::shared_ptr<const Telegram> telegram);
 
     // commands - none of these use the additional id parameter
     bool set_warmwater_mode(const char * value, const int8_t id);

@@ -111,6 +111,14 @@ Thermostat::Thermostat(uint8_t device_type, uint8_t device_id, uint8_t product_i
         set_typeids     = {};
         register_telegram_type(monitor_typeids[0], F("EasyMonitor"), true, [&](std::shared_ptr<const Telegram> t) { process_EasyMonitor(t); });
 
+        // Worcester CRF200S
+    } else if (model == EMSdevice::EMS_DEVICE_FLAG_CRF) {
+        monitor_typeids = {0x02A5, 0x02A6, 0x02A7, 0x02A8};
+        set_typeids     = {};
+        for (uint8_t i = 0; i < monitor_typeids.size(); i++) {
+            register_telegram_type(monitor_typeids[i], F("CRFMonitor"), false, [&](std::shared_ptr<const Telegram> t) { process_CRFMonitor(t); });
+        }
+
         // RC300/RC100
     } else if ((model == EMSdevice::EMS_DEVICE_FLAG_RC300) || (model == EMSdevice::EMS_DEVICE_FLAG_RC100)) {
         monitor_typeids = {0x02A5, 0x02A6, 0x02A7, 0x02A8};
@@ -850,11 +858,11 @@ void Thermostat::register_mqtt_ha_config() {
 
     Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(datetime_), device_type(), F_(datetime), nullptr, nullptr);
 
-    uint8_t model = this->model();
-
-    if (model == EMS_DEVICE_FLAG_RC20_2) {
+    if (Helpers::hasValue(errorNumber_)) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
     }
+
+    uint8_t model = this->model();
 
     if (model == EMS_DEVICE_FLAG_RC30_1) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(display_), device_type(), F_(display), nullptr, nullptr);
@@ -865,7 +873,6 @@ void Thermostat::register_mqtt_ha_config() {
         if (Helpers::hasValue(dampedoutdoortemp2_)) {
             Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
         }
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(floordry_), device_type(), F_(floordry), nullptr, nullptr);
@@ -880,7 +887,6 @@ void Thermostat::register_mqtt_ha_config() {
         if (Helpers::hasValue(dampedoutdoortemp_)) {
             Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(dampedoutdoortemp_), device_type(), F_(dampedoutdoortemp), F_(degrees), nullptr);
         }
-        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(errorcode_), device_type(), F_(errorcode), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(building_), device_type(), F_(building), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(minexttemp_), device_type(), F_(minexttemp), F_(degrees), F_(iconwatertemp));
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(wwmode_), device_type(), F_(wwmode), nullptr, nullptr);
@@ -1047,6 +1053,12 @@ uint8_t Thermostat::HeatingCircuit::get_mode(uint8_t model) const {
         } else if (mode == 2) {
             return HeatingCircuit::Mode::AUTO;
         }
+    } else if (model == EMSdevice::EMS_DEVICE_FLAG_CRF) {
+        if (mode == 0) {
+            return HeatingCircuit::Mode::AUTO;
+        } else if (mode == 1) {
+            return HeatingCircuit::Mode::OFF;
+        }
     } else if ((model == EMSdevice::EMS_DEVICE_FLAG_RC300) || (model == EMSdevice::EMS_DEVICE_FLAG_RC100)) {
         if (mode == 0) {
             return HeatingCircuit::Mode::MANUAL;
@@ -1090,6 +1102,12 @@ uint8_t Thermostat::HeatingCircuit::get_mode_type(uint8_t model) const {
             return HeatingCircuit::Mode::NIGHT;
         } else if (mode_type == 1) {
             return HeatingCircuit::Mode::DAY;
+        }
+    } else if (model == EMS_DEVICE_FLAG_CRF) {
+        if (mode_type == 0) {
+            return HeatingCircuit::Mode::OFF;
+        } else if (mode_type == 1) {
+            return HeatingCircuit::Mode::ON;
         }
     } else if (model == EMS_DEVICE_FLAG_RC300) {
         if (mode_type == 0) {
@@ -1156,6 +1174,9 @@ std::string Thermostat::mode_tostring(uint8_t mode) {
     case HeatingCircuit::Mode::ROOMINFLUENCE:
         return read_flash_string(F_(roominfluence));
         break;
+    case HeatingCircuit::Mode::ON:
+        return read_flash_string(F_(on));
+    break;
     default:
     case HeatingCircuit::Mode::UNKNOWN:
         return read_flash_string(F_(unknown));
@@ -1310,6 +1331,19 @@ void Thermostat::process_JunkersMonitor(std::shared_ptr<const Telegram> telegram
 
     changed_ |= telegram->read_value(hc->mode_type, 0); // 1 = nofrost, 2 = eco, 3 = heat
     changed_ |= telegram->read_value(hc->mode, 1);      // 1 = manual, 2 = auto
+}
+
+// type 0x02A5 - data from Worchester CRF200
+void Thermostat::process_CRFMonitor(std::shared_ptr<const Telegram> telegram) {
+    std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuit(telegram);
+    if (hc == nullptr) {
+        return;
+    }
+    changed_ |= telegram->read_value(hc->curr_roomTemp, 0);        // is * 10
+    changed_ |= telegram->read_bitvalue(hc->mode_type, 2, 0);      // bit 0, modetype (0=off, 1=on)
+    changed_ |= telegram->read_bitvalue(hc->mode, 2, 4);           // bit 4, mode (auto=0 or off=1)
+    changed_ |= telegram->read_value(hc->setpoint_roomTemp, 6, 1); // is * 2, force as single byte
+    changed_ |= telegram->read_value(hc->targetflowtemp, 4);
 }
 
 // type 0x02A5 - data from the Nefit RC1010/3000 thermostat (0x18) and RC300/310s on 0x10

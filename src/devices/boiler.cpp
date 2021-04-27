@@ -51,11 +51,12 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_telegram_type(0x16, F("UBAParameters"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameters(t); });
     register_telegram_type(0x33, F("UBAParameterWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBAParameterWW(t); });
     register_telegram_type(0x34, F("UBAMonitorWW"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorWW(t); });
-    // only EMS+ and Heatpump
+    // not EMS 1.0 but HT3
     if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS) {
         register_telegram_type(0x26, F("UBASettingsWW"), true, [&](std::shared_ptr<const Telegram> t) { process_UBASettingsWW(t); });
         register_telegram_type(0x2A, F("MC110Status"), false, [&](std::shared_ptr<const Telegram> t) { process_MC110Status(t); });
     }
+    // only EMS+ and Heatpump
     if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
         register_telegram_type(0xD1, F("UBAOutdoorTemp"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAOutdoorTemp(t); });
         register_telegram_type(0xE3, F("UBAMonitorSlowPlus"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAMonitorSlowPlus2(t); });
@@ -68,6 +69,8 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         register_telegram_type(0x494, F("UBAEnergySupplied"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAEnergySupplied(t); });
         register_telegram_type(0x495, F("UBAInformation"), false, [&](std::shared_ptr<const Telegram> t) { process_UBAInformation(t); });
+        register_telegram_type(0x48D, F("HpPower"), false, [&](std::shared_ptr<const Telegram> t) { process_HpPower(t); });
+        register_telegram_type(0x48F, F("HpOutdoor"), false, [&](std::shared_ptr<const Telegram> t) { process_HpOutdoor(t); });
     }
     // MQTT commands for boiler topic
     register_mqtt_cmd(F_(comfort), [&](const char * value, const int8_t id) { return set_warmwater_mode(value, id); });
@@ -251,7 +254,7 @@ void Boiler::register_mqtt_ha_config() {
     }
     if (Helpers::hasValue(tankMiddleTemp_)) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankmiddletemp_), device_type(), F_(tankmiddletemp), F_(degrees), nullptr);
-    }
+	}
     // information for heatpumps
     if (model() == EMSdevice::EMS_DEVICE_FLAG_HEATPUMP) {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(uptimecontrol_), device_type(), F_(uptimecontrol), F_(min), nullptr);
@@ -273,6 +276,19 @@ void Boiler::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgsuppheating_), device_type(), F_(nrgsuppheating), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgsuppww_), device_type(), F_(nrgsuppww), F_(kwh), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(nrgsuppcooling_), device_type(), F_(nrgsuppcooling), F_(kwh), nullptr);
+
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hppower_), device_type(), F_(hppower), F_(kw), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptc0_), device_type(), F_(hptc0), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptc1_), device_type(), F_(hptc1), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptc3_), device_type(), F_(hptc3), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptr3_), device_type(), F_(hptr3), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptr4_), device_type(), F_(hptr4), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptr5_), device_type(), F_(hptr5), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptr6_), device_type(), F_(hptr6), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptr7_), device_type(), F_(hptr7), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hptl2_), device_type(), F_(hptl2), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hppl1_), device_type(), F_(hppl1), F_(degrees), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_info), F_(hpph1_), device_type(), F_(hpph1), F_(degrees), nullptr);
     }
     mqtt_ha_config_ = true; // done
 }
@@ -357,10 +373,8 @@ void Boiler::register_mqtt_ha_config_ww() {
     if (Helpers::hasValue(wWWorkM_)) {
         Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwworkm_), device_type(), F_(wwworkm), F_(min), nullptr);
     }
-    if (model() != EMSdevice::EMS_DEVICE_FLAG_EMS && model() != EMSdevice::EMS_DEVICE_FLAG_HT3) {
-        if (Helpers::hasValue(wWMaxPower_)) {
-            Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwmaxpower_), device_type(), F_(wwmaxpower), F_(percent), nullptr);
-		}
+    if (Helpers::hasValue(wWMaxPower_)) {
+        Mqtt::register_mqtt_ha_sensor(nullptr, F_(mqtt_suffix_ww), F_(wwmaxpower_), device_type(), F_(wwmaxpower), F_(percent), nullptr);
     }
     mqtt_ha_config_ww_ = true; // done
 }
@@ -482,6 +496,19 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         create_value_json(root, F_(nrgsuppheating), nullptr, F_(nrgsuppheating_), F_(kwh), json);
         create_value_json(root, F_(nrgsuppww), F_(ww), F_(nrgsuppww_), F_(kwh), json);
         create_value_json(root, F_(nrgsuppcooling), nullptr, F_(nrgsuppcooling_), F_(kwh), json);
+
+        create_value_json(root, F_(hppower), nullptr, F_(hppower_), F_(kw), json);
+        create_value_json(root, F_(hptc0), nullptr, F_(hptc0_), F_(kwh), json);
+        create_value_json(root, F_(hptc1), nullptr, F_(hptc1_), F_(kwh), json);
+        create_value_json(root, F_(hptc3), nullptr, F_(hptc3_), F_(kwh), json);
+        create_value_json(root, F_(hptr3), nullptr, F_(hptr3_), F_(kwh), json);
+        create_value_json(root, F_(hptr4), nullptr, F_(hptr4_), F_(kwh), json);
+        create_value_json(root, F_(hptr5), nullptr, F_(hptr5_), F_(kwh), json);
+        create_value_json(root, F_(hptr6), nullptr, F_(hptr6_), F_(kwh), json);
+        create_value_json(root, F_(hptr7), nullptr, F_(hptr7_), F_(kwh), json);
+        create_value_json(root, F_(hptl2), nullptr, F_(hptl2_), F_(kwh), json);
+        create_value_json(root, F_(hppl1), nullptr, F_(hppl1_), F_(kwh), json);
+        create_value_json(root, F_(hpph1), nullptr, F_(hpph1_), F_(kwh), json);
     }
 }
 
@@ -947,6 +974,45 @@ bool Boiler::export_values_info(JsonObject & json, const bool textformat) {
         json[F_(nrgsuppcooling)] = nrgSuppCooling_;
     }
 
+    // heatpump power
+    if (Helpers::hasValue(hpPower_)) {
+        json[F_(hppower)] = hpPower_;
+    }
+
+    // heatpump temperatures
+    if (Helpers::hasValue(hpTc0_)) {
+        json[F_(hptc0)] = hpTc0_;
+    }
+    if (Helpers::hasValue(hpTc1_)) {
+        json[F_(hptc1)] = hpTc1_;
+    }
+    if (Helpers::hasValue(hpTc3_)) {
+        json[F_(hptc3)] = hpTc3_;
+    }
+    if (Helpers::hasValue(hpTr3_)) {
+        json[F_(hptr3)] = hpTr3_;
+    }
+    if (Helpers::hasValue(hpTr4_)) {
+        json[F_(hptr4)] = hpTr4_;
+    }
+    if (Helpers::hasValue(hpTr5_)) {
+        json[F_(hptr5)] = hpTr5_;
+    }
+    if (Helpers::hasValue(hpTr6_)) {
+        json[F_(hptr6)] = hpTr6_;
+    }
+    if (Helpers::hasValue(hpTr7_)) {
+        json[F_(hptr7)] = hpTr7_;
+    }
+    if (Helpers::hasValue(hpTl2_)) {
+        json[F_(hptl2)] = hpTl2_;
+    }
+    if (Helpers::hasValue(hpPl1_)) {
+        json[F_(hppl1)] = hpPl1_;
+    }
+    if (Helpers::hasValue(hpPh1_)) {
+        json[F_(hpph1)] = hpPh1_;
+    }
     return (json.size());
 }
 
@@ -1336,6 +1402,27 @@ void Boiler::process_UBAEnergySupplied(std::shared_ptr<const Telegram> telegram)
     changed_ |= telegram->read_value(nrgSuppWw_, 8);
     changed_ |= telegram->read_value(nrgSuppCooling_, 16);
 }
+
+// Heatpump power - type 0x48D
+void Boiler::process_HpPower(std::shared_ptr<const Telegram> telegram){
+    changed_ |= telegram->read_value(hpPower_, 11);
+}
+
+// Heatpump outdoor unit - type 0x48F
+void Boiler::process_HpOutdoor(std::shared_ptr<const Telegram> telegram){
+    changed_ |= telegram->read_value(hpTc0_, 6);
+    changed_ |= telegram->read_value(hpTc1_, 4);
+    changed_ |= telegram->read_value(hpTc3_, 2);
+    changed_ |= telegram->read_value(hpTr3_, 16);
+    changed_ |= telegram->read_value(hpTr4_, 18);
+    changed_ |= telegram->read_value(hpTr5_, 20);
+    changed_ |= telegram->read_value(hpTr6_, 0);
+    changed_ |= telegram->read_value(hpTr7_, 30);
+    changed_ |= telegram->read_value(hpTl2_, 12);
+    changed_ |= telegram->read_value(hpPl1_, 26);
+    changed_ |= telegram->read_value(hpPh1_, 28);
+}
+
 
 // 0x2A - MC110Status
 // e.g. 88 00 2A 00 00 00 00 00 00 00 00 00 D2 00 00 80 00 00 01 08 80 00 02 47 00
