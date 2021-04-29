@@ -89,6 +89,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F_(boilhyston), [&](const char * value, const int8_t id) { return set_hyst_on(value, id); });
     register_mqtt_cmd(F_(boilhystoff), [&](const char * value, const int8_t id) { return set_hyst_off(value, id); });
     register_mqtt_cmd(F_(burnminperiod), [&](const char * value, const int8_t id) { return set_burn_period(value, id); });
+    register_mqtt_cmd(F_(selburnpow), [&](const char * value, const int8_t id) { return set_burn_power(value, id); });
     register_mqtt_cmd(F_(pumpdelay), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
     register_mqtt_cmd(F_(reset), [&](const char * value, const int8_t id) { return set_reset(value, id); });
     register_mqtt_cmd(F_(maintenance), [&](const char * value, const int8_t id) { return set_maintenance(value, id); });
@@ -1537,6 +1538,20 @@ bool Boiler::set_flow_temp(const char * value, const int8_t id) {
 
     LOG_INFO(F("Setting boiler flow temperature to %d C"), v);
     write_command(EMS_TYPE_UBASetPoints, 0, v, EMS_TYPE_UBASetPoints);
+
+    return true;
+}
+
+// set selected burner power
+bool Boiler::set_burn_power(const char * value, const int8_t id) {
+    int v = 0;
+    if (!Helpers::value2number(value, v)) {
+        LOG_WARNING(F("Set burner max. power: Invalid value"));
+        return false;
+    }
+
+    LOG_INFO(F("Setting burner max. power to %d %"), v);
+    write_command(EMS_TYPE_UBASetPoints, 1, v, EMS_TYPE_UBASetPoints);
 
     return true;
 }
