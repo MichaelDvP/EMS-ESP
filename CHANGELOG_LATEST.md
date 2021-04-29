@@ -5,6 +5,7 @@
 - show some gpio in heartbeat, allow set gpio to input
 - publish response to some commands
 - publish on demand via `call system publish <device>`
+- boiler command `selburnpow`
 
 ### Fixed
 

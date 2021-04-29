@@ -80,7 +80,8 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F_(wwcircpump), [&](const char * value, const int8_t id) { return set_warmwater_circulation_pump(value, id); });
     register_mqtt_cmd(F_(wwcirc), [&](const char * value, const int8_t id) { return set_warmwater_circulation(value, id); });
     register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_warmwater_circulation_mode(value, id); });
-    register_mqtt_cmd(F_(setflowtemp), [&](const char * value, const int8_t id) { return set_flow_temp(value, id); });
+    register_mqtt_cmd(F_(selflowtemp), [&](const char * value, const int8_t id) { return set_flow_temp(value, id); });
+    register_mqtt_cmd(F_(selburnpow), [&](const char * value, const int8_t id) { return set_burn_power(value, id); });
     register_mqtt_cmd(F_(wwsettemp), [&](const char * value, const int8_t id) { return set_warmwater_temp(value, id); });
     register_mqtt_cmd(F_(heatingactivated), [&](const char * value, const int8_t id) { return set_heating_activated(value, id); });
     register_mqtt_cmd(F_(heatingtemp), [&](const char * value, const int8_t id) { return set_heating_temp(value, id); });
@@ -89,7 +90,6 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F_(boilhyston), [&](const char * value, const int8_t id) { return set_hyst_on(value, id); });
     register_mqtt_cmd(F_(boilhystoff), [&](const char * value, const int8_t id) { return set_hyst_off(value, id); });
     register_mqtt_cmd(F_(burnminperiod), [&](const char * value, const int8_t id) { return set_burn_period(value, id); });
-    register_mqtt_cmd(F_(selburnpow), [&](const char * value, const int8_t id) { return set_burn_power(value, id); });
     register_mqtt_cmd(F_(pumpdelay), [&](const char * value, const int8_t id) { return set_pump_delay(value, id); });
     register_mqtt_cmd(F_(reset), [&](const char * value, const int8_t id) { return set_reset(value, id); });
     register_mqtt_cmd(F_(maintenance), [&](const char * value, const int8_t id) { return set_maintenance(value, id); });
