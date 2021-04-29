@@ -81,30 +81,16 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 <MenuItem value={0x0F}>Time Module (0x0F)</MenuItem>
                 <MenuItem value={0x12}>Alarm Module (0x12)</MenuItem>
             </SelectValidator>
-            <TextValidator
-                validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:40']}
-                errorMessages={['Rx GPIO is required', "Must be a number", "Must be 0 or higher", "Max value is 40"]}
-                name="rx_gpio"
-                label="Rx GPIO pin"
-                fullWidth
-                variant="outlined"
+            <SelectValidator name="rx/tx-gpio"
+                label="Rx/Tx GPIO pins"
                 value={data.rx_gpio}
-                type="number"
-                onChange={handleValueChange('rx_gpio')}
-                margin="normal"
-            />
-            <TextValidator
-                validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:40']}
-                errorMessages={['Tx GPIO is required', "Must be a number", "Must be 0 or higher", "Max value is 40"]}
-                name="tx_gpio"
-                label="Tx GPIO pin"
                 fullWidth
                 variant="outlined"
-                value={data.tx_gpio}
-                type="number"
-                onChange={handleValueChange('tx_gpio')}
-                margin="normal"
-            />
+                onChange={handleValueChange('rx_gpio')}
+                margin="normal">
+                <MenuItem value={13}>EMS Gateway (13/15)</MenuItem>
+                <MenuItem value={3}>ESP Standard (3/1)</MenuItem>
+            </SelectValidator>
             <TextValidator
                 validators={['required', 'isNumber', 'minNumber:0', 'maxNumber:120']}
                 errorMessages={['Tx delay is required', "Must be a number", "Must be 0 or higher", "Max value is 120"]}

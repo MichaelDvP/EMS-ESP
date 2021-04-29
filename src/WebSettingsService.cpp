@@ -62,7 +62,7 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
     settings.tx_mode  = root[F_(tx_mode)] | EMSESP_DEFAULT_TX_MODE;
     settings.tx_delay = root[F("tx_delay")] | EMSESP_DEFAULT_TX_DELAY;
     settings.rx_gpio  = root[F("rx_gpio")] | EMSESP_DEFAULT_RX_GPIO;
-    settings.tx_gpio  = root[F("tx_gpio")] | EMSESP_DEFAULT_TX_GPIO;
+    settings.tx_gpio  = settings.rx_gpio == 13 ? 15 : 1;
     snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d%d"), settings.tx_mode, settings.rx_gpio, settings.tx_gpio);
     if (crc_before != crc_after) {
         add_flags(ChangeFlags::UART);
