@@ -451,6 +451,89 @@ void EMSESP::publish_response(std::shared_ptr<const Telegram> telegram) {
     Mqtt::publish(F_(response), doc.as<JsonObject>());
 }
 
+// send info to value or command
+bool EMSESP::get_device_value_info(JsonObject & root, const char * cmd, const int8_t id, const uint8_t devicetype, const bool hasCmd) {
+    // LOG_DEBUG(F("Get value info %s"), cmd);
+    for (const auto & emsdevice : emsdevices) {
+        if (emsdevice->device_type() == devicetype) {
+            if (emsdevice->export_values(root, 0)) {
+                char        prefix[6] = {'\0'};
+                JsonVariant data      = root[cmd];
+                for (int8_t i = id; i <= 12 && data.isNull(); i++) {
+                    if (i >= 1 && i <= 4) {
+                        snprintf_P(prefix, 4, PSTR("hc%d"), i);
+                        data = root[prefix][cmd];
+                    } else if (i >= 8 && i <= 11) {
+                        snprintf_P(prefix, 5, PSTR("wwc%d"), i - 7);
+                        data = root[prefix][cmd];
+                    } else {
+                        prefix[0] = '\0';
+                    }
+                }
+                if (data.isNull() && !hasCmd) {
+                    root.clear();
+                    return false;
+                }
+                StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
+                JsonObject                                     json = doc.to<JsonObject>();
+                json[F_(value)] = data;
+                if (data.is<char *>()) {
+                    json[F_(type)] = F_(text);
+                } else if (data.is<int>()) {
+                    json[F_(type)] = F_(number);
+                } else if (data.is<float>()) {
+                    json[F_(type)] = F_(number);
+                } else if (data.is<bool>()) {
+                    json[F_(type)] = F("boolean");
+                }
+
+                root.clear();
+
+                char name[20];
+                strlcpy(name, cmd, 20);
+                root[F_(name)] = name;
+                if (strlen(prefix) == 0 && strncmp(name, "ww", 2) == 0) {
+                    strlcpy(prefix, "ww", 3);
+                }
+                if (strlen(prefix)) {
+                    root[F_(circuit)] = prefix;
+                }
+                if (!json[F_(value)].isNull()) {
+                    root[F_(value)] = json[F_(value)];
+                }
+                if (!json[F_(type)].isNull()) {
+                    root[F_(type)] = json[F_(type)];
+                }
+                root[F_(writeable)] = hasCmd;
+                return true;
+            }
+            return false;
+        }
+    }
+
+    if (devicetype == DeviceType::DALLASSENSOR) {
+        uint8_t i = 1;
+        for (const auto & sensor : EMSESP::sensor_devices()) {
+            char sensorID[10];
+            snprintf_P(sensorID, 10, PSTR("sensor%d"), i++);
+            if ((strcmp(cmd, sensorID) == 0) || (strcmp(cmd, Helpers::toLower(sensor.to_string()).c_str()) == 0)) {
+                root[F_(name)] = sensor.to_string();
+                if (Helpers::hasValue(sensor.temperature_c)) {
+                    root[F_(value)] = (float)(sensor.temperature_c) / 10;
+                }
+                root[F_(type)]      = F_(number);
+                root[F_(min)]       = -55;
+                root[F_(max)]       = 125;
+                root[F_(unit)]      = F_(degrees);
+                root[F_(writeable)] = false;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 // search for recognized device_ids : Me, All, otherwise print hex value
 std::string EMSESP::device_tostring(const uint8_t device_id) {
     if ((device_id & 0x7F) == rxservice_.ems_bus_id()) {

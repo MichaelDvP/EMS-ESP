@@ -67,9 +67,14 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
         uint8_t i = 1;
         for (const auto & sensor : EMSESP::sensor_devices()) {
             JsonObject obj = sensors.createNestedObject();
-            obj[F("no")]      = i++;
-            obj[F("id")]      = sensor.to_string();
-            obj[F_(temp)]     = (float)sensor.temperature_c / 10;
+            obj[F("no")]   = i++;
+            if (Mqtt::dallas_format() == Mqtt::Dallas_Format::SENSORID) {
+                obj["id"] = sensor.to_string();
+            } else {
+                obj["id"] = i - 1;
+            }
+            char s[8];
+            obj["temp"] = Helpers::render_value(s, sensor.temperature_c, 10);
         }
     }
 

@@ -122,6 +122,7 @@ void DallasSensor::loop() {
                         int16_t t;
                         t = get_temperature_c(addr);
                         if ((t >= -550) && (t <= 1250)) {
+                            sensorreads_++;
                             // check if we have this sensor already
                             bool found = false;
                             for (auto & sensor : sensors_) {
@@ -302,13 +303,14 @@ bool DallasSensor::updated_values() {
 }
 
 bool DallasSensor::command_info(const char * value, const int8_t id, JsonObject & json) {
-    return (export_values(json));
+
+    return (export_values(json, id));
 }
 
 // creates JSON doc from values
 // returns false if empty
 // e.g. dallassensor_data = {"sensor1":{"id":"28-EA41-9497-0E03-5F","temp":23.30},"sensor2":{"id":"28-233D-9497-0C03-8B","temp":24.0}}
-bool DallasSensor::export_values(JsonObject & json) {
+bool DallasSensor::export_values(JsonObject & json, int8_t id) {
     if (sensors_.size() == 0) {
         return false;
     }
@@ -317,10 +319,18 @@ bool DallasSensor::export_values(JsonObject & json) {
     for (const auto & sensor : sensors_) {
         char sensorID[10]; // sensor{1-n}
         snprintf_P(sensorID, 10, PSTR("sensor%d"), i++);
-        JsonObject dataSensor = json.createNestedObject(sensorID);
-        dataSensor["id"]      = sensor.to_string();
-        if (Helpers::hasValue(sensor.temperature_c)) {
-            dataSensor[F_(temp)] = (float)(sensor.temperature_c) / 10;
+        if (id == 0) {
+            if (Mqtt::dallas_format() == Mqtt::Dallas_Format::SENSORID && Helpers::hasValue(sensor.temperature_c)) {
+                json[sensor.to_string()] = (float)(sensor.temperature_c) / 10;
+            } else if (Helpers::hasValue(sensor.temperature_c)) {
+                json[sensorID] = (float)(sensor.temperature_c) / 10;
+            }
+        } else {
+            JsonObject dataSensor = json.createNestedObject(sensorID);
+            dataSensor["id"]      = sensor.to_string();
+            if (Helpers::hasValue(sensor.temperature_c)) {
+                dataSensor["temp"] = (float)(sensor.temperature_c) / 10;
+            }
         }
     }
 

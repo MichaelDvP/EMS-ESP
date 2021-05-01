@@ -6,6 +6,7 @@
 - publish response to some commands
 - publish on demand via `call system publish <device>`
 - boiler command `selburnpow`
+- value info
 
 ### Fixed
 
@@ -18,5 +19,6 @@
 - all mqtt topics lower case
 - larger dynamic json for mqtt
 - settings for bool-format and dallas-format moved to mqtt (like v3)
+- model-flags for boiler
 
 ### Removed

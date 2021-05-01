@@ -85,6 +85,15 @@ MAKE_PSTR_WORD(info)
 MAKE_PSTR_WORD(test)
 MAKE_PSTR_WORD(settings)
 
+// info
+MAKE_PSTR_WORD(value)
+MAKE_PSTR_WORD(unit)
+MAKE_PSTR_WORD(max)
+MAKE_PSTR_WORD(writeable)
+MAKE_PSTR_WORD(number)
+MAKE_PSTR_WORD(text)
+MAKE_PSTR_WORD(circuit)
+
 // devices
 MAKE_PSTR_WORD(boiler)
 MAKE_PSTR_WORD(thermostat)

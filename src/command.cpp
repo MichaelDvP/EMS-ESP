@@ -30,7 +30,11 @@ std::vector<Command::CmdFunction> Command::cmdfunctions_;
 // id may be used to represent a heating circuit for example
 // returns false if error or not found
 bool Command::call(const uint8_t device_type, const char * cmd, const char * value, const int8_t id) {
-    auto cf = find_command(device_type, cmd);
+    int8_t      id_new = id;
+    char        cmd_new[20];
+
+    check_command(cmd_new, cmd, id_new);
+    auto cf = find_command(device_type, cmd_new);
     if ((cf == nullptr) || (cf->cmdfunction_json_)) {
         LOG_WARNING(F("Command %s not found"), cmd);
         return false; // command not found, or requires a json
@@ -47,18 +51,18 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
     }
 #endif
 
-    return ((cf->cmdfunction_)(value, id));
+    return ((cf->cmdfunction_)(value, id_new));
 }
 
 // calls a command, context is the device_type. Takes a json object for output.
 // id may be used to represent a heating circuit for example
 // returns false if error or not found
 bool Command::call(const uint8_t device_type, const char * cmd, const char * value, const int8_t id, JsonObject & json) {
-    auto cf = find_command(device_type, cmd);
-    if (cf == nullptr) {
-        LOG_WARNING(F("Command %s not found"), cmd);
-        return false; // command not found or not json
-    }
+    int8_t      id_new = id;
+    char        cmd_new[20];
+
+    check_command(cmd_new, cmd, id_new);
+    auto cf = find_command(device_type, cmd_new);
 
 #ifdef EMSESP_DEBUG
     std::string dname = EMSdevice::device_type_2_device_name(device_type);
@@ -76,11 +80,51 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
         LOG_WARNING(F("Ignore call for command %s in %s because no json"), cmd, EMSdevice::device_type_2_device_name(device_type).c_str());
         return false;
     }
-    if (!cf->cmdfunction_json_) {
-        return ((cf->cmdfunction_)(value, id));
-    } else {
-        return ((cf->cmdfunction_json_)(value, id, json));
+
+    if (cf == nullptr) {
+        return EMSESP::get_device_value_info(json, cmd_new, id_new, device_type, false);
     }
+
+    if (cf->cmdfunction_json_) {
+        return ((cf->cmdfunction_json_)(value, id_new, json));
+    }
+
+    if (value == nullptr || strlen(value) == 0 || strcmp(value, "?") == 0 || strcmp(value, "*") == 0) {
+        return EMSESP::get_device_value_info(json, cmd_new, id_new, device_type, true);
+    }
+    return ((cf->cmdfunction_)(value, id_new));
+}
+
+char * Command::check_command(char * out, const char * cmd, int8_t & id) {
+    // convert cmd to lowercase
+    strlcpy(out, cmd, 20);
+    for (char * p = out; *p; p++) {
+        *p = tolower(*p);
+    }
+
+    //scan for prefix hc.
+    for (uint8_t i = 1; i <= 4; i++) {
+        char tag[4];
+        snprintf(tag, 4, "hc%d", i);
+        if ((strncmp(out, tag, 3) == 0) && (strlen(out) > 4)) {
+            strcpy(out, &out[4]);
+            id = i;
+            break;
+        }
+    }
+
+    //scan for prefix wwc.
+    for (uint8_t i = 1; i <= 4; i++) {
+        char tag[5];
+        snprintf(tag, 5, "wwc%d", i);
+        if ((strncmp(out, tag, 4) == 0) && (strlen(out) > 5)) {
+            strcpy(out, &out[5]);
+            id = 7 + i;
+            break;
+        }
+    }
+
+    return out;
 }
 
 // add a command to the list, which does not return json

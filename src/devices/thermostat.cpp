@@ -2703,8 +2703,11 @@ void Thermostat::add_commands() {
 
     // common to all thermostats
     register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); });
+    register_mqtt_cmd(F_(seltemp), [&](const char * value, const int8_t id) { return set_temp(value, id); });
     register_mqtt_cmd(F_(mode), [&](const char * value, const int8_t id) { return set_mode(value, id); });
-    register_mqtt_cmd(F_(roomtemp), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
+    if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
+        register_mqtt_cmd(F_(roomtemp), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
+    }
     if (model() == EMS_DEVICE_FLAG_RC35) {
         register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
     }

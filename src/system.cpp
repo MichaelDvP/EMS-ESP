@@ -1191,8 +1191,11 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node[F("rx line quality")]       = EMSESP::rxservice_.quality();
         node[F("tx line quality")]       = EMSESP::txservice_.quality();
         node[F("#MQTT publish fails")]   = Mqtt::publish_fails();
-        node[F("#dallas sensors")]       = EMSESP::sensor_devices().size();
-        node[F("#dallas fails")]         = EMSESP::sensor_fails();
+        if (EMSESP::sensor_devices().size()) {
+            node[F("#dallas sensors")] = EMSESP::sensor_devices().size();
+            node[F("#dallas reads")]   = EMSESP::sensor_reads();
+            node[F("#dallas fails")]   = EMSESP::sensor_fails();
+        }
     }
 
     JsonArray devices2 = json.createNestedArray("Devices");
@@ -1207,6 +1210,11 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
                 obj[F("handlers")] = emsdevice->show_telegram_handlers(result);
             }
         }
+    }
+    if (EMSESP::sensor_devices().size()) {
+        JsonObject obj = devices2.createNestedObject();
+        obj[F_(type)]    = F_(dallassensor);
+        obj[F_(name)]    = F_(dallassensor);
     }
 
     return true;
