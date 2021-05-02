@@ -75,7 +75,7 @@ class System {
     static void other_init();
     static void button_init();
 
-    bool check_upgrade();
+    // bool check_upgrade();
     void send_heartbeat();
 
   private:

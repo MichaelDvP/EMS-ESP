@@ -1091,7 +1091,7 @@ void EMSESP::send_raw_telegram(const char * data) {
 // the services must be loaded in the correct order
 void EMSESP::start() {
     // see if we need to migrate from previous versions
-    if (!system_.check_upgrade()) {
+    // if (!system_.check_upgrade()) {
 #ifdef ESP32
         SPIFFS.begin(true);
 #elif defined(ESP8266)
@@ -1100,7 +1100,7 @@ void EMSESP::start() {
 
         esp8266React.begin();       // loads system settings (wifi, mqtt, etc)
         webSettingsService.begin(); // load EMS-ESP specific settings
-    }
+    // }
 
     // Load our library of known devices. Names are stored in Flash mem.
     device_library_.reserve(80);

@@ -818,6 +818,7 @@ void System::console_commands(Shell & shell, unsigned int context) {
 // upgrade from previous versions of EMS-ESP, based on SPIFFS on an ESP8266
 // returns true if an upgrade was done
 // the logic is bit abnormal (loading both filesystems and testing) but this was the only way I could get it to work reliably
+/*
 bool System::check_upgrade() {
 #if defined(ESP8266)
     LittleFSConfig l_cfg;
@@ -1007,6 +1008,7 @@ bool System::check_upgrade() {
     return false;
 #endif
 }
+*/
 
 // export all settings to JSON text
 // http://ems-esp/api?device=system&cmd=settings
