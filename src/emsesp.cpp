@@ -36,7 +36,7 @@ WebSettingsService EMSESP::webSettingsService = WebSettingsService(&webServer, &
 
 WebStatusService  EMSESP::webStatusService  = WebStatusService(&webServer, EMSESP::esp8266React.getSecurityManager());
 WebDevicesService EMSESP::webDevicesService = WebDevicesService(&webServer, EMSESP::esp8266React.getSecurityManager());
-WebAPIService     EMSESP::webAPIService     = WebAPIService(&webServer);
+WebAPIService     EMSESP::webAPIService     = WebAPIService(&webServer, EMSESP::esp8266React.getSecurityManager());
 
 using DeviceFlags = emsesp::EMSdevice;
 using DeviceType  = emsesp::EMSdevice::DeviceType;
