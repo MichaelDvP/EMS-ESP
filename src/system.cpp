@@ -91,35 +91,54 @@ bool System::command_send(const char * value, const int8_t id) {
 
 // fetch device values
 bool System::command_fetch(const char * value, const int8_t id) {
-    LOG_INFO(F("Requesting data from EMS devices"));
-    EMSESP::fetch_device_values();
+    std::string value_s(14, '\0');
+    if (Helpers::value2string(value, value_s)) {
+        if (value_s == "all") {
+            LOG_INFO(F("Requesting data from EMS devices"));
+            EMSESP::fetch_device_values();
+            return true;
+        } else if (value_s == "boiler") {
+            EMSESP::fetch_device_values_type(EMSdevice::DeviceType::BOILER);
+            return true;
+        } else if (value_s == "thermostat") {
+            EMSESP::fetch_device_values_type(EMSdevice::DeviceType::THERMOSTAT);
+            return true;
+        } else if (value_s == "solar") {
+            EMSESP::fetch_device_values_type(EMSdevice::DeviceType::SOLAR);
+            return true;
+        } else if (value_s == "mixer") {
+            EMSESP::fetch_device_values_type(EMSdevice::DeviceType::MIXER);
+            return true;
+        }
+    }
+    EMSESP::fetch_device_values(); // default if no name or id is given
     return true;
 }
 
 // mqtt publish
 bool System::command_publish(const char * value, const int8_t id) {
-    std::string ha(14, '\0');
-    if (Helpers::value2string(value, ha)) {
-        if (ha == "ha") {
+    std::string value_s(14, '\0');
+    if (Helpers::value2string(value, value_s)) {
+        if (value_s == "ha") {
             EMSESP::publish_all(true); // includes HA
             LOG_INFO(F("Publishing all data to MQTT, including HA configs"));
             return true;
-        } else if (ha == uuid::read_flash_string(F_(boiler))) {
+        } else if (value_s == uuid::read_flash_string(F_(boiler))) {
             EMSESP::publish_device_values(EMSdevice::DeviceType::BOILER);
             return true;
-        } else if (ha == uuid::read_flash_string(F_(thermostat))) {
+        } else if (value_s == uuid::read_flash_string(F_(thermostat))) {
             EMSESP::publish_device_values(EMSdevice::DeviceType::THERMOSTAT);
             return true;
-        } else if (ha == uuid::read_flash_string(F_(solar))) {
+        } else if (value_s == uuid::read_flash_string(F_(solar))) {
             EMSESP::publish_device_values(EMSdevice::DeviceType::SOLAR);
             return true;
-        } else if (ha == uuid::read_flash_string(F_(mixer))) {
+        } else if (value_s == uuid::read_flash_string(F_(mixer))) {
             EMSESP::publish_device_values(EMSdevice::DeviceType::MIXER);
             return true;
-        } else if (ha == uuid::read_flash_string(F_(other))) {
+        } else if (value_s == uuid::read_flash_string(F_(other))) {
             EMSESP::publish_other_values();
             return true;
-        } else if (ha == uuid::read_flash_string(F_(dallassensor))) {
+        } else if (value_s == uuid::read_flash_string(F_(dallassensor))) {
             EMSESP::publish_sensor_values(true);
             return true;
         }
@@ -1184,19 +1203,19 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     }
 
     if (EMSESP::bus_status() != EMSESP::BUS_STATUS_OFFLINE) {
-        node[F("bus protocol")]          = EMSbus::is_ht3() ? F("HT3") : F("Buderus");
-        node[F("#telegrams received")]   = EMSESP::rxservice_.telegram_count();
-        node[F("#read requests sent")]   = EMSESP::txservice_.telegram_read_count();
-        node[F("#write requests sent")]  = EMSESP::txservice_.telegram_write_count();
-        node[F("#incomplete telegrams")] = EMSESP::rxservice_.telegram_error_count();
-        node[F("#tx fails")]             = EMSESP::txservice_.telegram_fail_count();
-        node[F("rx line quality")]       = EMSESP::rxservice_.quality();
-        node[F("tx line quality")]       = EMSESP::txservice_.quality();
-        node[F("#MQTT publish fails")]   = Mqtt::publish_fails();
+        node[F("bus_protocol")] = EMSbus::is_ht3() ? F("HT3") : F("Buderus");
+        node[F("rx_received")]  = EMSESP::rxservice_.telegram_count();
+        node[F("tx_reads")]     = EMSESP::txservice_.telegram_read_count();
+        node[F("tx_writes")]    = EMSESP::txservice_.telegram_write_count();
+        node[F("rx_fails")]     = EMSESP::rxservice_.telegram_error_count();
+        node[F("tx_fails")]     = EMSESP::txservice_.telegram_fail_count();
+        node[F("rx_quality")]   = EMSESP::rxservice_.quality();
+        node[F("tx_quality")]   = EMSESP::txservice_.quality();
+        node[F("mqtt_fails")]   = Mqtt::publish_fails();
         if (EMSESP::sensor_devices().size()) {
-            node[F("#dallas sensors")] = EMSESP::sensor_devices().size();
-            node[F("#dallas reads")]   = EMSESP::sensor_reads();
-            node[F("#dallas fails")]   = EMSESP::sensor_fails();
+            node[F("dallas_sensors")] = EMSESP::sensor_devices().size();
+            node[F("dallas_reads")]   = EMSESP::sensor_reads();
+            node[F("dallas_fails")]   = EMSESP::sensor_fails();
         }
     }
 
@@ -1206,8 +1225,8 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         for (const auto & emsdevice : EMSESP::emsdevices) {
             if ((emsdevice) && (emsdevice->device_type() == device_class.first)) {
                 JsonObject obj = devices2.createNestedObject();
-                obj[F_(type)]    = emsdevice->device_type_name();
-                obj[F_(name)]    = emsdevice->to_string();
+                obj[F_(type)]  = emsdevice->device_type_name();
+                obj[F_(name)]  = emsdevice->to_string();
                 char result[200];
                 obj[F("handlers")] = emsdevice->show_telegram_handlers(result);
             }
@@ -1215,8 +1234,8 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     }
     if (EMSESP::sensor_devices().size()) {
         JsonObject obj = devices2.createNestedObject();
-        obj[F_(type)]    = F_(dallassensor);
-        obj[F_(name)]    = F_(dallassensor);
+        obj[F_(type)]  = F_(dallassensor);
+        obj[F_(name)]  = F_(dallassensor);
     }
 
     return true;

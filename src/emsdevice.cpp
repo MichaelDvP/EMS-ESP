@@ -396,8 +396,8 @@ void EMSdevice::create_value_json(JsonArray &                 root,
     }
 
     char data_string[40];
-    if (data.is<char *>()) {
-        snprintf_P(data_string, sizeof(data_string), PSTR("%s%s"), data.as<char *>(), suffix_string.c_str());
+    if (data.is<const char *>()) {
+        snprintf_P(data_string, sizeof(data_string), PSTR("%s%s"), data.as<const char *>(), suffix_string.c_str());
     } else if (data.is<int>()) {
         snprintf_P(data_string, sizeof(data_string), PSTR("%d%s"), data.as<int>(), suffix_string.c_str());
     } else if (data.is<float>()) {

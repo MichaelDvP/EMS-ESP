@@ -62,6 +62,9 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
     char        cmd_new[20];
 
     check_command(cmd_new, cmd, id_new);
+    if (id_new < -1 || id_new == 0) {
+        return false;
+    }
     auto cf = find_command(device_type, cmd_new);
 
 #ifdef EMSESP_DEBUG

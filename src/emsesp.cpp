@@ -84,6 +84,15 @@ void EMSESP::fetch_device_values(const uint8_t device_id) {
     }
 }
 
+// for a specific EMS device type go and request data values
+void EMSESP::fetch_device_values_type(const uint8_t device_type) {
+    for (const auto & emsdevice : emsdevices) {
+        if ((emsdevice) && (emsdevice->device_type() == device_type)) {
+            emsdevice->fetch_values();
+        }
+    }
+}
+
 // clears list of recognized devices
 void EMSESP::clear_all_devices() {
     // temporary removed: clearing the list causes a crash, the associated commands and mqtt should also be removed.
@@ -477,7 +486,7 @@ bool EMSESP::get_device_value_info(JsonObject & root, const char * cmd, const in
                 StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
                 JsonObject                                     json = doc.to<JsonObject>();
                 json[F_(value)] = data;
-                if (data.is<char *>()) {
+                if (data.is<const char *>()) {
                     json[F_(type)] = F_(text);
                 } else if (data.is<int>()) {
                     json[F_(type)] = F_(number);
