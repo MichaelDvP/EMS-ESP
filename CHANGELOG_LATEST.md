@@ -6,8 +6,9 @@
 - publish response to some commands
 - publish on demand via `call system publish <device>`
 - boiler command `selburnpow`
-- value info
-- new v3 API
+- simple value info (without enum, long names, ranges)
+- new v3 API (without verbose)
+- some solar values and settings
 
 ### Fixed
 

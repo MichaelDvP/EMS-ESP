@@ -15,7 +15,7 @@ export interface EMSESPSettings {
   dallas_parasite: boolean;
   led_gpio: number;
   hide_led: boolean;
-  api_enabled: boolean;
+  notoken_api: boolean;
   analog_enabled: boolean;
   trace_raw: boolean;
 }

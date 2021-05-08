@@ -99,6 +99,16 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
 }
 
 char * Command::check_command(char * out, const char * cmd, int8_t & id) {
+    // no command for id0
+    if (id == 0) {
+        return out;
+    }
+    // empty command is info with id0 for compact info
+    if (cmd[0] == '\0' || cmd == nullptr) {
+        strlcpy(out, "info", 20);
+        id = 0;
+        return out;
+    }
     // convert cmd to lowercase
     strlcpy(out, cmd, 20);
     for (char * p = out; *p; p++) {

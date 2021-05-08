@@ -48,8 +48,9 @@ void WebSettings::read(WebSettings & settings, JsonObject & root) {
     root[F("dallas_parasite")]      = settings.dallas_parasite;
     root[F("led_gpio")]             = settings.led_gpio;
     root[F("hide_led")]             = settings.hide_led;
-    root[F("api_enabled")]          = settings.api_enabled;
+    root[F("notoken_api")]          = settings.notoken_api;
     root[F("analog_enabled")]       = settings.analog_enabled;
+    root[F("solar_maxflow")]        = settings.solar_maxflow;
 }
 
 StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings) {
@@ -135,7 +136,8 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
     settings.master_thermostat = root[F("master_thermostat")] | EMSESP_DEFAULT_MASTER_THERMOSTAT;
 
     // doesn't need any follow-up actions
-    settings.api_enabled = root[F("api_enabled")] | EMSESP_DEFAULT_API_ENABLED;
+    settings.notoken_api   = root[F("notoken_api")] | EMSESP_DEFAULT_NOTOKEN_API;
+    settings.solar_maxflow = root[F("solar_maxflow")] | EMSESP_DEFAULT_SOLAR_MAXFLOW;
 
     return StateUpdateResult::CHANGED;
 }

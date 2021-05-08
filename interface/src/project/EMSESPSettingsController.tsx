@@ -186,12 +186,12 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
             <BlockFormControlLabel
                 control={
                     <Checkbox
-                        checked={data.api_enabled}
-                        onChange={handleValueChange('api_enabled')}
-                        value="api_enabled"
+                        checked={data.notoken_api}
+                        onChange={handleValueChange('notoken_api')}
+                        value="notoken_api"
                     />
                 }
-                label="Allow WEB API to write commands"
+                label="Bypass Access Token authorization on API calls"
             />
             <br></br>
             <Typography variant="h6" color="primary" >

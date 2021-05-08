@@ -57,7 +57,7 @@ void WebAPIService::webAPIService_post(AsyncWebServerRequest * request, JsonVari
     // these will be used as default values
     auto && body = json.as<JsonObject>();
 
-    std::string device = body["name"].as<std::string>(); // note this was called device in the v2
+    std::string device = body[F_(name)].as<std::string>(); // note this was called device in the v2
     std::string cmd    = body["cmd"].as<std::string>();
     int         id     = -1;
     if (body.containsKey("id")) {
@@ -69,11 +69,11 @@ void WebAPIService::webAPIService_post(AsyncWebServerRequest * request, JsonVari
     }
 
     // make sure we have a value. There must always be a value
-    if (!body.containsKey("value")) {
-        send_message_response(request, 400, "Problems parsing JSON"); // Bad Request
+    if (!body.containsKey(F_(value))) {
+        send_message_response(request, 400, uuid::read_flash_string(F("Problems parsing JSON")).c_str()); // Bad Request
         return;
     }
-    std::string value = body["value"].as<std::string>(); // always convert value to string
+    std::string value = body[F_(value)].as<std::string>(); // always convert value to string
 
     // now parse the URL. The URL is always leading and will overwrite anything provided in the json body
     parse(request, device, cmd, id, value); // pass it defaults
@@ -114,13 +114,13 @@ void WebAPIService::parse(AsyncWebServerRequest * request, std::string & device_
         if (request->hasParam(F_(data))) {
             value_s = request->getParam(F_(data))->value().c_str();
         }
-        if (request->hasParam("value")) {
-            value_s = request->getParam("value")->value().c_str();
+        if (request->hasParam(F_(value))) {
+            value_s = request->getParam(F_(value))->value().c_str();
         }
 
         // get id (or hc), which is optional
-        if (request->hasParam(F_(id))) {
-            id_n = Helpers::atoint(request->getParam(F_(id))->value().c_str());
+        if (request->hasParam("id")) {
+            id_n = Helpers::atoint(request->getParam("id")->value().c_str());
         }
         if (request->hasParam("hc")) {
             id_n = Helpers::atoint(request->getParam("hc")->value().c_str());
@@ -134,7 +134,7 @@ void WebAPIService::parse(AsyncWebServerRequest * request, std::string & device_
         auto num_paths = p.paths().size();
         if (num_paths == 1) {
             // if there are no more paths parameters, default to 'info'
-            cmd_s = "info";
+            // cmd_s = "info";
         } else if (num_paths == 2) {
             cmd_s = p.paths()[1];
         } else if (num_paths > 2) {
@@ -144,14 +144,18 @@ void WebAPIService::parse(AsyncWebServerRequest * request, std::string & device_
     }
     // now go and validate everything
 
+    if (cmd_s.empty()) {
+        cmd_s = uuid::read_flash_string(F_(info));
+    }
+
     // device check
     if (device_s.empty()) {
-        send_message_response(request, 422, "Missing device"); // Unprocessable Entity
+        send_message_response(request, 422, uuid::read_flash_string(F("Missing device")).c_str()); // Unprocessable Entity
         return;
     }
     device_type = EMSdevice::device_name_2_device_type(device_s.c_str());
     if (device_type == EMSdevice::DeviceType::UNKNOWN) {
-        send_message_response(request, 422, "Invalid device"); // Unprocessable Entity
+        send_message_response(request, 422, uuid::read_flash_string(F("Invalid device")).c_str()); // Unprocessable Entity
         return;
     }
 
@@ -165,12 +169,12 @@ void WebAPIService::parse(AsyncWebServerRequest * request, std::string & device_
     bool admin_allowed;
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
         Authentication authentication = _securityManager->authenticateRequest(request);
-        admin_allowed                 = settings.api_enabled | AuthenticationPredicates::IS_ADMIN(authentication);
+        admin_allowed                 = settings.notoken_api | AuthenticationPredicates::IS_ADMIN(authentication);
     });
 
     if ((method != HTTP_GET) || ((method == HTTP_GET) && have_data)) {
         if (!admin_allowed) {
-            send_message_response(request, 401, "Bad credentials"); // Unauthorized
+            send_message_response(request, 401, uuid::read_flash_string(F("Bad credentials")).c_str()); // Unauthorized
             return;
         }
     }
@@ -184,7 +188,7 @@ void WebAPIService::parse(AsyncWebServerRequest * request, std::string & device_
 
     // check for errors
     if (!ok) {
-        send_message_response(request, 400, "Problems parsing elements"); // Bad Request
+        send_message_response(request, 400, uuid::read_flash_string(F("Problems parsing elements")).c_str()); // Bad Request
         return;
     }
 
@@ -209,10 +213,10 @@ void WebAPIService::send_message_response(AsyncWebServerRequest * request, uint1
         // build a return message and send it
         PrettyAsyncJsonResponse * response = new PrettyAsyncJsonResponse(false, EMSESP_MAX_JSON_SIZE_SMALL);
         JsonObject                json     = response->getRoot();
-        json["message"]                    = error_message;
+        json[F("message")]                 = error_message;
         response->setCode(error_code);
         response->setLength();
-        response->setContentType("application/json");
+        response->setContentType(F("application/json"));
         request->send(response);
     }
 }

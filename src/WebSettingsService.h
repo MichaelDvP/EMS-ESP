@@ -43,8 +43,9 @@
 #define EMSESP_DEFAULT_HIDE_LED false
 #endif
 #define EMSESP_DEFAULT_DALLAS_PARASITE false
-#define EMSESP_DEFAULT_API_ENABLED false // turn off, because its insecure
+#define EMSESP_DEFAULT_NOTOKEN_API false // turn off, because its insecure
 #define EMSESP_DEFAULT_ANALOG_ENABLED false
+#define EMSESP_DEFAULT_SOLAR_MAXFLOW 30
 
 // Default GPIO PIN definitions
 #if defined(ESP8266)
@@ -87,8 +88,9 @@ class WebSettings {
     bool     dallas_parasite;
     uint8_t  led_gpio;
     bool     hide_led;
-    bool     api_enabled;
+    bool     notoken_api;
     bool     analog_enabled;
+    uint8_t  solar_maxflow;
 
     static void              read(WebSettings & settings, JsonObject & root);
     static StateUpdateResult update(JsonObject & root, WebSettings & settings);

@@ -44,16 +44,13 @@ using uuid::log::Level;
 #define LOG_WARNING(...) logger_.warning(__VA_ARGS__)
 #define LOG_ERROR(...) logger_.err(__VA_ARGS__)
 
-// #define FT_(name) (uuid::read_flash_string(FPSTR(__pstr__##name)))
-#define Fc_(name) (uuid::read_flash_string(FPSTR(__pstr__##name)).c_str())
-// #define FJSON(x) x
-// #define FJSON(x) F(x)
-
-
 // clang-format off
 #define MAKE_PSTR(string_name, string_literal) static const char __pstr__##string_name[] __attribute__((__aligned__(sizeof(int)))) PROGMEM = string_literal;
 #define MAKE_PSTR_WORD(string_name) MAKE_PSTR(string_name, #string_name)
 #define F_(string_name) FPSTR(__pstr__##string_name)
+#define MAKE_PSTR_LIST(list_name, ...) static const __FlashStringHelper * const __pstr__##list_name[] PROGMEM = {__VA_ARGS__, nullptr};
+#define FL_(list_name) (__pstr__##list_name)
+#define Fc_(name) (uuid::read_flash_string(FPSTR(__pstr__##name)).c_str())
 // clang-format on
 
 // localizations

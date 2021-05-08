@@ -97,16 +97,16 @@ bool System::command_fetch(const char * value, const int8_t id) {
             LOG_INFO(F("Requesting data from EMS devices"));
             EMSESP::fetch_device_values();
             return true;
-        } else if (value_s == "boiler") {
+        } else if (value_s == uuid::read_flash_string(F_(boiler))) {
             EMSESP::fetch_device_values_type(EMSdevice::DeviceType::BOILER);
             return true;
-        } else if (value_s == "thermostat") {
+        } else if (value_s == uuid::read_flash_string(F_(thermostat))) {
             EMSESP::fetch_device_values_type(EMSdevice::DeviceType::THERMOSTAT);
             return true;
-        } else if (value_s == "solar") {
+        } else if (value_s == uuid::read_flash_string(F_(solar))) {
             EMSESP::fetch_device_values_type(EMSdevice::DeviceType::SOLAR);
             return true;
-        } else if (value_s == "mixer") {
+        } else if (value_s == uuid::read_flash_string(F_(mixer))) {
             EMSESP::fetch_device_values_type(EMSdevice::DeviceType::MIXER);
             return true;
         }
@@ -1127,8 +1127,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node[F("led_gpio")]        = settings.led_gpio;
         // Helpers::json_boolean(node, "hide_led", settings.hide_led);
         node[F("hide_led")] = settings.hide_led;
-        // Helpers::json_boolean(node, "api_enabled", settings.api_enabled);
-        node[F("api_enabled")] = settings.api_enabled;
+        // Helpers::json_boolean(node, "notoken_api", settings.notoken_api);
+        node[F("notoken_api")] = settings.notoken_api;
         // Helpers::json_boolean(node, "analog_enabled", settings.analog_enabled);
         node[F("analog_enabled")] = settings.analog_enabled;
     });
@@ -1150,8 +1150,9 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
 #elif defined(ESP32)
     node[F("platform")] = "esp32";
 #endif
-    node[F("uptime")]  = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
-    node[F("freemem")] = free_mem();
+    node[F("uptime")]     = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    node[F("uptime_sec")] = uuid::get_uptime_sec();
+    node[F("freemem")]    = free_mem();
 #if defined(ESP8266)
     node[F("fragmem")] = ESP.getHeapFragmentation();
 #endif
@@ -1182,7 +1183,7 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node[F("dallas_parasite")]   = settings.dallas_parasite;
         node[F("led_gpio")]          = settings.led_gpio;
         node[F("hide_led")]          = settings.hide_led;
-        node[F("api_enabled")]       = settings.api_enabled;
+        node[F("notoken_api")]       = settings.notoken_api;
         node[F("analog_enabled")]    = settings.analog_enabled;
     });
 */
@@ -1234,8 +1235,8 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     }
     if (EMSESP::sensor_devices().size()) {
         JsonObject obj = devices2.createNestedObject();
-        obj[F_(type)]  = F_(dallassensor);
-        obj[F_(name)]  = F_(dallassensor);
+        obj[F_(type)]  = F_(Dallassensor);
+        obj[F_(name)]  = F_(Dallassensor);
     }
 
     return true;

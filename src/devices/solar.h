@@ -54,7 +54,6 @@ class Solar : public EMSdevice {
     uint8_t  cylinderPumpModulation_     = EMS_VALUE_UINT_NOTSET;  // PS5: modulation cylinder primary pump when using external heat exchanger
     uint8_t  solarPump_                  = EMS_VALUE_BOOL_NOTSET;  // PS1: solar circuit pump active
     uint8_t  valveStatus_                = EMS_VALUE_BOOL_NOTSET;  // VS2: status 3-way valve for cylinder 2 (solar thermal system) with valve
-    int16_t  setpoint_tankBottomMaxTemp_ = EMS_VALUE_SHORT_NOTSET; // setpoint for tankBottomMaxTemp
     uint32_t energyLastHour_             = EMS_VALUE_ULONG_NOTSET;
     uint32_t energyToday_                = EMS_VALUE_ULONG_NOTSET;
     uint32_t energyTotal_                = EMS_VALUE_ULONG_NOTSET;
@@ -75,10 +74,10 @@ class Solar : public EMSdevice {
 
     // telegram 0x035A
     uint8_t collectorMaxTemp_     = EMS_VALUE_UINT_NOTSET; // maximum allowed collectorTemp array 1
-    uint8_t tankBottomMaxTemp_    = EMS_VALUE_UINT_NOTSET; // maximum allowed tankBottomTemp
+    uint8_t tankMaxTemp_          = EMS_VALUE_UINT_NOTSET; // maximum allowed tankBottomTemp
     uint8_t collectorMinTemp_     = EMS_VALUE_UINT_NOTSET; // minimum allowed collectorTemp array 1
     uint8_t solarPumpMode_        = EMS_VALUE_UINT_NOTSET; // 00=off, 01=PWM, 02=10V
-    uint8_t solarPumpMinRPM_      = EMS_VALUE_UINT_NOTSET; // minimum RPM setting, *5 %
+    uint8_t solarPumpMinMod_      = EMS_VALUE_UINT_NOTSET; // minimum RPM setting, *5 %
     uint8_t solarPumpTurnoffDiff_ = EMS_VALUE_UINT_NOTSET; // solar pump turnoff collector/tank diff
     uint8_t solarPumpTurnonDiff_  = EMS_VALUE_UINT_NOTSET; // solar pump turnon collector/tank diff
     uint8_t solarPumpKick_        = EMS_VALUE_UINT_NOTSET; // pump kick for vacuum collector, 00=off
@@ -99,10 +98,19 @@ class Solar : public EMSdevice {
     // SM100wwStatus - 0x07AA
     uint8_t wwPump_ = EMS_VALUE_UINT_NOTSET;
 
+    // SM10Config
+    uint8_t  wwMinTemp_   = EMS_VALUE_UINT_NOTSET;
+    uint8_t  maxFlow_     = EMS_VALUE_UINT_NOTSET;
+    // calculate energyLastHour for SM10
+    uint32_t             solarPower_ = EMS_VALUE_ULONG_NOTSET;
+    std::deque<uint16_t> energy;
+
+
     bool changed_        = false;
     bool mqtt_ha_config_ = false; // for HA MQTT Discovery
 
     void process_SM10Monitor(std::shared_ptr<const Telegram> telegram);
+    void process_SM10Config(std::shared_ptr<const Telegram> telegram);
     void process_SM100SystemConfig(std::shared_ptr<const Telegram> telegram);
     void process_SM100SolarCircuitConfig(std::shared_ptr<const Telegram> telegram);
     void process_SM100ParamCfg(std::shared_ptr<const Telegram> telegram);
@@ -124,8 +132,15 @@ class Solar : public EMSdevice {
     void process_ISM1StatusMessage(std::shared_ptr<const Telegram> telegram);
     void process_ISM1Set(std::shared_ptr<const Telegram> telegram);
 
+    bool set_CollectorMaxTemp(const char * value, const int8_t id);
+    bool set_CollectorMinTemp(const char * value, const int8_t id);
+    bool set_TankMaxTemp(const char * value, const int8_t id);
+    bool set_PumpMinMod(const char * value, const int8_t id);
+    bool set_wwMinTemp(const char * value, const int8_t id);
+    bool set_TurnonDiff(const char * value, const int8_t id);
+    bool set_TurnoffDiff(const char * value, const int8_t id);
 
-    bool set_SM100TankBottomMaxTemp(const char * value, const int8_t id);
+    bool set_SM10MaxFlow(const char * value, const int8_t id);
 };
 
 } // namespace emsesp
