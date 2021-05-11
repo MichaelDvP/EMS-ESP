@@ -40,6 +40,7 @@ Solar::Solar(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
         register_mqtt_cmd(F_(maxflow), [&](const char * value, const int8_t id) { return set_SM10MaxFlow(value, id); });
         register_mqtt_cmd(F_(collectormaxtemp), [&](const char * value, const int8_t id) { return set_CollectorMaxTemp(value, id); });
         register_mqtt_cmd(F_(collectormintemp), [&](const char * value, const int8_t id) { return set_CollectorMinTemp(value, id); });
+        register_mqtt_cmd(F_(activated), [&](const char * value, const int8_t id) { return set_solarEnabled(value, id); });
     }
 
     if (flags == EMSdevice::EMS_DEVICE_FLAG_SM100) {
@@ -66,6 +67,20 @@ Solar::Solar(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
             register_mqtt_cmd(F_(turnondiff), [&](const char * value, const int8_t id) { return set_TurnonDiff(value, id); });
             register_mqtt_cmd(F_(collectormaxtemp), [&](const char * value, const int8_t id) { return set_CollectorMaxTemp(value, id); });
             register_mqtt_cmd(F_(collectormintemp), [&](const char * value, const int8_t id) { return set_CollectorMinTemp(value, id); });
+
+            register_mqtt_cmd(F_(heattransfersystem), [&](const char * value, const int8_t id) { return set_heatTransferSystem(value, id); });
+            register_mqtt_cmd(F_(externaltank), [&](const char * value, const int8_t id) { return set_externalTank(value, id); });
+            register_mqtt_cmd(F_(thermaldisinfect), [&](const char * value, const int8_t id) { return set_thermalDisinfect(value, id); });
+            register_mqtt_cmd(F_(heatmetering), [&](const char * value, const int8_t id) { return set_heatMetering(value, id); });
+            register_mqtt_cmd(F_(solarpumpmode), [&](const char * value, const int8_t id) { return set_solarMode(value, id); });
+            register_mqtt_cmd(F_(solarpumpkick), [&](const char * value, const int8_t id) { return set_solarPumpKick(value, id); });
+            register_mqtt_cmd(F_(plainwatermode), [&](const char * value, const int8_t id) { return set_plainWaterMode(value, id); });
+            register_mqtt_cmd(F_(doublematchflow), [&](const char * value, const int8_t id) { return set_doubleMatchFlow(value, id); });
+            register_mqtt_cmd(F_(climatezone), [&](const char * value, const int8_t id) { return set_climateZone(value, id); });
+            register_mqtt_cmd(F_(collector1area), [&](const char * value, const int8_t id) { return set_collector1Area(value, id); });
+            register_mqtt_cmd(F_(collector1type), [&](const char * value, const int8_t id) { return set_collector1Type(value, id); });
+            register_mqtt_cmd(F_(activated), [&](const char * value, const int8_t id) { return set_solarEnabled(value, id); });
+
         }
     }
 
@@ -87,7 +102,7 @@ void Solar::device_info_web(JsonArray & root, uint8_t & part) {
     if (!export_values(json)) {
         return; // empty
     }
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
     create_value_json(root, F_(collectortemp), nullptr, F_(collectortemp_), F_(degrees), json);
     create_value_json(root, F_(collectormaxtemp), nullptr, F_(collectormaxtemp_), F_(degrees), json);
     create_value_json(root, F_(tankbottomtemp), nullptr, F_(tankbottomtemp_), F_(degrees), json);
@@ -112,6 +127,19 @@ void Solar::device_info_web(JsonArray & root, uint8_t & part) {
     create_value_json(root, F_(turnoffdiff), nullptr, F_(solarpumpturnoffdiff_), F_(degrees), json);
     create_value_json(root, F_(solarpower), nullptr, F_(solarpower_), F("W)"), json);
     create_value_json(root, F_(maxflow), nullptr, F_(solarmaxflow_), F_(lpm), json);
+    create_value_json(root, F_(activated), nullptr, F_(activated_), nullptr, json);
+
+    create_value_json(root, F_(heattransfersystem), nullptr, F_(heattransfersystem_), nullptr, json);
+    create_value_json(root, F_(externaltank), nullptr, F_(externaltank_), nullptr, json);
+    create_value_json(root, F_(thermaldisinfect), nullptr, F_(thermaldisinfect_), nullptr, json);
+    create_value_json(root, F_(heatmetering), nullptr, F_(heatmetering_), nullptr, json);
+    create_value_json(root, F_(solarpumpmode), nullptr, F_(solarpumpmode_), nullptr, json);
+    create_value_json(root, F_(solarpumpkick), nullptr, F_(solarpumpkick_), nullptr, json);
+    create_value_json(root, F_(plainwatermode), nullptr, F_(plainwatermode_), nullptr, json);
+    create_value_json(root, F_(doublematchflow), nullptr, F_(doublematchflow_), nullptr, json);
+    create_value_json(root, F_(climatezone), nullptr, F_(climatezone_), nullptr, json);
+    create_value_json(root, F_(collector1area), nullptr, F_(collector1area_), F("m^2"), json);
+    create_value_json(root, F_(collector1type), nullptr, F_(collector1type_), nullptr, json);
 
     create_value_json(root, F_(wwtemp1), F_(ww), F_(wwtemp1_), F_(degrees), json);
     create_value_json(root, F_(wwtemp3), F_(ww), F_(wwtemp3_), F_(degrees), json);
@@ -137,7 +165,7 @@ void Solar::publish_values(JsonObject & json, bool force) {
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_MEDIUM);
     JsonObject          json_payload = doc.to<JsonObject>();
     if (export_values(json_payload)) {
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         if (device_id() == 0x2A) {
             Mqtt::publish(F("ww_data"), doc.as<JsonObject>());
         } else {
@@ -223,6 +251,18 @@ void Solar::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorshutdown_), device_type(), F_(collectorshutdown), nullptr, nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpumpturnondiff_), device_type(), F_(turnondiff), F_(degrees), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpumpturnoffdiff_), device_type(), F_(turnoffdiff), F_(degrees), nullptr);
+
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heattransfersystem_), device_type(), F_(heattransfersystem), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(externaltank_), device_type(), F_(externaltank), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(thermaldisinfect_), device_type(), F_(thermaldisinfect), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(heatmetering_), device_type(), F_(heatmetering), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpumpmode_), device_type(), F_(solarpumpmode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpumpkick_), device_type(), F_(solarpumpkick), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(plainwatermode_), device_type(), F_(plainwatermode), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(doublematchflow_), device_type(), F_(doublematchflow), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(climatezone_), device_type(), F_(climatezone), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collector1area_), device_type(), F_(collector1area), F("m^2"), nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collector1type_), device_type(), F_(collector1type), nullptr, nullptr);
     }
 
     mqtt_ha_config_ = true; // done
@@ -302,6 +342,23 @@ bool Solar::export_values(JsonObject & json, int8_t id) {
         json[F_(energytotal)] = (float)energyTotal_ / 10;
     }
 
+    Helpers::json_boolean(json, F_(activated), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(heattransfersystem), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(externaltank), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(thermaldisinfect), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(heatmetering), solarIsEnabled_);
+    Helpers::json_enum(json, F_(solarpumpmode), {F_(off), F("pwm"), F("analog")}, solarPumpMode_);
+    Helpers::json_boolean(json, F_(solarpumpkick), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(plainwatermode), solarIsEnabled_);
+    Helpers::json_boolean(json, F_(doublematchflow), solarIsEnabled_);
+    if (Helpers::hasValue(climateZone_)) {
+        json[F_(climatezone)] = climateZone_;
+    }
+    if (Helpers::hasValue(collector1Area_)) {
+        json[F_(collector1area)] = (float)collector1Area_ / 10;
+    }
+    Helpers::json_enum(json, F_(collector1type), {F(""), F("flat"), F("vacuum")}, collector1Type_);
+
     if (Helpers::hasValue(wwTemp_1_)) {
         json[F_(wwtemp1)] = wwTemp_1_;
     }
@@ -348,6 +405,7 @@ void Solar::process_SM10Config(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(solarPumpTurnoffDiff_, 8);
     changed_ |= telegram->read_value(tankMaxTemp_, 5);
     changed_ |= telegram->read_value(wwMinTemp_, 6);
+    changed_ |= telegram->read_value(solarIsEnabled_, 0); // FF on
 }
 
 // SM10Monitor - type 0x97
@@ -689,6 +747,118 @@ bool Solar::set_SM10MaxFlow(const char * value, const int8_t id) {
         settings.solar_maxflow = maxFlow_;
         return StateUpdateResult::CHANGED;
     }, "local");
+    return true;
+}
+
+bool Solar::set_heatTransferSystem(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x358, 5, v ? 0x01 : 0x00, 0x358);
+    return true;
+}
+
+bool Solar::set_externalTank(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x358, 9, v ? 0x01 : 0x00, 0x358);
+    return true;
+}
+
+bool Solar::set_thermalDisinfect(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x358, 10, v ? 0x01 : 0x00, 0x358);
+    return true;
+}
+
+bool Solar::set_heatMetering(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x358, 14, v ? 0x01 : 0x00, 0x358);
+    return true;
+}
+
+bool Solar::set_solarEnabled(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    if (flags() == EMSdevice::EMS_DEVICE_FLAG_SM10) {
+        write_command(0x96, 0, v ? 0xFF : 0x00, 0x96);
+    } else {
+        write_command(0x358, 19, v ? 0x01 : 0x00, 0x358);
+    }
+    return true;
+}
+
+bool Solar::set_solarMode(const char * value, const int8_t id) {
+    uint8_t num;
+    if (!Helpers::value2enum(value, num, {F_(off), F("pwm"), F("analog")})) {
+        return false;
+    }
+    write_command(0x35A, 5, num, 0x35A);
+    return true;
+}
+
+bool Solar::set_solarPumpKick(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x35A, 9, v ? 0x01 : 0x00, 0x35A);
+    return true;
+}
+
+bool Solar::set_plainWaterMode(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x35A, 10, v ? 0x01 : 0x00, 0x35A);
+    return true;
+}
+
+bool Solar::set_doubleMatchFlow(const char * value, const int8_t id) {
+    bool v = false;
+    if (!Helpers::value2bool(value, v)) {
+        return false;
+    }
+    write_command(0x35A, 11, v ? 0x01 : 0x00, 0x35A);
+    return true;
+}
+
+bool Solar::set_climateZone(const char * value, const int8_t id) {
+    int v = 0;
+    if (!Helpers::value2number(value, v)) {
+        return false;
+    }
+    write_command(0x380, 0, v, 0x380);
+    return true;
+}
+
+bool Solar::set_collector1Area(const char * value, const int8_t id) {
+    float v = 0;
+    if (!Helpers::value2float(value, v)) {
+        return false;
+    }
+    write_command(0x380, 3, (uint16_t)( v * 10), 0x380);
+    return true;
+}
+
+bool Solar::set_collector1Type(const char * value, const int8_t id) {
+    uint8_t num;
+    if (!Helpers::value2enum(value, num, {F(""), F("flat"), F("vacuum")})) {
+        return false;
+    }
+    write_command(0x380, 5, num, 0x380);
     return true;
 }
 

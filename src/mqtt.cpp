@@ -263,6 +263,15 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
                 return;
             }
 
+            if (message[0] != '{') {
+                DynamicJsonDocument resp(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+                JsonObject          json = resp.to<JsonObject>();
+                if (Command::call(mf.device_type_, message, "", -1, json)) {
+                    Mqtt::publish(F_(response), resp.as<JsonObject>());
+                }
+                return; // invalid topic name
+            }
+
             // empty function. It's a command then. Find the command from the json and call it directly.
             StaticJsonDocument<EMSESP_MAX_JSON_SIZE_SMALL> doc;
             DeserializationError                           error = deserializeJson(doc, message);
@@ -280,9 +289,9 @@ void Mqtt::on_message(const char * fulltopic, const char * payload, size_t len) 
             // check for hc and id, and convert to int
             int8_t n = -1; // no value
             if (doc.containsKey("hc")) {
-                n = doc[F("hc")];
+                n = doc["hc"];
             } else if (doc.containsKey("id")) {
-                n = doc[F("id")];
+                n = doc["id"];
             }
 
             bool        cmd_known = false;

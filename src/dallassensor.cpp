@@ -420,7 +420,7 @@ void DallasSensor::publish_values(const bool force) {
         sensor_no++; // increment sensor count
     }
 
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
     Mqtt::publish(F_(dallassensor_data), doc.as<JsonObject>());
 }
 

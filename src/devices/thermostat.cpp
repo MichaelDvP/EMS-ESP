@@ -204,7 +204,7 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
     JsonObject          json = doc.to<JsonObject>();
     if (part == 0) {
         if (export_values_main(json)) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             create_value_json(root, F_(datetime), nullptr, F_(datetime_), nullptr, json);
             create_value_json(root, F_(errorcode), nullptr, F_(errorcode_), nullptr, json);
             create_value_json(root, F_(lastcode), nullptr, F_(lastcode_), nullptr, json);
@@ -231,7 +231,7 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
     } else {
         std::shared_ptr<Thermostat::HeatingCircuit> hc = heating_circuits_[part - 1];
         if (export_values_hc(hc, json)) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             // display for each active heating circuit
             char prefix_str[10];
             snprintf_P(prefix_str, sizeof(prefix_str), PSTR("(hc %d) "), hc->hc_num());
@@ -347,7 +347,7 @@ void Thermostat::publish_values(JsonObject & json, bool force) {
     // get the thermostat data.
     // we're in HA or CUSTOM, send out the complete topic with all the data
     if (export_values(json_data)) {
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         Mqtt::publish(F_(thermostat_data), json_data);
     }
 }

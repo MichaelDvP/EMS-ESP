@@ -56,7 +56,7 @@ void Heatpump::device_info_web(JsonArray & root, uint8_t & part) {
     if (!export_values(json)) {
         return; // empty
     }
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
     create_value_json(root, F_(airhumidity), nullptr, F_(airhumidity_), F_(percent), json);
     create_value_json(root, F_(dewtemperature), nullptr, F_(dewtemperature_), F_(degrees), json);
 }
@@ -76,7 +76,7 @@ void Heatpump::publish_values(JsonObject & json, bool force) {
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
     JsonObject          json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         Mqtt::publish(F_(heatpump_data), doc.as<JsonObject>());
     }
 }

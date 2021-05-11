@@ -380,7 +380,17 @@ void EMSESPShell::add_console_commands() {
             }
 
             // validate the command
+            DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+            JsonObject          json = doc.to<JsonObject>();
+
+            bool ok = false;
             if (arguments.size() < 2) {
+                // no cmd specified
+                if (Command::call(device_type, "", "", -1, json)) {
+                    serializeJsonPretty(doc, shell);
+                    shell.println();
+                    return;
+                }
                 shell.print(F("Available commands are: "));
                 Command::show(shell, device_type);
                 return;
@@ -393,10 +403,6 @@ void EMSESPShell::add_console_commands() {
                 return;
             }
 
-            DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
-            JsonObject          json = doc.to<JsonObject>();
-
-            bool ok = false;
             if (arguments.size() == 2) {
                 // no value specified, just the cmd
                 ok = Command::call(device_type, cmd, nullptr, -1, json);
@@ -414,7 +420,6 @@ void EMSESPShell::add_console_commands() {
             }
 
             if (ok && json.size()) {
-                doc.shrinkToFit();
                 serializeJsonPretty(doc, shell);
                 shell.println();
             }

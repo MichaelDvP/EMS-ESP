@@ -392,7 +392,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         if (!export_values_main(json, true)) {
             return; // empty
         }
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         create_value_json(root, F_(heatingactive), nullptr, F_(heatingactive_), nullptr, json);
         create_value_json(root, F_(tapwateractive), nullptr, F_(tapwateractive_), nullptr, json);
         create_value_json(root, F_(servicecode), nullptr, F_(servicecode_), nullptr, json);
@@ -443,7 +443,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         if (!export_values_ww(json, true)) { // append ww values
             return;
         }
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         // ww
         create_value_json(root, F_(wwcomfort), F_(ww), F_(wwcomfort_), nullptr, json);
         create_value_json(root, F_(wwseltemp), F_(ww), F_(wwseltemp_), F_(degrees), json);
@@ -477,7 +477,7 @@ void Boiler::device_info_web(JsonArray & root, uint8_t & part) {
         if (!export_values_info(json, true)) { // append info values
             return;
         }
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         create_value_json(root, F_(uptimecontrol), nullptr, F_(uptimecontrol_), nullptr, json);
         create_value_json(root, F_(uptimecompheating), nullptr, F_(uptimecompheating_), nullptr, json);
         create_value_json(root, F_(uptimecompcooling), nullptr, F_(uptimecompcooling_), nullptr, json);
@@ -1041,7 +1041,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_main(json_data)) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             Mqtt::publish(F_(boiler_data), json_data);
         }
     }
@@ -1050,7 +1050,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_ww(json_data)) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             Mqtt::publish(F_(boiler_data_ww), json_data);
         }
     }
@@ -1059,7 +1059,7 @@ void Boiler::publish_values(JsonObject & json, bool force) {
         DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
         JsonObject          json_data = doc.to<JsonObject>();
         if (export_values_info(json_data)) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             Mqtt::publish(F_(boiler_data_info), json_data);
         }
     }

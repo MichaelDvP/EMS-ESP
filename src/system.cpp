@@ -461,7 +461,7 @@ void System::send_heartbeat() {
         doc[F("io26")]  = digitalRead(26);
 #endif
     }
-    doc.shrinkToFit();
+    // doc.shrinkToFit();
     Mqtt::publish(F_(heartbeat), doc.as<JsonObject>()); // send to MQTT with retain off. This will add to MQTT queue.
 }
 

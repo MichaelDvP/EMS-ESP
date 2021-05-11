@@ -422,6 +422,17 @@ MAKE_PSTR_WORD(solarpower)
 MAKE_PSTR_WORD(turnondiff)
 MAKE_PSTR_WORD(turnoffdiff)
 
+MAKE_PSTR_WORD(heattransfersystem)
+MAKE_PSTR_WORD(externaltank)
+MAKE_PSTR_WORD(thermaldisinfect)
+MAKE_PSTR_WORD(heatmetering)
+MAKE_PSTR_WORD(solarpumpmode)
+MAKE_PSTR_WORD(solarpumpkick)
+MAKE_PSTR_WORD(plainwatermode)
+MAKE_PSTR_WORD(doublematchflow)
+MAKE_PSTR_WORD(climatezone)
+MAKE_PSTR_WORD(collector1area)
+MAKE_PSTR_WORD(collector1type)
 
 // solar ww
 MAKE_PSTR_WORD(wwtemp1)
@@ -639,6 +650,19 @@ MAKE_PSTR(solarpower_, "actual solar power")
 MAKE_PSTR(solarpumpturnondiff_, "pump turn on difference")
 MAKE_PSTR(solarpumpturnoffdiff_, "pump turn off difference")
 
+MAKE_PSTR(heattransfersystem_,"heattransfer system")
+MAKE_PSTR(externaltank_, "external tank")
+MAKE_PSTR(thermaldisinfect_, "thermal disinfection")
+MAKE_PSTR(heatmetering_, "heatmetering")
+MAKE_PSTR(solarpumpmode_, "solar pump mode")
+MAKE_PSTR(solarpumpkick_, "pumpkick")
+MAKE_PSTR(plainwatermode_, "plain water mode")
+MAKE_PSTR(doublematchflow_, "doublematchflow")
+MAKE_PSTR(climatezone_, "climate zone")
+MAKE_PSTR(collector1area_, "collector 1 area")
+MAKE_PSTR(collector1type_, "collector 1 type")
+
+
 // solar ww
 MAKE_PSTR(wwtemp1_, "temperature 1")
 MAKE_PSTR(wwtemp3_, "temperature 3")
@@ -716,5 +740,5 @@ MAKE_PSTR(airhumidity_, "relative air humidity")
 MAKE_PSTR(dewtemperature_, "dew point temperature")
 
 // other
-MAKE_PSTR(activated_, "switch activated")
+MAKE_PSTR(activated_, "module activated")
 MAKE_PSTR(status_, "switch status")

@@ -156,6 +156,10 @@ class EMSdevice {
     //     telegram_functions_.reserve(n);
     // }
 
+    // static uint8_t get_device_type() {
+    //     return  device_type_;
+    // }
+
     static void create_value_json(JsonArray &                 root,
                                   const __FlashStringHelper * key,
                                   const __FlashStringHelper * prefix,

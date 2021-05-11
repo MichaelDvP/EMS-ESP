@@ -30,11 +30,11 @@ std::vector<Command::CmdFunction> Command::cmdfunctions_;
 // id may be used to represent a heating circuit for example
 // returns false if error or not found
 bool Command::call(const uint8_t device_type, const char * cmd, const char * value, const int8_t id) {
-    int8_t      id_new = id;
-    char        cmd_new[20];
+    int8_t      id_new      = id;
+    char        cmd_new[20] = {'\0'};
 
-    check_command(cmd_new, cmd, id_new);
-    auto cf = find_command(device_type, cmd_new);
+    strlcpy(cmd_new, cmd, 20);
+    auto cf = find_command(device_type, cmd_new, id_new);
     if ((cf == nullptr) || (cf->cmdfunction_json_)) {
         LOG_WARNING(F("Command %s not found"), cmd);
         return false; // command not found, or requires a json
@@ -58,14 +58,11 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
 // id may be used to represent a heating circuit for example
 // returns false if error or not found
 bool Command::call(const uint8_t device_type, const char * cmd, const char * value, const int8_t id, JsonObject & json) {
-    int8_t      id_new = id;
-    char        cmd_new[20];
+    int8_t      id_new      = id;
+    char        cmd_new[20] = {'\0'};
 
-    check_command(cmd_new, cmd, id_new);
-    if (id_new < -1 || id_new == 0) {
-        return false;
-    }
-    auto cf = find_command(device_type, cmd_new);
+    strlcpy(cmd_new, cmd, 20);
+    auto cf = find_command(device_type, cmd_new, id_new);
 
 #ifdef EMSESP_DEBUG
     std::string dname = EMSdevice::device_type_2_device_name(device_type);
@@ -98,52 +95,80 @@ bool Command::call(const uint8_t device_type, const char * cmd, const char * val
     return ((cf->cmdfunction_)(value, id_new));
 }
 
-char * Command::check_command(char * out, const char * cmd, int8_t & id) {
+// strip prefixes, check, and find command
+Command::CmdFunction * Command::find_command(const uint8_t device_type, char * cmd, int8_t & id) {
     // no command for id0
     if (id == 0) {
-        return out;
+        return nullptr;
     }
-    // empty command is info with id0 for compact info
-    if (cmd[0] == '\0' || cmd == nullptr) {
-        strlcpy(out, "info", 20);
+    // empty command is info with id0 or info_short
+    if (cmd[0] == '\0') {
         id = 0;
-        return out;
     }
     // convert cmd to lowercase
-    strlcpy(out, cmd, 20);
-    for (char * p = out; *p; p++) {
+    for (char * p = cmd; *p; p++) {
         *p = tolower(*p);
     }
 
-    //scan for prefix hc.
+    // scan for prefix hc.
     for (uint8_t i = 1; i <= 4; i++) {
         char tag[4];
-        snprintf(tag, 4, "hc%d", i);
-        if ((strncmp(out, tag, 3) == 0) && (strlen(out) > 4)) {
-            strcpy(out, &out[4]);
+        snprintf_P(tag, 4, PSTR("hc%d"), i);
+        uint8_t len = strlen(tag);
+        if (strncmp(cmd, tag, len) == 0) {
+            if (cmd[len] != '\0') {
+                strcpy(cmd, &cmd[len + 1]);
+            } else {
+                strcpy(cmd, &cmd[len]);
+            }
             id = i;
             break;
         }
     }
 
-    //scan for prefix wwc.
+    // scan for prefix wwc.
     for (uint8_t i = 1; i <= 4; i++) {
         char tag[5];
-        snprintf(tag, 5, "wwc%d", i);
-        if ((strncmp(out, tag, 4) == 0) && (strlen(out) > 5)) {
-            strcpy(out, &out[5]);
-            id = 7 + i;
+        snprintf_P(tag, 5, PSTR("wwc%d"), i);
+        uint8_t len = strlen(tag);
+        if (strncmp(cmd, tag, len) == 0) {
+            if (cmd[len] != '\0') {
+                strcpy(cmd, &cmd[len + 1]);
+            } else {
+                strcpy(cmd, &cmd[len]);
+            }
+            id = i + 7;
             break;
         }
     }
 
-    return out;
+    // empty command after processing prefix is info
+    if (cmd[0] == '\0') {
+        strlcpy(cmd, "info", 20);
+    }
+
+    return find_command(device_type, cmd);
+}
+
+// see if a command exists for that device type
+Command::CmdFunction * Command::find_command(const uint8_t device_type, const char * cmd) {
+    if ((cmd == nullptr) || (strlen(cmd) == 0) || (cmdfunctions_.empty())) {
+        return nullptr;
+    }
+
+    for (auto & cf : cmdfunctions_) {
+        if (!strcmp(cmd, Helpers::toLower(uuid::read_flash_string(cf.cmd_)).c_str()) && (cf.device_type_ == device_type)) {
+            return &cf;
+        }
+    }
+
+    return nullptr; // command not found
 }
 
 // add a command to the list, which does not return json
 void Command::add(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb) {
     // if the command already exists for that device type don't add it
-    if (find_command(device_type, uuid::read_flash_string(cmd).c_str()) != nullptr) {
+    if (find_command(device_type, Helpers::toLower(uuid::read_flash_string(cmd)).c_str()) != nullptr) {
         return;
     }
     cmdfunctions_.emplace_back(device_type, cmd, cb, nullptr);
@@ -157,33 +182,11 @@ void Command::add(const uint8_t device_type, const uint8_t device_id, const __Fl
 // add a command to the list, which does return json object as output
 void Command::add_with_json(const uint8_t device_type, const __FlashStringHelper * cmd, cmdfunction_json_p cb) {
     // if the command already exists for that device type don't add it
-    if (find_command(device_type, uuid::read_flash_string(cmd).c_str()) != nullptr) {
+    if (find_command(device_type, Helpers::toLower(uuid::read_flash_string(cmd)).c_str()) != nullptr) {
         return;
     }
 
     cmdfunctions_.emplace_back(device_type, cmd, nullptr, cb); // add command
-}
-
-// see if a command exists for that device type
-Command::CmdFunction * Command::find_command(const uint8_t device_type, const char * cmd) {
-    if ((cmd == nullptr) || (strlen(cmd) == 0) || (cmdfunctions_.empty())) {
-        return nullptr;
-    }
-
-    // convert cmd to lowercase and compare
-    char lowerCmd[20];
-    strlcpy(lowerCmd, cmd, sizeof(lowerCmd));
-    for (char * p = lowerCmd; *p; p++) {
-        *p = tolower(*p);
-    }
-
-    for (auto & cf : cmdfunctions_) {
-        if (!strcmp(lowerCmd, Helpers::toLower(uuid::read_flash_string(cf.cmd_)).c_str()) && (cf.device_type_ == device_type)) {
-            return &cf;
-        }
-    }
-
-    return nullptr; // command not found
 }
 
 // output list of all commands to console for a specific DeviceType

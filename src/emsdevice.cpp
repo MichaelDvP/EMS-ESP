@@ -409,6 +409,14 @@ void EMSdevice::create_value_json(JsonArray &                 root,
     }
 
     root.add(data_string);
+
+    /* // add command name for web-commands
+    if (Command::find_command(get_device_type(), uuid::read_flash_string(key).c_str()) != nullptr) {
+        root.add(key);
+    } else {
+        root.add("");
+    }
+    */
 }
 
 } // namespace emsesp

@@ -403,7 +403,7 @@ void EMSESP::publish_device_values(uint8_t device_type, bool force) {
             }
         }
         if (json.size()) {
-            doc.shrinkToFit();
+            // doc.shrinkToFit();
             Mqtt::publish(F_(mixer_data), json);
         }
         return;

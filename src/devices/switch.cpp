@@ -41,7 +41,7 @@ void Switch::device_info_web(JsonArray & root, uint8_t & part) {
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
     JsonObject                                     json = doc.to<JsonObject>();
     if (export_values(json)) {
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         create_value_json(root, F_(activated), nullptr, F_(activated_), nullptr, json);
         create_value_json(root, F_(flowtemphc), nullptr, F_(flowtemphc_), F_(degrees), json);
         create_value_json(root, F_(status), nullptr, F_(status_), nullptr, json);
@@ -62,7 +62,7 @@ void Switch::publish_values(JsonObject & json, bool force) {
     DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_SMALL);
     JsonObject          json_data = doc.to<JsonObject>();
     if (export_values(json_data)) {
-        doc.shrinkToFit();
+        // doc.shrinkToFit();
         Mqtt::publish(F("switch_data"), doc.as<JsonObject>());
     }
 }
