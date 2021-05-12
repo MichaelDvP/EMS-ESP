@@ -113,84 +113,127 @@ void EMSESPShell::add_console_commands() {
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
                           flash_string_vector{F_(show)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                              shell.printfln(F("%s%sEMS-ESP version %s%s"), COLOR_BRIGHT_GREEN, COLOR_BOLD_ON, EMSESP_APP_VERSION, COLOR_RESET);
-                              shell.println();
-                              EMSESP::show_device_values(shell);
-                              EMSESP::show_sensor_values(shell);
+                          flash_string_vector{F_(show_optional)},
+                          [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
+                              if (arguments.size() == 0) {
+                                  shell.printfln(F("%s%sEMS-ESP version %s%s"), COLOR_BRIGHT_GREEN, COLOR_BOLD_ON, EMSESP_APP_VERSION, COLOR_RESET);
+                                  shell.println();
+                                  EMSESP::show_device_values(shell);
+                                  EMSESP::show_sensor_values(shell);
+                              } else if (arguments.front() == uuid::read_flash_string(F_(devices))) {
+                                  EMSESP::show_devices(shell);
+                              } else if (arguments.front() == uuid::read_flash_string(F_(ems))) {
+                                  EMSESP::show_ems(shell);
+                              } else if (arguments.front() == uuid::read_flash_string(F_(mqtt))) {
+                                  Mqtt::show_mqtt(shell);
+                              } else if (arguments.front() == uuid::read_flash_string(F_(commands))) {
+                                  Command::show_all(shell);
+                              } else if (arguments.front() == uuid::read_flash_string(F_(system))) {
+                                  EMSESP::system_.show_system(shell);
+                                  shell.println();
+                              } else if (arguments.front() == uuid::read_flash_string(F_(users))) {
+                                  System::show_users(shell);
+                              } else {
+                                    shell.println(F_(invalid));
+                              }
                           });
 
     commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(show), F_(devices)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { EMSESP::show_devices(shell); });
-
-
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(show), F_(ems)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { EMSESP::show_ems(shell); });
-
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(show), F_(values)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { EMSESP::show_device_values(shell); });
-
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(show), F_(mqtt)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { Mqtt::show_mqtt(shell); });
-
-
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(show), F_(commands)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { Command::show_all(shell); });
-
-    commands->add_command(
-        ShellContext::MAIN,
-        CommandFlags::ADMIN,
-        flash_string_vector{F_(set), F_(bus_id)},
-        flash_string_vector{F_(deviceid_mandatory)},
-        [](Shell & shell, const std::vector<std::string> & arguments) {
-            uint8_t device_id = Helpers::hextoint(arguments.front().c_str());
-            if ((device_id == 0x0B) || (device_id == 0x0D) || (device_id == 0x0A) || (device_id == 0x0F) || (device_id == 0x12)) {
-                EMSESP::webSettingsService.update(
-                    [&](WebSettings & settings) {
-                        settings.ems_bus_id = device_id;
-                        shell.printfln(F_(bus_id_fmt), settings.ems_bus_id);
-                        return StateUpdateResult::CHANGED;
-                    },
-                    "local");
-            } else {
-                shell.println(F("Must be 0B, 0D, 0A, 0F or 12"));
-            }
-        },
-        [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) -> const std::vector<std::string> {
-            return std::vector<std::string>{
-                read_flash_string(F("0B")),
-                read_flash_string(F("0D")),
-                read_flash_string(F("0A")),
-                read_flash_string(F("0F")),
-                read_flash_string(F("12")),
-
-            };
-        });
-
-    commands->add_command(ShellContext::MAIN,
                           CommandFlags::ADMIN,
-                          flash_string_vector{F_(set), F_(tx_mode)},
-                          flash_string_vector{F_(n_mandatory)},
-                          [](Shell & shell, const std::vector<std::string> & arguments) {
-                              uint8_t tx_mode = std::strtol(arguments[0].c_str(), nullptr, 10);
-                              // save the tx_mode
-                              EMSESP::webSettingsService.update(
-                                  [&](WebSettings & settings) {
-                                      settings.tx_mode = tx_mode;
+                          flash_string_vector{F_(set)},
+                          flash_string_vector{F_(set_optional), F("[id | name]")},
+                          [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
+                              if (arguments.size() == 0) {
+                                  EMSESP::webSettingsService.read([&](WebSettings & settings) {
                                       shell.printfln(F_(tx_mode_fmt), settings.tx_mode);
+                                      shell.printfln(F_(bus_id_fmt), settings.ems_bus_id);
+                                      char buffer[4];
+                                      shell.printfln(F_(master_thermostat_fmt),
+                                          settings.master_thermostat == 0 ? uuid::read_flash_string(F_(auto)).c_str()
+                                                                           : Helpers::hextoa(buffer, settings.master_thermostat));
+                                  });
+                              } else if (arguments.size() == 1) {
+                                  if (arguments.front() == uuid::read_flash_string(F_(wifi_passwd))) {
+                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
+                                               if (completed) {
+                                                   shell.enter_password(F_(new_password_prompt2),
+                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
+                                                                            if (completed) {
+                                                                                if (password1 == password2) {
+                                                                                    EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation(
+                                                                                        [&](WiFiSettings & wifiSettings) {
+                                                                                            wifiSettings.password = password2.c_str();
+                                                                                            return StateUpdateResult::CHANGED;
+                                                                                        });
+                                                                                    shell.println("Use `wifi reconnect` to apply the new settings");
+                                                                                } else {
+                                                                                    shell.println(F("Passwords do not match"));
+                                                                                }
+                                                                            }
+                                                                        });
+                                               }
+                                           });
+                                  } else {
+                                      shell.println(F_(invalid));
+                                  }
+                              } else if (arguments.front() == uuid::read_flash_string(F_(wifi_ssid))) {
+                                  EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation([&](WiFiSettings & wifiSettings) {
+                                      wifiSettings.ssid = arguments[1].c_str();
                                       return StateUpdateResult::CHANGED;
-                                  },
-                                  "local");
+                                  });
+                                  shell.println("Use `wifi reconnect` to apply the new settings");
+                              } else if (arguments.front() == uuid::read_flash_string(F_(tx_mode))) {
+                                    uint8_t tx_mode =  Helpers::atoint(arguments[1].c_str());
+                                    EMSESP::webSettingsService.update(
+                                        [&](WebSettings & settings) {
+                                        settings.tx_mode = tx_mode;
+                                        shell.printfln(F_(tx_mode_fmt), settings.tx_mode);
+                                        return StateUpdateResult::CHANGED;
+                                    }, "local");
+                              } else if (arguments.front() == uuid::read_flash_string(F_(wifi_host))) {
+                                    shell.println("The wifi connection will be reset...");
+                                    Shell::loop_all();
+                                    delay(1000); // wait a second
+                                    EMSESP::esp8266React.getWiFiSettingsService()->update(
+                                        [&](WiFiSettings & wifiSettings) {
+                                        wifiSettings.hostname = arguments[1].c_str();
+                                        return StateUpdateResult::CHANGED;
+                                        },
+                                        "local");
+                              } else if (arguments.front() == uuid::read_flash_string(F_(master_thermostat))) {
+                                  EMSESP::webSettingsService.update(
+                                    [&](WebSettings & settings) {
+                                      uint8_t value =  Helpers::atoint(arguments[1].c_str());;
+                                      settings.master_thermostat = value;
+                                      EMSESP::actual_master_thermostat(value); // set the internal value too
+                                      char buffer[5];
+                                      shell.printfln(F_(master_thermostat_fmt),
+                                                     !value ? uuid::read_flash_string(F_(auto)).c_str() : Helpers::hextoa(buffer, value));
+                                      return StateUpdateResult::CHANGED;
+                                    },
+                                    "local");
+#ifndef EMSESP_STANDALONE
+                              } else if (arguments.front() == uuid::read_flash_string(F_(timeout))) {
+                                  uint16_t value = Helpers::atoint(arguments[1].c_str());
+                                  telnet_.initial_idle_timeout(value * 60);
+                                  shell.printfln(F("Telnet timeout is %d minutes"), value);
+#endif
+                              } else if (arguments.front() == uuid::read_flash_string(F_(bus_id))) {
+                                  uint8_t device_id = Helpers::hextoint(arguments[1].c_str());
+                                  if ((device_id == 0x0B) || (device_id == 0x0D) || (device_id == 0x0A) || (device_id == 0x0F) || (device_id == 0x12)) {
+                                      EMSESP::webSettingsService.update(
+                                          [&](WebSettings & settings) {
+                                           settings.ems_bus_id = device_id;
+                                           shell.printfln(F_(bus_id_fmt), settings.ems_bus_id);
+                                           return StateUpdateResult::CHANGED;
+                                      },
+                                      "local");
+                                  } else {
+                                      shell.println(F("Must be 0B, 0D, 0A, 0F or 12"));
+                                  }
+                              } else {
+                                  shell.println(F_(invalid));
+                              }
                           });
 
     commands->add_command(ShellContext::MAIN,
@@ -233,20 +276,6 @@ void EMSESPShell::add_console_commands() {
                           });
 
     commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(set)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                              EMSESP::webSettingsService.read([&](WebSettings & settings) {
-                                  shell.printfln(F_(tx_mode_fmt), settings.tx_mode);
-                                  shell.printfln(F_(bus_id_fmt), settings.ems_bus_id);
-                                  char buffer[4];
-                                  shell.printfln(F_(master_thermostat_fmt),
-                                                 settings.master_thermostat == 0 ? uuid::read_flash_string(F_(auto)).c_str()
-                                                                                 : Helpers::hextoa(buffer, settings.master_thermostat));
-                              });
-                          });
-
-    commands->add_command(ShellContext::MAIN,
                           CommandFlags::ADMIN,
                           flash_string_vector{F_(read)},
                           flash_string_vector{F_(deviceid_mandatory), F_(typeid_mandatory), F_(offset_optional)},
@@ -266,36 +295,6 @@ void EMSESPShell::add_console_commands() {
                                   EMSESP::send_read_request(type_id, device_id, 0, EMS_MAX_TELEGRAM_LENGTH);
                               }
                           });
-
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::ADMIN,
-                          flash_string_vector{F_(set), F_(master), F_(thermostat)},
-                          flash_string_vector{F_(deviceid_mandatory)},
-                          [](Shell & shell, const std::vector<std::string> & arguments) {
-                              uint8_t value = Helpers::hextoint(arguments.front().c_str());
-                              EMSESP::webSettingsService.update(
-                                  [&](WebSettings & settings) {
-                                      settings.master_thermostat = value;
-                                      EMSESP::actual_master_thermostat(value); // set the internal value too
-                                      char buffer[5];
-                                      shell.printfln(F_(master_thermostat_fmt),
-                                                     !value ? uuid::read_flash_string(F_(auto)).c_str() : Helpers::hextoa(buffer, value));
-                                      return StateUpdateResult::CHANGED;
-                                  },
-                                  "local");
-                          });
-
-#ifndef EMSESP_STANDALONE
-    commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(set), F_(timeout)},
-                          flash_string_vector{F_(n_mandatory)},
-                          [](Shell & shell, const std::vector<std::string> & arguments) {
-                              uint16_t value = Helpers::atoint(arguments.front().c_str());
-                              telnet_.initial_idle_timeout(value * 60);
-                              shell.printfln(F("Telnet timeout is %d minutes"), value);
-                          });
-#endif
 
     commands->add_command(ShellContext::MAIN,
                           CommandFlags::USER,
@@ -360,143 +359,70 @@ void EMSESPShell::add_console_commands() {
                               }
                           });
 
-    commands->add_command(
-        ShellContext::MAIN,
-        CommandFlags::ADMIN,
-        flash_string_vector{F_(call)},
-        flash_string_vector{F_(device_type_optional), F_(cmd_optional), F_(data_optional), F_(id_optional)},
-        [&](Shell & shell, const std::vector<std::string> & arguments) {
-            if (arguments.empty()) {
-                Command::show_all(shell); // list options
-                return;
-            }
-
-            // validate the device_type
-            uint8_t device_type = EMSdevice::device_name_2_device_type(arguments[0].c_str());
-            if (!Command::device_has_commands(device_type)) {
-                shell.print(F("Invalid device. Available devices are: "));
-                Command::show_devices(shell);
-                return;
-            }
-
-            // validate the command
-            DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
-            JsonObject          json = doc.to<JsonObject>();
-
-            bool ok = false;
-            if (arguments.size() < 2) {
-                // no cmd specified
-                if (Command::call(device_type, "", "", -1, json)) {
-                    serializeJsonPretty(doc, shell);
-                    shell.println();
-                    return;
-                }
-                shell.print(F("Available commands are: "));
-                Command::show(shell, device_type);
-                return;
-            }
-
-            const char * cmd = arguments[1].c_str();
-            if (Command::find_command(device_type, cmd) == nullptr) {
-                shell.print(F("Unknown command. Available commands are: "));
-                Command::show(shell, device_type);
-                return;
-            }
-
-            if (arguments.size() == 2) {
-                // no value specified, just the cmd
-                ok = Command::call(device_type, cmd, nullptr, -1, json);
-            } else if (arguments.size() == 3) {
-                if (strncmp_P(cmd, PSTR("info"), 4) == 0) {
-                    // info has id but no value
-                    ok = Command::call(device_type, cmd, nullptr, atoi(arguments.back().c_str()), json);
-                } else {
-                    // has a value but no id
-                    ok = Command::call(device_type, cmd, arguments.back().c_str(), -1, json);
-                }
-            } else {
-                // use value, which could be an id or hc
-                ok = Command::call(device_type, cmd, arguments[2].c_str(), atoi(arguments[3].c_str()), json);
-            }
-
-            if (ok && json.size()) {
-                serializeJsonPretty(doc, shell);
-                shell.println();
-            }
-        },
-        [&](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) -> std::vector<std::string> {
-            if (arguments.size() == 0) {
-                std::vector<std::string> devices_list;
-                devices_list.emplace_back(EMSdevice::device_type_2_device_name(EMSdevice::DeviceType::SYSTEM));
-                devices_list.emplace_back(EMSdevice::device_type_2_device_name(EMSdevice::DeviceType::DALLASSENSOR));
-                for (const auto & device_class : EMSFactory::device_handlers()) {
-                    if (Command::device_has_commands(device_class.first)) {
-                        devices_list.emplace_back(EMSdevice::device_type_2_device_name(device_class.first));
-                    }
-                }
-                return devices_list;
-            } else if (arguments.size() == 1) {
-                std::vector<std::string> command_list;
-                uint8_t                  device_type = EMSdevice::device_name_2_device_type(arguments[0].c_str());
-                if (Command::device_has_commands(device_type)) {
-                    for (const auto & cf : Command::commands()) {
-                        if (cf.device_type_ == device_type) {
-                            command_list.emplace_back(uuid::read_flash_string(cf.cmd_));
-                        }
-                    }
-                    return command_list;
-                }
-            }
-
-            return {};
-        });
-/*
-    // System context menu
     commands->add_command(ShellContext::MAIN,
-                          CommandFlags::USER,
-                          flash_string_vector{F_(system)},
-                          [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                              Console::load_system_commands(ShellContext::SYSTEM);
-                              // enter the context
-                              Console::enter_custom_context(shell, ShellContext::SYSTEM);
+                          CommandFlags::ADMIN,
+                          flash_string_vector{F_(call)},
+                          flash_string_vector{F_(device_type_optional), F_(cmd_optional), F_(data_optional), F_(id_optional)},
+                          [&](Shell & shell, const std::vector<std::string> & arguments) {
+                              if (arguments.empty()) {
+                                  Command::show_all(shell); // list options
+                                  return;
+                              }
+                              // validate the device_type
+                              uint8_t device_type = EMSdevice::device_name_2_device_type(arguments[0].c_str());
+                              if (!Command::device_has_commands(device_type)) {
+                                  shell.print(F_(invalid));
+                                  shell.print(F(". Available devices are: "));
+                                  Command::show_devices(shell);
+                                  return;
+                              }
+                              // validate the command
+                              DynamicJsonDocument doc(EMSESP_MAX_JSON_SIZE_LARGE_DYN);
+                              JsonObject          json = doc.to<JsonObject>();
+
+                              bool ok = false;
+                              if (arguments.size() < 2) {
+                                  // no cmd specified
+                                  if (Command::call(device_type, "", "", -1, json)) {
+                                      serializeJsonPretty(doc, shell);
+                                      shell.println();
+                                      return;
+                                  }
+                                  shell.print(F("Available commands are: "));
+                                  Command::show(shell, device_type);
+                                  return;
+                              }
+                              const char * cmd = arguments[1].c_str();
+                              if (Command::find_command(device_type, cmd) == nullptr) {
+                                  shell.print(F("Unknown command. Available commands are: "));
+                                  Command::show(shell, device_type);
+                                  return;
+                              }
+
+                              if (arguments.size() == 2) {
+                                  // no value specified, just the cmd
+                                  ok = Command::call(device_type, cmd, nullptr, -1, json);
+                              } else if (arguments.size() == 3) {
+                                  if (strncmp_P(cmd, PSTR("info"), 4) == 0) {
+                                      // info has id but no value
+                                      ok = Command::call(device_type, cmd, nullptr, atoi(arguments.back().c_str()), json);
+                                  } else {
+                                      // has a value but no id
+                                      ok = Command::call(device_type, cmd, arguments.back().c_str(), -1, json);
+                                  }
+                              } else {
+                                  // use value, which could be an id or hc
+                                  ok = Command::call(device_type, cmd, arguments[2].c_str(), atoi(arguments[3].c_str()), json);
+                              }
+
+                              if (ok && json.size()) {
+                                  serializeJsonPretty(doc, shell);
+                                  shell.println();
+                              }
                           });
-*/
-    Console::load_standard_commands(ShellContext::MAIN);
-    Console::load_system_commands(ShellContext::MAIN);
 
-    console_commands_loaded_ = true;
-}
-
-std::string EMSESPShell::hostname_text() {
-    return console_hostname_;
-}
-
-// remove commands from the current context to save memory before exiting
-bool EMSESPShell::exit_context() {
-    unsigned int current_context = context();
-    commands->remove_context_commands(current_context);
-
-    if (current_context == ShellContext::MAIN) {
-        Shell::stop();
-        return true;
-    }
-    return Shell::exit_context();
-}
-
-// enter a custom context (sub-menu)
-void Console::enter_custom_context(Shell & shell, unsigned int context) {
-    load_standard_commands(context);
-
-    // don't go into the new context if it's already the root (to prevent double loading)
-    if (context != ShellContext::MAIN) {
-        shell.enter_context(context);
-    }
-}
-
-// each custom context has the common commands like log, help, exit, su etc
-void Console::load_standard_commands(unsigned int context) {
 #if defined(EMSESP_TEST)
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::USER,
                                        flash_string_vector{F_(test)},
                                        flash_string_vector{F_(name_optional)},
@@ -508,50 +434,49 @@ void Console::load_standard_commands(unsigned int context) {
                                            }
                                        });
 #if defined(EMSESP_STANDALONE)
-    EMSESPShell::commands->add_command(context, CommandFlags::USER, flash_string_vector{F("t")}, [](Shell & shell, const std::vector<std::string> & arguments) {
+    EMSESPShell::commands->add_command(ShellContext::MAIN, CommandFlags::USER, flash_string_vector{F("t")}, [](Shell & shell, const std::vector<std::string> & arguments) {
         Test::run_test(shell, "default");
     });
 #endif
 #endif
 
-    EMSESPShell::commands->add_command(
-        context,
-        CommandFlags::USER,
-        flash_string_vector{F_(log)},
-        flash_string_vector{F_(log_level_optional)},
-        [](Shell & shell, const std::vector<std::string> & arguments) {
-            if (!arguments.empty()) {
-                uuid::log::Level level;
-                if (uuid::log::parse_level_lowercase(arguments[0], level)) {
-                    shell.log_level(level);
-                } else {
-                    shell.printfln(F_(invalid_log_level));
-                    return;
-                }
-            } else {
-                shell.print(F("levels: "));
-                std::vector<std::string> v = uuid::log::levels_lowercase();
-                size_t                   i = v.size();
-                while (i--) {
-                    shell.printf(v[i].c_str());
-                    shell.print(' ');
-                }
-                shell.println();
-            }
-            shell.printfln(F_(log_level_fmt), uuid::log::format_level_lowercase(shell.log_level()));
-        },
-        [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) -> std::vector<std::string> {
-            return uuid::log::levels_lowercase();
-        });
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
+                                       CommandFlags::USER,
+                                       flash_string_vector{F_(log)},
+                                       flash_string_vector{F_(log_level_optional)},
+                                       [](Shell & shell, const std::vector<std::string> & arguments) {
+                                           if (!arguments.empty()) {
+                                               uuid::log::Level level;
+                                               if (uuid::log::parse_level_lowercase(arguments[0], level)) {
+                                                   shell.log_level(level);
+                                               } else {
+                                                   shell.printfln(F_(invalid));
+                                                   return;
+                                               }
+                                           } else {
+                                               shell.print(F("levels: "));
+                                               std::vector<std::string> v = uuid::log::levels_lowercase();
+                                               size_t                   i = v.size();
+                                               while (i--) {
+                                                   shell.printf(v[i].c_str());
+                                                   shell.print(' ');
+                                               }
+                                               shell.println();
+                                           }
+                                           shell.printfln(F_(log_level_fmt), uuid::log::format_level_lowercase(shell.log_level()));
+                                       },
+                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) -> std::vector<std::string> {
+                                            return uuid::log::levels_lowercase();
+                                       });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::USER,
                                        flash_string_vector{F_(help)},
                                        [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
                                            shell.print_all_available_commands();
                                        });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::USER,
                                        flash_string_vector{F_(exit)},
                                        [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
@@ -560,7 +485,7 @@ void Console::load_standard_commands(unsigned int context) {
                                            shell.exit_context();
                                        });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::USER,
                                        flash_string_vector{F_(su)},
                                        [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
@@ -581,7 +506,7 @@ void Console::load_standard_commands(unsigned int context) {
                                                                become_admin(shell);
                                                            } else {
                                                                shell.delay_until(now + INVALID_PASSWORD_DELAY_MS, [](Shell & shell) {
-                                                                   shell.logger().log(LogLevel::NOTICE, LogFacility::AUTH, F("Invalid su password on console"));
+                                                                   shell.logger().log(LogLevel::NOTICE, LogFacility::AUTH, F_(invalid));
                                                                    shell.println(F("su: incorrect password"));
                                                                });
                                                            }
@@ -590,25 +515,21 @@ void Console::load_standard_commands(unsigned int context) {
                                                });
                                            }
                                        });
-}
-
-// console commands to add
-void Console::load_system_commands(unsigned int context) {
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::ADMIN,
                                        flash_string_vector{F_(restart)},
                                        [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
                                            EMSESP::system_.restart();
                                        });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::ADMIN,
                                        flash_string_vector{F_(wifi), F_(reconnect)},
                                        [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
                                            EMSESP::system_.wifi_reconnect();
                                        });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::ADMIN,
                                        flash_string_vector{F_(format)},
                                        [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
@@ -625,7 +546,7 @@ void Console::load_system_commands(unsigned int context) {
                                            });
                                        });
 
-    EMSESPShell::commands->add_command(context,
+    EMSESPShell::commands->add_command(ShellContext::MAIN,
                                        CommandFlags::ADMIN,
                                        flash_string_vector{F_(passwd)},
                                        [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
@@ -651,107 +572,11 @@ void Console::load_system_commands(unsigned int context) {
                                            });
                                        });
 
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::USER,
-                                       flash_string_vector{F_(show), F_(system)},
-                                       [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           EMSESP::system_.show_system(shell);
-                                           shell.println();
-                                       });
-
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(hostname)},
-                                       flash_string_vector{F_(name_mandatory)},
-                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
-                                           shell.println("The wifi connection will be reset...");
-                                           Shell::loop_all();
-                                           delay(1000); // wait a second
-                                           EMSESP::esp8266React.getWiFiSettingsService()->update(
-                                               [&](WiFiSettings & wifiSettings) {
-                                                   wifiSettings.hostname = arguments.front().c_str();
-                                                   return StateUpdateResult::CHANGED;
-                                               },
-                                               "local");
-                                       });
-
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(ssid)},
-                                       flash_string_vector{F_(name_mandatory)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments) {
-                                           EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation([&](WiFiSettings & wifiSettings) {
-                                               wifiSettings.ssid = arguments.front().c_str();
-                                               return StateUpdateResult::CHANGED;
-                                           });
-                                           shell.println("Use `wifi reconnect` to apply the new settings");
-                                       });
-
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(password)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
-                                               if (completed) {
-                                                   shell.enter_password(F_(new_password_prompt2),
-                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
-                                                                            if (completed) {
-                                                                                if (password1 == password2) {
-                                                                                    EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation(
-                                                                                        [&](WiFiSettings & wifiSettings) {
-                                                                                            wifiSettings.password = password2.c_str();
-                                                                                            return StateUpdateResult::CHANGED;
-                                                                                        });
-                                                                                    shell.println("Use `wifi reconnect` to apply the new settings");
-                                                                                } else {
-                                                                                    shell.println(F("Passwords do not match"));
-                                                                                }
-                                                                            }
-                                                                        });
-                                               }
-                                           });
-                                       });
-/*
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::USER,
-                                       flash_string_vector{F_(set)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(hostname_fmt),
-                                                              wifiSettings.hostname.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
-                                                                                              : wifiSettings.hostname.c_str());
-                                           });
-
-                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(wifi_ssid_fmt),
-                                                              wifiSettings.ssid.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
-                                                                                          : wifiSettings.ssid.c_str());
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(wifi_password_fmt), wifiSettings.ssid.isEmpty() ? F_(unset) : F_(asterisks));
-                                           });
-                                       });
-*/
-    EMSESPShell::commands->add_command(context,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(show), F_(users)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { System::show_users(shell); });
+    console_commands_loaded_ = true;
 }
 
-
-// prompt, change per context
-std::string EMSESPShell::context_text() {
-    switch (static_cast<ShellContext>(context())) {
-    case ShellContext::MAIN:
-        return std::string{'/'};
-
-    case ShellContext::SYSTEM:
-        return std::string{"/system"};
-
-    default:
-        return std::string{};
-    }
+std::string EMSESPShell::hostname_text() {
+    return console_hostname_;
 }
 
 // when in su (admin) show # as the prompt suffix

@@ -104,7 +104,7 @@ void Shower::send_mqtt_stat(bool state) {
     send_MQTT_discovery_config();
 
     char s[7];
-    Mqtt::publish(F("shower_active"), Helpers::render_boolean(s, state));
+    Mqtt::publish(F_(shower_active), Helpers::render_boolean(s, state));
 }
 
 // turn back on the hot water for the shower
@@ -174,7 +174,7 @@ void Shower::send_MQTT_discovery_config() {
         snprintf_P(&topic[0], topic.capacity() + 1, PSTR("%s%s/%s/%s"),Fc_(hasensor), Mqtt::base().c_str(), Fc_(shower), Fc_(config));
         Mqtt::publish_ha(topic, doc.as<JsonObject>());
 
-        Mqtt::register_mqtt_ha_binary_sensor(F("Shower Active"), EMSdevice::DeviceType::BOILER, F("shower_active"));
+        Mqtt::register_mqtt_ha_binary_sensor(F("Shower Active"), EMSdevice::DeviceType::BOILER, F_(shower_active));
 
         mqtt_discovery_config_send_ = true;
     } else {

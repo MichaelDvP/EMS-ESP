@@ -49,6 +49,7 @@ class DummySettings {
     uint16_t publish_time_other      = 10;
     uint16_t publish_time_sensor     = 10;
     uint8_t  bool_format             = 1; // on off
+    uint8_t  subscribe_format        = 0;
 
     static void read(DummySettings & settings, JsonObject & root){};
     static void read(DummySettings & settings){};

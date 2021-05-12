@@ -119,6 +119,14 @@ class WebSettings {
         flags_ = ChangeFlags::NONE;
     }
 
+    static int check_flag(int value, int new_v, uint8_t flag) {
+        if (value != new_v) {
+            value = new_v;
+            flags_ |= flag;
+        }
+        return value;
+    }
+
   private:
     static uint8_t flags_;
 };

@@ -77,6 +77,7 @@ class Mqtt {
     void set_retain(bool mqtt_retain);
     void dallas_format(uint8_t dallas_format);
     void bool_format(uint8_t bool_format);
+    void subscribe_format(uint8_t subscribe_format);
     void set_format(uint8_t mqtt_format);
     bool get_publish_onchange(uint8_t device_type);
 
@@ -91,6 +92,7 @@ class Mqtt {
     static void subscribe(const uint8_t device_type, const std::string & topic, mqtt_subfunction_p cb);
     static void subscribe(const std::string & topic, mqtt_subfunction_p cb);
     static void resubscribe();
+    static void subscribe_singletopics();
 
     static void publish(const std::string & topic, const std::string & payload);
     static void publish(const __FlashStringHelper * topic, const char * payload);
@@ -112,7 +114,7 @@ class Mqtt {
                                         const __FlashStringHelper * entity,
                                         const __FlashStringHelper * uom,
                                         const __FlashStringHelper * icon);
-    static void register_command(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb);
+    static void register_command(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb, uint8_t flag = 0);
 
     static void show_topic_handlers(uuid::console::Shell & shell, const uint8_t device_type);
     static void show_mqtt(uuid::console::Shell & shell);
@@ -163,6 +165,10 @@ class Mqtt {
 
     static uint8_t bool_format() {
         return bool_format_;
+    }
+
+    static uint8_t subscribe_format() {
+        return subscribe_format_;
     }
 
     static AsyncMqttClient * client() {
@@ -258,6 +264,7 @@ class Mqtt {
     static uint8_t     dallas_format_;
     static uint8_t     bool_format_;
     static bool        mqtt_enabled_;
+    static uint8_t     subscribe_format_;
 };
 
 } // namespace emsesp

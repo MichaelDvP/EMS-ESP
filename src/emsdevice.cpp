@@ -287,7 +287,7 @@ void EMSdevice::register_mqtt_topic(const std::string & topic, mqtt_subfunction_
 }
 
 // add command to library
-void EMSdevice::register_mqtt_cmd(const __FlashStringHelper * cmd, cmdfunction_p f) {
+void EMSdevice::register_mqtt_cmd(const __FlashStringHelper * cmd, cmdfunction_p f, uint8_t flag) {
     Command::add(device_type_, device_id_, cmd, f);
 }
 

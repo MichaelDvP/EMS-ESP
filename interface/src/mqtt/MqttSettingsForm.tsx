@@ -174,6 +174,19 @@ class MqttSettingsForm extends React.Component<MqttSettingsFormProps> {
           <MenuItem value={3}>1/0</MenuItem>
           <MenuItem value={4}>"ON"/"OFF"</MenuItem>
         </SelectValidator>
+        <SelectValidator
+          name="subscribe_format"
+          label="Subscribe Format"
+          value={data.subscribe_format}
+          fullWidth
+          variant="outlined"
+          onChange={handleValueChange("subscribe_format")}
+          margin="normal"
+        >
+          <MenuItem value={0}>general device topic</MenuItem>
+          <MenuItem value={1}>individual topics, main heating circuit</MenuItem>
+          <MenuItem value={2}>individual topics, all heating circuits</MenuItem>
+        </SelectValidator>
         <br></br>
         <Typography variant="h6" color="primary" >
           Publish Intervals

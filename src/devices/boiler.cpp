@@ -139,7 +139,7 @@ void Boiler::register_mqtt_ha_config() {
     if (Helpers::hasValue(serviceCodeNumber_)) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(servicecodenumber_), device_type(), F_(servicecodenumber), nullptr, F_(iconpower));
     }
-    if (Helpers::hasValue(setFlowTemp_)) {
+    if (Helpers::hasValue(selFlowTemp_)) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(selflowtemp_), device_type(), F_(selflowtemp), F_(degrees), F_(iconcruise));
     }
     if (Helpers::hasValue(selBurnPow_)) {

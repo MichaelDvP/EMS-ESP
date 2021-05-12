@@ -30,6 +30,9 @@
 
 namespace emsesp {
 
+// mqtt flags for command subscriptions
+enum MqttSubFlag : uint8_t { FLAG_NORMAL = 0, FLAG_HC, FLAG_WWC, FLAG_WW, FLAG_NOSUB };
+
 class EMSdevice {
   public:
     static constexpr uint8_t EMS_DEVICES_MAX_TELEGRAMS = 20;
@@ -137,7 +140,7 @@ class EMSdevice {
     void read_command(const uint16_t type_id, uint8_t offset = 0, uint8_t length = 0);
 
     void register_mqtt_topic(const std::string & topic, mqtt_subfunction_p f);
-    void register_mqtt_cmd(const __FlashStringHelper * cmd, cmdfunction_p f);
+    void register_mqtt_cmd(const __FlashStringHelper * cmd, cmdfunction_p f, uint8_t flag = 0);
 
     // virtual functions overrules by derived classes
     virtual void publish_values(JsonObject & json, bool force = false) = 0;

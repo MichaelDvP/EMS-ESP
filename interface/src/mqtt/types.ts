@@ -40,4 +40,5 @@ export interface MqttSettings {
   bool_format: number;
   mqtt_qos: number;
   mqtt_retain: boolean;
+  subscribe_format: number
 }

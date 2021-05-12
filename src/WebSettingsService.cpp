@@ -31,113 +31,72 @@ WebSettingsService::WebSettingsService(AsyncWebServer * server, FS * fs, Securit
 
 void WebSettings::read(WebSettings & settings, JsonObject & root) {
     root[F_(tx_mode)]               = settings.tx_mode;
-    root[F("tx_delay")]             = settings.tx_delay;
-    root[F("ems_bus_id")]           = settings.ems_bus_id;
-    root[F("syslog_enabled")]       = settings.syslog_enabled;
-    root[F("syslog_level")]         = settings.syslog_level;
-    root[F("trace_raw")]            = settings.trace_raw;
-    root[F("syslog_mark_interval")] = settings.syslog_mark_interval;
-    root[F("syslog_host")]          = settings.syslog_host;
-    root[F("syslog_port")]          = settings.syslog_port;
-    root[F("master_thermostat")]    = settings.master_thermostat;
-    root[F("shower_timer")]         = settings.shower_timer;
-    root[F("shower_alert")]         = settings.shower_alert;
-    root[F("rx_gpio")]              = settings.rx_gpio;
-    root[F("tx_gpio")]              = settings.tx_gpio;
-    root[F("dallas_gpio")]          = settings.dallas_gpio;
-    root[F("dallas_parasite")]      = settings.dallas_parasite;
-    root[F("led_gpio")]             = settings.led_gpio;
-    root[F("hide_led")]             = settings.hide_led;
-    root[F("notoken_api")]          = settings.notoken_api;
-    root[F("analog_enabled")]       = settings.analog_enabled;
-    root[F("solar_maxflow")]        = settings.solar_maxflow;
+    root[F_(tx_delay)]             = settings.tx_delay;
+    root[F_(ems_bus_id)]           = settings.ems_bus_id;
+    root[F_(syslog_enabled)]       = settings.syslog_enabled;
+    root[F_(syslog_level)]         = settings.syslog_level;
+    root[F_(trace_raw)]            = settings.trace_raw;
+    root[F_(syslog_mark_interval)] = settings.syslog_mark_interval;
+    root[F_(syslog_host)]          = settings.syslog_host;
+    root[F_(syslog_port)]          = settings.syslog_port;
+    root[F_(master_thermostat)]    = settings.master_thermostat;
+    root[F_(shower_timer)]         = settings.shower_timer;
+    root[F_(shower_alert)]         = settings.shower_alert;
+    root[F_(rx_gpio)]              = settings.rx_gpio;
+    root[F_(tx_gpio)]              = settings.tx_gpio;
+    root[F_(dallas_gpio)]          = settings.dallas_gpio;
+    root[F_(dallas_parasite)]      = settings.dallas_parasite;
+    root[F_(led_gpio)]             = settings.led_gpio;
+    root[F_(hide_led)]             = settings.hide_led;
+    root[F_(notoken_api)]          = settings.notoken_api;
+    root[F_(analog_enabled)]       = settings.analog_enabled;
+    root[F_(solar_maxflow)]        = settings.solar_maxflow;
 }
 
 StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings) {
-    std::string crc_before(40, '\0');
-    std::string crc_after(40, '\0');
     reset_flags();
 
     // tx_mode, rx and tx pins
-    snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d%d"), settings.tx_mode, settings.rx_gpio, settings.tx_gpio);
-    settings.tx_mode  = root[F_(tx_mode)] | EMSESP_DEFAULT_TX_MODE;
-    settings.tx_delay = root[F("tx_delay")] | EMSESP_DEFAULT_TX_DELAY;
-    settings.rx_gpio  = root[F("rx_gpio")] | EMSESP_DEFAULT_RX_GPIO;
+    settings.tx_mode  = check_flag(settings.tx_mode, root[F_(tx_mode)] | EMSESP_DEFAULT_TX_MODE,ChangeFlags::UART);
+    settings.tx_delay = check_flag(settings.tx_delay, root[F_(tx_delay)] | EMSESP_DEFAULT_TX_DELAY, ChangeFlags::UART);
+    settings.rx_gpio  = check_flag(settings.rx_gpio, root[F_(rx_gpio)] | EMSESP_DEFAULT_RX_GPIO, ChangeFlags::UART);
     settings.tx_gpio  = settings.rx_gpio == 13 ? 15 : 1;
-    snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d%d"), settings.tx_mode, settings.rx_gpio, settings.tx_gpio);
-    if (crc_before != crc_after) {
-        add_flags(ChangeFlags::UART);
-    }
 
     // syslog
-    snprintf_P(&crc_before[0],
-               crc_before.capacity() + 1,
-               PSTR("%d%d%d%s"),
-               settings.syslog_enabled,
-               settings.syslog_level,
-               settings.syslog_mark_interval,
-               settings.syslog_host.c_str());
-    settings.syslog_enabled       = root[F("syslog_enabled")] | EMSESP_DEFAULT_SYSLOG_ENABLED;
-    settings.syslog_level         = root[F("syslog_level")] | EMSESP_DEFAULT_SYSLOG_LEVEL;
-    settings.syslog_mark_interval = root[F("syslog_mark_interval")] | EMSESP_DEFAULT_SYSLOG_MARK_INTERVAL;
-    settings.syslog_host          = root[F("syslog_host")] | EMSESP_DEFAULT_SYSLOG_HOST;
-    settings.syslog_port          = root[F("syslog_port")] | EMSESP_DEFAULT_SYSLOG_PORT;
-    settings.trace_raw            = root[F("trace_raw")] | EMSESP_DEFAULT_TRACELOG_RAW;
+    settings.syslog_enabled       = check_flag(settings.syslog_enabled, root[F_(syslog_enabled)] | EMSESP_DEFAULT_SYSLOG_ENABLED, ChangeFlags::SYSLOG);
+    settings.syslog_level         = check_flag(settings.syslog_level, root[F_(syslog_level)] | EMSESP_DEFAULT_SYSLOG_LEVEL, ChangeFlags::SYSLOG);
+    settings.syslog_mark_interval = check_flag(settings.syslog_mark_interval, root[F_(syslog_mark_interval)] | EMSESP_DEFAULT_SYSLOG_MARK_INTERVAL, ChangeFlags::SYSLOG);
+    settings.syslog_port          = check_flag(settings.syslog_port, root[F_(syslog_port)] | EMSESP_DEFAULT_SYSLOG_PORT, ChangeFlags::SYSLOG);
+    settings.trace_raw            = check_flag(settings.trace_raw, root[F_(trace_raw)] | EMSESP_DEFAULT_TRACELOG_RAW, ChangeFlags::SYSLOG);
     EMSESP::trace_raw(settings.trace_raw);
-
-    snprintf_P(&crc_after[0],
-               crc_after.capacity() + 1,
-               PSTR("%d%d%d%s"),
-               settings.syslog_enabled,
-               settings.syslog_level,
-               settings.syslog_mark_interval,
-               settings.syslog_host.c_str());
-    if (crc_before != crc_after) {
+    String host = settings.syslog_host;
+    settings.syslog_host = root[F_(syslog_host)] | EMSESP_DEFAULT_SYSLOG_HOST;
+    if (host != settings.syslog_host) {
         add_flags(ChangeFlags::SYSLOG);
     }
 
     // other
-    snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d"), settings.analog_enabled);
-    settings.analog_enabled = root[F("analog_enabled")] | EMSESP_DEFAULT_ANALOG_ENABLED;
-    snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d"), settings.analog_enabled);
-    if (crc_before != crc_after) {
-        add_flags(ChangeFlags::OTHER);
-    }
+    settings.analog_enabled = check_flag(settings.analog_enabled, root[F_(analog_enabled)] | EMSESP_DEFAULT_ANALOG_ENABLED, ChangeFlags::OTHER);
 
     // dallas
-    snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d"), settings.dallas_gpio, settings.dallas_parasite);
-    settings.dallas_gpio     = root[F("dallas_gpio")] | EMSESP_DEFAULT_DALLAS_GPIO;
-    settings.dallas_parasite = root[F("dallas_parasite")] | EMSESP_DEFAULT_DALLAS_PARASITE;
-    snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d"), settings.dallas_gpio, settings.dallas_parasite);
-    if (crc_before != crc_after) {
-        add_flags(ChangeFlags::DALLAS);
-    }
+    settings.dallas_gpio     = check_flag(settings.dallas_gpio, root[F_(dallas_gpio)] | EMSESP_DEFAULT_DALLAS_GPIO, ChangeFlags::DALLAS);
+    settings.dallas_parasite = check_flag(settings.dallas_parasite, root[F_(dallas_parasite)] | EMSESP_DEFAULT_DALLAS_PARASITE, ChangeFlags::DALLAS);
 
     // shower
-    snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d"), settings.shower_timer, settings.shower_alert);
-    settings.shower_timer = root[F_(shower_timer)] | EMSESP_DEFAULT_SHOWER_TIMER;
-    settings.shower_alert = root[F_(shower_alert)] | EMSESP_DEFAULT_SHOWER_ALERT;
-    snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d"), settings.shower_timer, settings.shower_alert);
-    if (crc_before != crc_after) {
-        add_flags(ChangeFlags::SHOWER);
-    }
+    settings.shower_timer = check_flag(settings.shower_timer, root[F_(shower_timer)] | EMSESP_DEFAULT_SHOWER_TIMER, ChangeFlags::SHOWER);
+    settings.shower_alert = check_flag(settings.shower_alert, root[F_(shower_alert)] | EMSESP_DEFAULT_SHOWER_ALERT, ChangeFlags::SHOWER);
 
     // led
-    snprintf_P(&crc_before[0], crc_before.capacity() + 1, PSTR("%d%d"), settings.led_gpio, settings.hide_led);
-    settings.led_gpio = root[F("led_gpio")] | EMSESP_DEFAULT_LED_GPIO;
-    settings.hide_led = root[F("hide_led")] | EMSESP_DEFAULT_HIDE_LED;
-    snprintf_P(&crc_after[0], crc_after.capacity() + 1, PSTR("%d%d"), settings.led_gpio, settings.hide_led);
-    if (crc_before != crc_after) {
-        add_flags(ChangeFlags::LED);
-    }
+    settings.led_gpio = check_flag(settings.led_gpio, root[F_(led_gpio)] | EMSESP_DEFAULT_LED_GPIO, ChangeFlags::LED);
+    settings.hide_led = check_flag(settings.hide_led, root[F_(hide_led)] | EMSESP_DEFAULT_HIDE_LED, ChangeFlags::LED);
 
     // these both need reboots to be applied
-    settings.ems_bus_id        = root[F("ems_bus_id")] | EMSESP_DEFAULT_EMS_BUS_ID;
-    settings.master_thermostat = root[F("master_thermostat")] | EMSESP_DEFAULT_MASTER_THERMOSTAT;
+    settings.ems_bus_id        = root[F_(ems_bus_id)] | EMSESP_DEFAULT_EMS_BUS_ID;
+    settings.master_thermostat = root[F_(master_thermostat)] | EMSESP_DEFAULT_MASTER_THERMOSTAT;
 
     // doesn't need any follow-up actions
-    settings.notoken_api   = root[F("notoken_api")] | EMSESP_DEFAULT_NOTOKEN_API;
-    settings.solar_maxflow = root[F("solar_maxflow")] | EMSESP_DEFAULT_SOLAR_MAXFLOW;
+    settings.notoken_api   = root[F_(notoken_api)] | EMSESP_DEFAULT_NOTOKEN_API;
+    settings.solar_maxflow = root[F_(solar_maxflow)] | EMSESP_DEFAULT_SOLAR_MAXFLOW;
 
     return StateUpdateResult::CHANGED;
 }

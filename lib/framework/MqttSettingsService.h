@@ -66,6 +66,7 @@ static String generateClientId() {
 #define EMSESP_DEFAULT_MQTT_QOS 0
 #define EMSESP_DEFAULT_MQTT_RETAIN false
 #define EMSESP_DEFAULT_PUBLISH_TIME 10
+#define EMSESP_DEFAULT_SUBSCRIBE_FORMAT 0
 
 class MqttSettings {
   public:
@@ -99,6 +100,7 @@ class MqttSettings {
     uint8_t  bool_format;
     uint8_t  mqtt_qos;
     bool     mqtt_retain;
+    uint8_t  subscribe_format;
 
     static void              read(MqttSettings & settings, JsonObject & root);
     static StateUpdateResult update(JsonObject & root, MqttSettings & settings);

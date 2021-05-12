@@ -2701,11 +2701,11 @@ void Thermostat::add_commands() {
     }
 
     // common to all thermostats
-    register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); });
-    register_mqtt_cmd(F_(seltemp), [&](const char * value, const int8_t id) { return set_temp(value, id); });
-    register_mqtt_cmd(F_(mode), [&](const char * value, const int8_t id) { return set_mode(value, id); });
+    register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); }, FLAG_HC);
+    register_mqtt_cmd(F_(seltemp), [&](const char * value, const int8_t id) { return set_temp(value, id); }, FLAG_HC);
+    register_mqtt_cmd(F_(mode), [&](const char * value, const int8_t id) { return set_mode(value, id); }, FLAG_HC);
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
-        register_mqtt_cmd(F_(roomtemp), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); });
+        register_mqtt_cmd(F_(roomtemp), [&](const char * value, const int8_t id) { return set_roomtemp(value, id); }, FLAG_HC);
     }
     if (model() == EMS_DEVICE_FLAG_RC35) {
         register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
@@ -2715,26 +2715,26 @@ void Thermostat::add_commands() {
     case EMS_DEVICE_FLAG_RC100:
     case EMS_DEVICE_FLAG_RC300:
         register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
-        register_mqtt_cmd(F_(manualtemp), [&](const char * value, const int8_t id) { return set_manualtemp(value, id); });
-        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
-        register_mqtt_cmd(F_(comforttemp), [&](const char * value, const int8_t id) { return set_comforttemp(value, id); });
-        register_mqtt_cmd(F_(summermode), [&](const char * value, const int8_t id) { return set_summermode(value, id); });
-        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
+        register_mqtt_cmd(F_(manualtemp), [&](const char * value, const int8_t id) { return set_manualtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(comforttemp), [&](const char * value, const int8_t id) { return set_comforttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(summermode), [&](const char * value, const int8_t id) { return set_summermode(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(wwmode), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
         register_mqtt_cmd(F_(wwsettemp), [&](const char * value, const int8_t id) { return set_wwtemp(value, id); });
         register_mqtt_cmd(F_(wwsettemplow), [&](const char * value, const int8_t id) { return set_wwtemplow(value, id); });
         register_mqtt_cmd(F_(wwonetime), [&](const char * value, const int8_t id) { return set_wwonetime(value, id); });
         register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
         register_mqtt_cmd(F_(building), [&](const char * value, const int8_t id) { return set_building(value, id); });
-        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
-        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
-        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
-        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
-        register_mqtt_cmd(F_(minexttemp), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
-        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
-        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); });
-        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(minexttemp), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); }, FLAG_HC);
         break;
     case EMS_DEVICE_FLAG_RC20_2:
         register_mqtt_cmd(F_(nighttemp), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
@@ -2746,37 +2746,37 @@ void Thermostat::add_commands() {
         register_mqtt_cmd(F_(language_), [&](const char * value, const int8_t id) { return set_language(value, id); });
         register_mqtt_cmd(F_(display), [&](const char * value, const int8_t id) { return set_display(value, id); });
     case EMS_DEVICE_FLAG_RC35: // RC30 and RC35
-        register_mqtt_cmd(F_(nighttemp), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); });
-        register_mqtt_cmd(F_(daytemp), [&](const char * value, const int8_t id) { return set_daytemp(value, id); });
-        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F_(remotetemp), [&](const char * value, const int8_t id) { return set_remotetemp(value, id); });
+        register_mqtt_cmd(F_(nighttemp), [&](const char * value, const int8_t id) { return set_nighttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(daytemp), [&](const char * value, const int8_t id) { return set_daytemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(remotetemp), [&](const char * value, const int8_t id) { return set_remotetemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(minexttemp), [&](const char * value, const int8_t id) { return set_minexttemp(value, id); });
         register_mqtt_cmd(F_(calinttemp), [&](const char * value, const int8_t id) { return set_calinttemp(value, id); });
         register_mqtt_cmd(F_(building), [&](const char * value, const int8_t id) { return set_building(value, id); });
         register_mqtt_cmd(F_(control), [&](const char * value, const int8_t id) { return set_control(value, id); });
-        register_mqtt_cmd(F_(pause), [&](const char * value, const int8_t id) { return set_pause(value, id); });
-        register_mqtt_cmd(F_(party), [&](const char * value, const int8_t id) { return set_party(value, id); });
-        register_mqtt_cmd(F_(holiday), [&](const char * value, const int8_t id) { return set_holiday(value, id); });
-        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); });
-        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); });
-        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); });
-        register_mqtt_cmd(F_(holidaytemp), [&](const char * value, const int8_t id) { return set_holidaytemp(value, id); });
+        register_mqtt_cmd(F_(pause), [&](const char * value, const int8_t id) { return set_pause(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(party), [&](const char * value, const int8_t id) { return set_party(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(holiday), [&](const char * value, const int8_t id) { return set_holiday(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(designtemp), [&](const char * value, const int8_t id) { return set_designtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(offsettemp), [&](const char * value, const int8_t id) { return set_offsettemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(holidaytemp), [&](const char * value, const int8_t id) { return set_holidaytemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(wwmode), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
         register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_wwcircmode(value, id); });
-        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); });
-        register_mqtt_cmd(F_(flowtempoffset), [&](const char * value, const int8_t id) { return set_flowtempoffset(value, id); });
-        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); });
-        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); });
-        register_mqtt_cmd(F_(reducemode), [&](const char * value, const int8_t id) { return set_reducemode(value, id); });
-        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); });
-        register_mqtt_cmd(F_(switchtime), [&](const char * value, const int8_t id) { return set_switchtime(value, id); });
-        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); });
+        register_mqtt_cmd(F_(roominfluence), [&](const char * value, const int8_t id) { return set_roominfluence(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(flowtempoffset), [&](const char * value, const int8_t id) { return set_flowtempoffset(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(minflowtemp), [&](const char * value, const int8_t id) { return set_minflowtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(maxflowtemp), [&](const char * value, const int8_t id) { return set_maxflowtemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(reducemode), [&](const char * value, const int8_t id) { return set_reducemode(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(program), [&](const char * value, const int8_t id) { return set_program(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(switchtime), [&](const char * value, const int8_t id) { return set_switchtime(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(controlmode), [&](const char * value, const int8_t id) { return set_controlmode(value, id); }, FLAG_HC);
         break;
     case EMS_DEVICE_FLAG_JUNKERS:
         register_mqtt_cmd(F_(datetime), [&](const char * value, const int8_t id) { return set_datetime(value, id); });
-        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); });
-        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); });
-        register_mqtt_cmd(F_(heattemp), [&](const char * value, const int8_t id) { return set_heattemp(value, id); });
+        register_mqtt_cmd(F_(nofrosttemp), [&](const char * value, const int8_t id) { return set_nofrosttemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(heattemp), [&](const char * value, const int8_t id) { return set_heattemp(value, id); }, FLAG_HC);
         break;
     default:
         break;

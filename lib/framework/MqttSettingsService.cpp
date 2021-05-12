@@ -173,54 +173,56 @@ void MqttSettingsService::configureMqtt() {
 }
 
 void MqttSettings::read(MqttSettings & settings, JsonObject & root) {
-    root[F("enabled")]       = settings.enabled;
-    root[F("host")]          = settings.host;
-    root[F("base")]          = settings.base;
-    root[F("port")]          = settings.port;
-    root[F("username")]      = settings.username;
-    root[F("password")]      = settings.password;
-    root[F("client_id")]     = settings.clientId;
-    root[F("keep_alive")]    = settings.keepAlive;
-    root[F("clean_session")] = settings.cleanSession;
+    root[F_(enabled)]       = settings.enabled;
+    root[F_(host)]          = settings.host;
+    root[F_(base)]          = settings.base;
+    root[F_(port)]          = settings.port;
+    root[F_(username)]      = settings.username;
+    root[F_(password)]      = settings.password;
+    root[F_(client_id)]     = settings.clientId;
+    root[F_(keep_alive)]    = settings.keepAlive;
+    root[F_(clean_session)] = settings.cleanSession;
 
     // added by proddy for EMS-ESP
-    root[F("publish_time_boiler")]     = settings.publish_time_boiler;
-    root[F("publish_time_thermostat")] = settings.publish_time_thermostat;
-    root[F("publish_time_solar")]      = settings.publish_time_solar;
-    root[F("publish_time_mixer")]      = settings.publish_time_mixer;
-    root[F("publish_time_other")]      = settings.publish_time_other;
-    root[F("publish_time_sensor")]     = settings.publish_time_sensor;
-    root[F("bool_format")]             = settings.bool_format;
-    root[F("mqtt_format")]             = settings.mqtt_format;
-    root[F("mqtt_qos")]                = settings.mqtt_qos;
-    root[F("mqtt_retain")]             = settings.mqtt_retain;
-    root[F("dallas_format")]           = settings.dallas_format;
+    root[F_(publish_time_boiler)]     = settings.publish_time_boiler;
+    root[F_(publish_time_thermostat)] = settings.publish_time_thermostat;
+    root[F_(publish_time_solar)]      = settings.publish_time_solar;
+    root[F_(publish_time_mixer)]      = settings.publish_time_mixer;
+    root[F_(publish_time_other)]      = settings.publish_time_other;
+    root[F_(publish_time_sensor)]     = settings.publish_time_sensor;
+    root[F_(bool_format)]             = settings.bool_format;
+    root[F_(mqtt_format)]             = settings.mqtt_format;
+    root[F_(mqtt_qos)]                = settings.mqtt_qos;
+    root[F_(mqtt_retain)]             = settings.mqtt_retain;
+    root[F_(dallas_format)]           = settings.dallas_format;
+    root[F_(subscribe_format)]        = settings.subscribe_format;
 }
 
 StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & settings) {
     MqttSettings newSettings = {};
 
-    newSettings.enabled      = root[F("enabled")] | FACTORY_MQTT_ENABLED;
-    newSettings.host         = root[F("host")] | FACTORY_MQTT_HOST;
-    newSettings.base         = root[F("base")] | FACTORY_MQTT_BASE;
-    newSettings.port         = root[F("port")] | FACTORY_MQTT_PORT;
-    newSettings.username     = root[F("username")] | FACTORY_MQTT_USERNAME;
-    newSettings.password     = root[F("password")] | FACTORY_MQTT_PASSWORD;
-    newSettings.clientId     = root[F("client_id")] | FACTORY_MQTT_CLIENT_ID;
-    newSettings.keepAlive    = root[F("keep_alive")] | FACTORY_MQTT_KEEP_ALIVE;
-    newSettings.cleanSession = root[F("clean_session")] | FACTORY_MQTT_CLEAN_SESSION;
+    newSettings.enabled      = root[F_(enabled)] | FACTORY_MQTT_ENABLED;
+    newSettings.host         = root[F_(host)] | FACTORY_MQTT_HOST;
+    newSettings.base         = root[F_(base)] | FACTORY_MQTT_BASE;
+    newSettings.port         = root[F_(port)] | FACTORY_MQTT_PORT;
+    newSettings.username     = root[F_(username)] | FACTORY_MQTT_USERNAME;
+    newSettings.password     = root[F_(password)] | FACTORY_MQTT_PASSWORD;
+    newSettings.clientId     = root[F_(client_id)] | FACTORY_MQTT_CLIENT_ID;
+    newSettings.keepAlive    = root[F_(keep_alive)] | FACTORY_MQTT_KEEP_ALIVE;
+    newSettings.cleanSession = root[F_(clean_session)] | FACTORY_MQTT_CLEAN_SESSION;
 
-    newSettings.publish_time_boiler     = root[F("publish_time_boiler")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_thermostat = root[F("publish_time_thermostat")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_solar      = root[F("publish_time_solar")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_mixer      = root[F("publish_time_mixer")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_other      = root[F("publish_time_other")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.publish_time_sensor     = root[F("publish_time_sensor")] | EMSESP_DEFAULT_PUBLISH_TIME;
-    newSettings.bool_format             = root[F("bool_format")] | EMSESP_DEFAULT_BOOL_FORMAT;
-    newSettings.dallas_format           = root[F("dallas_format")] | EMSESP_DEFAULT_DALLAS_FORMAT;
-    newSettings.mqtt_format             = root[F("mqtt_format")] | EMSESP_DEFAULT_MQTT_FORMAT;
-    newSettings.mqtt_qos                = root[F("mqtt_qos")] | EMSESP_DEFAULT_MQTT_QOS;
-    newSettings.mqtt_retain             = root[F("mqtt_retain")] | EMSESP_DEFAULT_MQTT_RETAIN;
+    newSettings.publish_time_boiler     = root[F_(publish_time_boiler)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_thermostat = root[F_(publish_time_thermostat)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_solar      = root[F_(publish_time_solar)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_mixer      = root[F_(publish_time_mixer)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_other      = root[F_(publish_time_other)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.publish_time_sensor     = root[F_(publish_time_sensor)] | EMSESP_DEFAULT_PUBLISH_TIME;
+    newSettings.bool_format             = root[F_(bool_format)] | EMSESP_DEFAULT_BOOL_FORMAT;
+    newSettings.dallas_format           = root[F_(dallas_format)] | EMSESP_DEFAULT_DALLAS_FORMAT;
+    newSettings.mqtt_format             = root[F_(mqtt_format)] | EMSESP_DEFAULT_MQTT_FORMAT;
+    newSettings.mqtt_qos                = root[F_(mqtt_qos)] | EMSESP_DEFAULT_MQTT_QOS;
+    newSettings.mqtt_retain             = root[F_(mqtt_retain)] | EMSESP_DEFAULT_MQTT_RETAIN;
+    newSettings.subscribe_format        = root[F_(subscribe_format)] | EMSESP_DEFAULT_SUBSCRIBE_FORMAT;
 
     if (newSettings.mqtt_qos != settings.mqtt_qos) {
         emsesp::EMSESP::mqtt_.set_qos(newSettings.mqtt_qos);
@@ -230,6 +232,9 @@ StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & setting
     }
     if (newSettings.bool_format != settings.bool_format) {
         emsesp::EMSESP::mqtt_.bool_format(newSettings.bool_format);
+    }
+    if (newSettings.subscribe_format != settings.subscribe_format) {
+        emsesp::EMSESP::mqtt_.subscribe_format(newSettings.subscribe_format);
     }
     if (newSettings.mqtt_format != settings.mqtt_format) {
         emsesp::EMSESP::mqtt_.set_format(newSettings.mqtt_format);

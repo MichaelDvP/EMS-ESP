@@ -166,16 +166,16 @@ Command::CmdFunction * Command::find_command(const uint8_t device_type, const ch
 }
 
 // add a command to the list, which does not return json
-void Command::add(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb) {
+void Command::add(const uint8_t device_type, const uint8_t device_id, const __FlashStringHelper * cmd, cmdfunction_p cb, uint8_t flag) {
     // if the command already exists for that device type don't add it
     if (find_command(device_type, Helpers::toLower(uuid::read_flash_string(cmd)).c_str()) != nullptr) {
         return;
     }
-    cmdfunctions_.emplace_back(device_type, cmd, cb, nullptr);
+    cmdfunctions_.emplace_back(device_type, flag, cmd, cb, nullptr);
 
     // see if we need to subscribe
     if (Mqtt::enabled()) {
-        Mqtt::register_command(device_type, device_id, cmd, cb);
+        Mqtt::register_command(device_type, device_id, cmd, cb, flag);
     }
 }
 
@@ -186,7 +186,7 @@ void Command::add_with_json(const uint8_t device_type, const __FlashStringHelper
         return;
     }
 
-    cmdfunctions_.emplace_back(device_type, cmd, nullptr, cb); // add command
+    cmdfunctions_.emplace_back(device_type, MqttSubFlag::FLAG_NOSUB, cmd, nullptr, cb); // add command
 }
 
 // output list of all commands to console for a specific DeviceType

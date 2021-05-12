@@ -258,7 +258,7 @@ void System::start() {
 
     // these commands respond to the topic "system" and take a payload like {cmd:"", data:"", id:""}
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        Command::add(EMSdevice::DeviceType::SYSTEM, settings.ems_bus_id, F_(pin), System::command_pin);
+        Command::add(EMSdevice::DeviceType::SYSTEM, settings.ems_bus_id, F_(pin), System::command_pin, MqttSubFlag::FLAG_NOSUB);
         Command::add(EMSdevice::DeviceType::SYSTEM, settings.ems_bus_id, F_(send), System::command_send);
         Command::add(EMSdevice::DeviceType::SYSTEM, settings.ems_bus_id, F_(publish), System::command_publish);
         Command::add(EMSdevice::DeviceType::SYSTEM, settings.ems_bus_id, F_(fetch), System::command_fetch);
@@ -419,28 +419,28 @@ void System::send_heartbeat() {
 
     uint8_t ems_status = EMSESP::bus_status();
     if (ems_status == EMSESP::BUS_STATUS_TX_ERRORS) {
-        doc[F("status")] = F("txerror");
+        doc[F_(status)] = F("txerror");
     } else if (ems_status == EMSESP::BUS_STATUS_CONNECTED) {
-        doc[F("status")] = F("connected");
+        doc[F_(status)] = F("connected");
     } else {
-        doc[F("status")] = F("disconnected");
+        doc[F_(status)] = F("disconnected");
     }
 
     doc[F("rssi")]         = rssi;
-    doc[F("uptime")]       = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).substr(0, 12);
-    doc[F("uptime_sec")]   = uuid::get_uptime_sec();
-    doc[F("mqtt_fails")]   = Mqtt::publish_fails();
-    doc[F("rx_received")]  = EMSESP::rxservice_.telegram_count();
-    doc[F("tx_sent")]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
-    doc[F("tx_fails")]     = EMSESP::txservice_.telegram_fail_count();
-    doc[F("rx_fails")]     = EMSESP::rxservice_.telegram_error_count();
-    doc[F("dallas_fails")] = EMSESP::sensor_fails();
-    doc[F("freemem")]      = ESP.getFreeHeap();
+    doc[F_(uptime)]       = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3).substr(0, 12);
+    doc[F_(uptime_sec)]   = uuid::get_uptime_sec();
+    doc[F_(mqtt_fails)]   = Mqtt::publish_fails();
+    doc[F_(rx_received)]  = EMSESP::rxservice_.telegram_count();
+    doc[F_(tx_sent)]      = EMSESP::txservice_.telegram_read_count() + EMSESP::txservice_.telegram_write_count();
+    doc[F_(tx_fails)]     = EMSESP::txservice_.telegram_fail_count();
+    doc[F_(rx_fails)]     = EMSESP::rxservice_.telegram_error_count();
+    doc[F_(dallas_fails)] = EMSESP::sensor_fails();
+    doc[F_(freemem)]      = ESP.getFreeHeap();
 #if defined(ESP8266)
-    doc[F("max_alloc_heap")] = ESP.getMaxFreeBlockSize();
-    doc[F("fragmem")]        = ESP.getHeapFragmentation();
+    doc[F_(freeblock)] = ESP.getMaxFreeBlockSize();
+    doc[F_(fragmem)]   = ESP.getHeapFragmentation();
 #elif defined(ESP32)
-    doc[F("max_alloc_heap")] = ESP.getMaxAllocHeap())
+    doc[F_(freeblock)] = ESP.getMaxAllocHeap())
 #endif
     if (analog_enabled_) {
         doc[F("adc")] = analog_;
@@ -684,156 +684,6 @@ void System::show_system(uuid::console::Shell & shell) {
 #endif
 }
 
-/*/ console commands to add
-void System::console_commands(Shell & shell, unsigned int context) {
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(restart)},
-                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           restart();
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(wifi), F_(reconnect)},
-                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           wifi_reconnect();
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(format)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           shell.enter_password(F_(password_prompt), [=](Shell & shell, bool completed, const std::string & password) {
-                                               if (completed) {
-                                                   EMSESP::esp8266React.getSecuritySettingsService()->read([&](SecuritySettings & securitySettings) {
-                                                       if (securitySettings.jwtSecret.equals(password.c_str())) {
-                                                           format(shell);
-                                                       } else {
-                                                           shell.println(F("incorrect password"));
-                                                       }
-                                                   });
-                                               }
-                                           });
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(passwd)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
-                                               if (completed) {
-                                                   shell.enter_password(F_(new_password_prompt2),
-                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
-                                                                            if (completed) {
-                                                                                if (password1 == password2) {
-                                                                                    EMSESP::esp8266React.getSecuritySettingsService()->update(
-                                                                                        [&](SecuritySettings & securitySettings) {
-                                                                                            securitySettings.jwtSecret = password2.c_str();
-                                                                                            return StateUpdateResult::CHANGED;
-                                                                                        },
-                                                                                        "local");
-                                                                                    shell.println(F("su password updated"));
-                                                                                } else {
-                                                                                    shell.println(F("Passwords do not match"));
-                                                                                }
-                                                                            }
-                                                                        });
-                                               }
-                                           });
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::USER,
-                                       flash_string_vector{F_(show)},
-                                       [=](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           show_system(shell);
-                                           shell.println();
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(hostname)},
-                                       flash_string_vector{F_(name_mandatory)},
-                                       [](Shell & shell __attribute__((unused)), const std::vector<std::string> & arguments) {
-                                           shell.println("The wifi connection will be reset...");
-                                           Shell::loop_all();
-                                           delay(1000); // wait a second
-                                           EMSESP::esp8266React.getWiFiSettingsService()->update(
-                                               [&](WiFiSettings & wifiSettings) {
-                                                   wifiSettings.hostname = arguments.front().c_str();
-                                                   return StateUpdateResult::CHANGED;
-                                               },
-                                               "local");
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(ssid)},
-                                       flash_string_vector{F_(name_mandatory)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments) {
-                                           EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation([&](WiFiSettings & wifiSettings) {
-                                               wifiSettings.ssid = arguments.front().c_str();
-                                               return StateUpdateResult::CHANGED;
-                                           });
-                                           shell.println("Use `wifi reconnect` to apply the new settings");
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(set), F_(wifi), F_(password)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           shell.enter_password(F_(new_password_prompt1), [](Shell & shell, bool completed, const std::string & password1) {
-                                               if (completed) {
-                                                   shell.enter_password(F_(new_password_prompt2),
-                                                                        [password1](Shell & shell, bool completed, const std::string & password2) {
-                                                                            if (completed) {
-                                                                                if (password1 == password2) {
-                                                                                    EMSESP::esp8266React.getWiFiSettingsService()->updateWithoutPropagation(
-                                                                                        [&](WiFiSettings & wifiSettings) {
-                                                                                            wifiSettings.password = password2.c_str();
-                                                                                            return StateUpdateResult::CHANGED;
-                                                                                        });
-                                                                                    shell.println("Use `wifi reconnect` to apply the new settings");
-                                                                                } else {
-                                                                                    shell.println(F("Passwords do not match"));
-                                                                                }
-                                                                            }
-                                                                        });
-                                               }
-                                           });
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::USER,
-                                       flash_string_vector{F_(set)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) {
-                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(hostname_fmt),
-                                                              wifiSettings.hostname.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
-                                                                                              : wifiSettings.hostname.c_str());
-                                           });
-
-                                           EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & wifiSettings) {
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(wifi_ssid_fmt),
-                                                              wifiSettings.ssid.isEmpty() ? uuid::read_flash_string(F_(unset)).c_str()
-                                                                                          : wifiSettings.ssid.c_str());
-                                               shell.print(F_(1space));
-                                               shell.printfln(F_(wifi_password_fmt), wifiSettings.ssid.isEmpty() ? F_(unset) : F_(asterisks));
-                                           });
-                                       });
-
-    EMSESPShell::commands->add_command(ShellContext::SYSTEM,
-                                       CommandFlags::ADMIN,
-                                       flash_string_vector{F_(show), F_(users)},
-                                       [](Shell & shell, const std::vector<std::string> & arguments __attribute__((unused))) { System::show_users(shell); });
-
-    // enter the context
-    Console::enter_custom_context(shell, context);
-}
-*/
 // upgrade from previous versions of EMS-ESP, based on SPIFFS on an ESP8266
 // returns true if an upgrade was done
 // the logic is bit abnormal (loading both filesystems and testing) but this was the only way I could get it to work reliably
@@ -1038,11 +888,10 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     json[F("test")] = "testing system info command";
 #else
     EMSESP::esp8266React.getWiFiSettingsService()->read([&](WiFiSettings & settings) {
-        JsonObject node = json.createNestedObject("WIFI");
+        JsonObject node = json.createNestedObject(F("WIFI"));
         node[F_(ssid)]   = settings.ssid;
         // node[F("password")]         = settings.password;
         node[F_(hostname)] = settings.hostname;
-        // Helpers::json_boolean(node, "static_ip_config", settings.staticIPConfig);
         node[F("static_ip_config")] = settings.staticIPConfig;
         JsonUtils::writeIP(node, "local_ip", settings.localIP);
         JsonUtils::writeIP(node, "gateway_ip", settings.gatewayIP);
@@ -1052,7 +901,7 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     });
 
     EMSESP::esp8266React.getAPSettingsService()->read([&](APSettings & settings) {
-        JsonObject node        = json.createNestedObject("AP");
+        JsonObject node        = json.createNestedObject(F("AP"));
         node[F("provision_mode")] = settings.provisionMode;
         node[F_(ssid)]            = settings.ssid;
         // node[F("password")]       = settings.password;
@@ -1062,75 +911,64 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
     });
 
     EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
-        JsonObject node = json.createNestedObject("MQTT");
-        // Helpers::json_boolean(node, "enabled", settings.enabled);
-        node[F_(enabled)]   = settings.enabled;
-        node[F_(host)]      = settings.host;
-        node[F_(port)]      = settings.port;
-        node[F("username")] = settings.username;
-        // node[F("password")]                = settings.password;
-        node[F("base")]       = settings.base;
-        node[F("client_id")]  = settings.clientId;
-        node[F("keep_alive")] = settings.keepAlive;
-        // Helpers::json_boolean(node, "clean_session", settings.cleanSession);
-        node[F("clean_session")]           = settings.cleanSession;
-        node[F("publish_time_boiler")]     = settings.publish_time_boiler;
-        node[F("publish_time_thermostat")] = settings.publish_time_thermostat;
-        node[F("publish_time_solar")]      = settings.publish_time_solar;
-        node[F("publish_time_mixer")]      = settings.publish_time_mixer;
-        node[F("publish_time_other")]      = settings.publish_time_other;
-        node[F("publish_time_sensor")]     = settings.publish_time_sensor;
-        node[F("mqtt_format")]             = settings.mqtt_format;
-        node[F("mqtt_qos")]                = settings.mqtt_qos;
-        node[F("bool_format")]             = settings.bool_format;
-        node[F("dallas_format")]           = settings.dallas_format;
-        // Helpers::json_boolean(node, "mqtt_retain", settings.mqtt_retain);
-        node[F("mqtt_retain")] = settings.mqtt_retain;
+        JsonObject node = json.createNestedObject(F("MQTT"));
+        node[F_(enabled)]                 = settings.enabled;
+        node[F_(host)]                    = settings.host;
+        node[F_(port)]                    = settings.port;
+        node[F_(username)]                = settings.username;
+        node[F_(base)]                    = settings.base;
+        node[F_(client_id)]               = settings.clientId;
+        node[F_(keep_alive)]              = settings.keepAlive;
+        node[F_(clean_session)]           = settings.cleanSession;
+        node[F_(publish_time_boiler)]     = settings.publish_time_boiler;
+        node[F_(publish_time_thermostat)] = settings.publish_time_thermostat;
+        node[F_(publish_time_solar)]      = settings.publish_time_solar;
+        node[F_(publish_time_mixer)]      = settings.publish_time_mixer;
+        node[F_(publish_time_other)]      = settings.publish_time_other;
+        node[F_(publish_time_sensor)]     = settings.publish_time_sensor;
+        node[F_(mqtt_format)]             = settings.mqtt_format;
+        node[F_(mqtt_qos)]                = settings.mqtt_qos;
+        node[F_(bool_format)]             = settings.bool_format;
+        node[F_(subscribe_format)]        = settings.subscribe_format;
+        node[F_(dallas_format)]           = settings.dallas_format;
+        node[F_(mqtt_retain)]             = settings.mqtt_retain;
     });
 
     EMSESP::esp8266React.getNTPSettingsService()->read([&](NTPSettings & settings) {
-        JsonObject node = json.createNestedObject("NTP");
+        JsonObject node = json.createNestedObject(F("NTP"));
         // Helpers::json_boolean(node, "enabled", settings.enabled);
         node[F_(enabled)]    = settings.enabled;
-        node[F("server")]    = settings.server;
+        node[F_(server)]    = settings.server;
         node[F("tz_label")]  = settings.tzLabel;
         node[F("tz_format")] = settings.tzFormat;
     });
 
     EMSESP::esp8266React.getOTASettingsService()->read([&](OTASettings & settings) {
-        JsonObject node = json.createNestedObject("OTA");
-        // Helpers::json_boolean(node, "enabled", settings.enabled);
+        JsonObject node = json.createNestedObject(F("OTA"));
         node[F_(enabled)] = settings.enabled;
         node[F_(port)]    = settings.port;
         // node[F_(password)] = settings.password;
     });
 
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        JsonObject node    = json.createNestedObject("Settings");
-        node[F_(tx_mode)]     = settings.tx_mode;
-        node[F("ems_bus_id")] = settings.ems_bus_id;
-        // Helpers::json_boolean(node, "syslog_enabled", settings.syslog_enabled);
-        node[F("syslog_enabled")]       = settings.syslog_enabled;
-        node[F("syslog_level")]         = settings.syslog_level;
-        node[F("syslog_mark_interval")] = settings.syslog_mark_interval;
-        node[F("syslog_host")]          = settings.syslog_host;
-        node[F("master_thermostat")]    = settings.master_thermostat;
-        // Helpers::json_boolean(node, "shower_timer", settings.shower_timer);
-        // Helpers::json_boolean(node, "shower_alert", settings.shower_alert);
-        node[F("shower_timer")] = settings.shower_timer;
-        node[F("shower_alert")] = settings.shower_alert;
-        node[F("rx_gpio")]      = settings.rx_gpio;
-        node[F("tx_gpio")]      = settings.tx_gpio;
-        node[F("dallas_gpio")]  = settings.dallas_gpio;
-        // Helpers::json_boolean(node, "dallas_parasite", settings.dallas_parasite);
-        node[F("dallas_parasite")] = settings.dallas_parasite;
-        node[F("led_gpio")]        = settings.led_gpio;
-        // Helpers::json_boolean(node, "hide_led", settings.hide_led);
-        node[F("hide_led")] = settings.hide_led;
-        // Helpers::json_boolean(node, "notoken_api", settings.notoken_api);
-        node[F("notoken_api")] = settings.notoken_api;
-        // Helpers::json_boolean(node, "analog_enabled", settings.analog_enabled);
-        node[F("analog_enabled")] = settings.analog_enabled;
+        JsonObject node    = json.createNestedObject(F("Settings"));
+        node[F_(tx_mode)]              = settings.tx_mode;
+        node[F_(ems_bus_id)]           = settings.ems_bus_id;
+        node[F_(syslog_enabled)]       = settings.syslog_enabled;
+        node[F_(syslog_level)]         = settings.syslog_level;
+        node[F_(syslog_mark_interval)] = settings.syslog_mark_interval;
+        node[F_(syslog_host)]          = settings.syslog_host;
+        node[F_(master_thermostat)]    = settings.master_thermostat;
+        node[F_(shower_timer)]         = settings.shower_timer;
+        node[F_(shower_alert)]         = settings.shower_alert;
+        node[F_(rx_gpio)]              = settings.rx_gpio;
+        node[F_(tx_gpio)]              = settings.tx_gpio;
+        node[F_(dallas_gpio)]          = settings.dallas_gpio;
+        node[F_(dallas_parasite)]      = settings.dallas_parasite;
+        node[F_(led_gpio)]             = settings.led_gpio;
+        node[F_(hide_led)]             = settings.hide_led;
+        node[F_(notoken_api)]          = settings.notoken_api;
+        node[F_(analog_enabled)]       = settings.analog_enabled;
     });
 
 #endif
@@ -1142,53 +980,22 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
 bool System::command_info(const char * value, const int8_t id, JsonObject & json) {
     JsonObject node;
 
-    node = json.createNestedObject("System");
+    node = json.createNestedObject(F_(System));
 
     node[F_(version)] = EMSESP_APP_VERSION;
 #if defined(ESP8266)
-    node[F("platform")] = "esp8266";
+    node[F("platform")] = F("esp8266");
 #elif defined(ESP32)
-    node[F("platform")] = "esp32";
+    node[F("platform")] = F("esp32");
 #endif
-    node[F("uptime")]     = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
-    node[F("uptime_sec")] = uuid::get_uptime_sec();
-    node[F("freemem")]    = free_mem();
+    node[F_(uptime)]     = uuid::log::format_timestamp_ms(uuid::get_uptime_ms(), 3);
+    node[F_(uptime_sec)] = uuid::get_uptime_sec();
+    node[F_(freemem)]    = free_mem();
 #if defined(ESP8266)
     node[F("fragmem")] = ESP.getHeapFragmentation();
 #endif
 
-    /* Use call system settings for all settings
-    node = json.createNestedObject("Settings");
-
-    EMSESP::esp8266React.getMqttSettingsService()->read([&](MqttSettings & settings) {
-        node[F("enabled")]                 = settings.enabled;
-        node[F("publish_time_boiler")]     = settings.publish_time_boiler;
-        node[F("publish_time_thermostat")] = settings.publish_time_thermostat;
-        node[F("publish_time_solar")]      = settings.publish_time_solar;
-        node[F("publish_time_mixer")]      = settings.publish_time_mixer;
-        node[F("publish_time_other")]      = settings.publish_time_other;
-        node[F("publish_time_sensor")]     = settings.publish_time_sensor;
-        node[F("mqtt_format")]             = settings.mqtt_format;
-        node[F("mqtt_qos")]                = settings.mqtt_qos;
-        node[F("mqtt_retain")]             = settings.mqtt_retain;
-    });
-
-    EMSESP::webSettingsService.read([&](WebSettings & settings) {
-        node[F("tx_mode")]           = settings.tx_mode;
-        node[F("ems_bus_id")]        = settings.ems_bus_id;
-        node[F("master_thermostat")] = settings.master_thermostat;
-        node[F("rx_gpio")]           = settings.rx_gpio;
-        node[F("tx_gpio")]           = settings.tx_gpio;
-        node[F("dallas_gpio")]       = settings.dallas_gpio;
-        node[F("dallas_parasite")]   = settings.dallas_parasite;
-        node[F("led_gpio")]          = settings.led_gpio;
-        node[F("hide_led")]          = settings.hide_led;
-        node[F("notoken_api")]       = settings.notoken_api;
-        node[F("analog_enabled")]    = settings.analog_enabled;
-    });
-*/
-
-    node = json.createNestedObject("Status");
+    node = json.createNestedObject(F_(Status));
 
     switch (EMSESP::bus_status()) {
     case EMSESP::BUS_STATUS_OFFLINE:
@@ -1204,23 +1011,23 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
     }
 
     if (EMSESP::bus_status() != EMSESP::BUS_STATUS_OFFLINE) {
-        node[F("bus_protocol")] = EMSbus::is_ht3() ? F("HT3") : F("Buderus");
-        node[F("rx_received")]  = EMSESP::rxservice_.telegram_count();
-        node[F("tx_reads")]     = EMSESP::txservice_.telegram_read_count();
-        node[F("tx_writes")]    = EMSESP::txservice_.telegram_write_count();
-        node[F("rx_fails")]     = EMSESP::rxservice_.telegram_error_count();
-        node[F("tx_fails")]     = EMSESP::txservice_.telegram_fail_count();
-        node[F("rx_quality")]   = EMSESP::rxservice_.quality();
-        node[F("tx_quality")]   = EMSESP::txservice_.quality();
-        node[F("mqtt_fails")]   = Mqtt::publish_fails();
+        node[F_(bus_protocol)] = EMSbus::is_ht3() ? F("HT3") : F("Buderus");
+        node[F_(rx_received)]  = EMSESP::rxservice_.telegram_count();
+        node[F_(tx_reads)]     = EMSESP::txservice_.telegram_read_count();
+        node[F_(tx_writes)]    = EMSESP::txservice_.telegram_write_count();
+        node[F_(rx_fails)]     = EMSESP::rxservice_.telegram_error_count();
+        node[F_(tx_fails)]     = EMSESP::txservice_.telegram_fail_count();
+        node[F_(rx_quality)]   = EMSESP::rxservice_.quality();
+        node[F_(tx_quality)]   = EMSESP::txservice_.quality();
+        node[F_(mqtt_fails)]   = Mqtt::publish_fails();
         if (EMSESP::sensor_devices().size()) {
-            node[F("dallas_sensors")] = EMSESP::sensor_devices().size();
-            node[F("dallas_reads")]   = EMSESP::sensor_reads();
-            node[F("dallas_fails")]   = EMSESP::sensor_fails();
+            node[F_(dallas_sensors)] = EMSESP::sensor_devices().size();
+            node[F_(dallas_reads)]   = EMSESP::sensor_reads();
+            node[F_(dallas_fails)]   = EMSESP::sensor_fails();
         }
     }
 
-    JsonArray devices2 = json.createNestedArray("Devices");
+    JsonArray devices2 = json.createNestedArray(F_(Devices));
 
     for (const auto & device_class : EMSFactory::device_handlers()) {
         for (const auto & emsdevice : EMSESP::emsdevices) {

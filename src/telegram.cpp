@@ -592,11 +592,12 @@ void TxService::retry_tx(const uint8_t operation, const uint8_t * data, const ui
 }
 
 uint16_t TxService::read_next_tx(uint8_t offset) {
-    // add to the top of the queue
-    uint8_t message_data[1] = {EMS_MAX_TELEGRAM_LENGTH}; // request all data, 32 bytes
+    // check if received telegram has followed the offset
     if (telegram_last_->offset != offset) {
         return 0;
     }
+    uint8_t message_data[1] = {EMS_MAX_TELEGRAM_LENGTH}; // request all data, 32 bytes
+    // add to the top of the queue
     add(Telegram::Operation::TX_READ, telegram_last_->dest, telegram_last_->type_id, telegram_last_->offset + 25, message_data, 1, 0, true);
     return telegram_last_->type_id;
 }
