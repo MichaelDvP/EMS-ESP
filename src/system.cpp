@@ -999,14 +999,14 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
 
     switch (EMSESP::bus_status()) {
     case EMSESP::BUS_STATUS_OFFLINE:
-        node[F("bus")] = (F("disconnected"));
+        node[F_(bus)] = (F("disconnected"));
         break;
     case EMSESP::BUS_STATUS_TX_ERRORS:
-        node[F("bus")] = (F("connected, instable tx"));
+        node[F_(bus)] = (F("connected, instable tx"));
         break;
     case EMSESP::BUS_STATUS_CONNECTED:
     default:
-        node[F("bus")] = (F_(connected));
+        node[F_(bus)] = (F_(connected));
         break;
     }
 
@@ -1019,12 +1019,15 @@ bool System::command_info(const char * value, const int8_t id, JsonObject & json
         node[F_(tx_fails)]     = EMSESP::txservice_.telegram_fail_count();
         node[F_(rx_quality)]   = EMSESP::rxservice_.quality();
         node[F_(tx_quality)]   = EMSESP::txservice_.quality();
-        node[F_(mqtt_fails)]   = Mqtt::publish_fails();
-        if (EMSESP::sensor_devices().size()) {
-            node[F_(dallas_sensors)] = EMSESP::sensor_devices().size();
-            node[F_(dallas_reads)]   = EMSESP::sensor_reads();
-            node[F_(dallas_fails)]   = EMSESP::sensor_fails();
-        }
+    }
+    if (Mqtt::enabled()) {
+        node[F_(mqtt_publishes)] = Mqtt::publish_count();
+        node[F_(mqtt_fails)]     = Mqtt::publish_fails();
+    }
+    if (EMSESP::sensor_devices().size()) {
+        node[F_(dallas_sensors)] = EMSESP::sensor_devices().size();
+        node[F_(dallas_reads)]   = EMSESP::sensor_reads();
+        node[F_(dallas_fails)]   = EMSESP::sensor_fails();
     }
 
     JsonArray devices2 = json.createNestedArray(F_(Devices));
