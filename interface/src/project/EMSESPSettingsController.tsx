@@ -181,7 +181,7 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
             />
             <br></br>
             <Typography variant="h6" color="primary" >
-                API
+                API &amp; MQTT Formatting
             </Typography>
             <BlockFormControlLabel
                 control={
@@ -193,6 +193,29 @@ function EMSESPSettingsControllerForm(props: EMSESPSettingsControllerFormProps) 
                 }
                 label="Bypass Access Token authorization on API calls"
             />
+            <SelectValidator name="dallas_format"
+                label="Dallas Sensor Payload Grouping"
+                value={data.dallas_format}
+                fullWidth
+                variant="outlined"
+                onChange={handleValueChange('dallas_format')}
+                margin="normal">
+                <MenuItem value={1}>by Sensor ID</MenuItem>
+                <MenuItem value={2}>by Number</MenuItem>
+            </SelectValidator>
+            <SelectValidator name="bool_format"
+                label="Boolean Format"
+                value={data.bool_format}
+                fullWidth
+                variant="outlined"
+                onChange={handleValueChange('bool_format')}
+                margin="normal">
+                <MenuItem value={1}>"on"/"off"</MenuItem>
+                <MenuItem value={2}>"ON"/"OFF"</MenuItem>
+                <MenuItem value={3}>true/false</MenuItem>
+                <MenuItem value={4}>1/0 (only bool)</MenuItem>
+                <MenuItem value={5}>1/0 (bool &amp; enum)</MenuItem>
+            </SelectValidator>
             <br></br>
             <Typography variant="h6" color="primary" >
                 Syslog

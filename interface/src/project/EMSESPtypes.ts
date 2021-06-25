@@ -18,6 +18,8 @@ export interface EMSESPSettings {
   notoken_api: boolean;
   analog_enabled: boolean;
   trace_raw: boolean;
+  dallas_format: number;
+  bool_format: number;
 }
 
 export enum busConnectionStatus {

@@ -276,6 +276,7 @@ void System::start() {
 void System::other_init() {
     EMSESP::webSettingsService.read([&](WebSettings & settings) {
         analog_enabled_ = settings.analog_enabled;
+        Helpers::bool_format(settings.bool_format);
     });
 #ifdef ESP32
     // Wifi power settings 2 - 19.5dBm, raw values 4/dBm (8-78)
@@ -789,8 +790,6 @@ bool System::check_upgrade() {
                 [&](MqttSettings & mqttSettings) {
                     mqttSettings.host          = mqtt[F("ip")] | FACTORY_MQTT_HOST;
                     mqttSettings.mqtt_format   = mqtt[F("mqtt_format")] | Mqtt::Format::NESTED;
-                    mqttSettings.bool_format   = mqtt[F("bool_format")] | BOOL_FORMAT_ONOFF;
-                    mqttSettings.dallas_format = mqtt[F("dallas_format")] | Mqtt::Dallas_Format::NUMBER;
                     mqttSettings.mqtt_qos      = mqtt[F("qos")] | 0;
                     mqttSettings.mqtt_retain   = mqtt[F("retain")] | false;
                     mqttSettings.username      = mqtt[F("user")] | "";
@@ -848,6 +847,8 @@ bool System::check_upgrade() {
                     settings.dallas_parasite      = custom_settings[F("dallas_parasite")] | EMSESP_DEFAULT_DALLAS_PARASITE;
                     settings.led_gpio             = custom_settings[F("led_gpio")] | EMSESP_DEFAULT_LED_GPIO;
                     settings.analog_enabled       = EMSESP_DEFAULT_ANALOG_ENABLED;
+                    settings.bool_format          = custom_settings[F("bool_format")] | BOOL_FORMAT_ONOFF;
+                    settings.dallas_format        = custom_settings[F("dallas_format")] | Dallas_Format::NUMBER;
 
                     return StateUpdateResult::CHANGED;
                 },
@@ -928,9 +929,7 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node[F_(publish_time_sensor)]     = settings.publish_time_sensor;
         node[F_(mqtt_format)]             = settings.mqtt_format;
         node[F_(mqtt_qos)]                = settings.mqtt_qos;
-        node[F_(bool_format)]             = settings.bool_format;
         node[F_(subscribe_format)]        = settings.subscribe_format;
-        node[F_(dallas_format)]           = settings.dallas_format;
         node[F_(mqtt_retain)]             = settings.mqtt_retain;
     });
 
@@ -969,6 +968,8 @@ bool System::command_settings(const char * value, const int8_t id, JsonObject & 
         node[F_(hide_led)]             = settings.hide_led;
         node[F_(notoken_api)]          = settings.notoken_api;
         node[F_(analog_enabled)]       = settings.analog_enabled;
+        node[F_(bool_format)]          = settings.bool_format;
+        node[F_(dallas_format)]        = settings.dallas_format;
     });
 
 #endif

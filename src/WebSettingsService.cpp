@@ -51,6 +51,8 @@ void WebSettings::read(WebSettings & settings, JsonObject & root) {
     root[F_(notoken_api)]          = settings.notoken_api;
     root[F_(analog_enabled)]       = settings.analog_enabled;
     root[F_(solar_maxflow)]        = settings.solar_maxflow;
+    root[F_(dallas_format)]        = settings.dallas_format;
+    root[F_(bool_format)]          = settings.bool_format;
 }
 
 StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings) {
@@ -77,6 +79,7 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
 
     // other
     settings.analog_enabled = check_flag(settings.analog_enabled, root[F_(analog_enabled)] | EMSESP_DEFAULT_ANALOG_ENABLED, ChangeFlags::OTHER);
+    settings.bool_format    = check_flag(settings.bool_format, root[F_(bool_format)] | EMSESP_DEFAULT_BOOL_FORMAT, ChangeFlags::OTHER);
 
     // dallas
     settings.dallas_gpio     = check_flag(settings.dallas_gpio, root[F_(dallas_gpio)] | EMSESP_DEFAULT_DALLAS_GPIO, ChangeFlags::DALLAS);
@@ -97,6 +100,9 @@ StateUpdateResult WebSettings::update(JsonObject & root, WebSettings & settings)
     // doesn't need any follow-up actions
     settings.notoken_api   = root[F_(notoken_api)] | EMSESP_DEFAULT_NOTOKEN_API;
     settings.solar_maxflow = root[F_(solar_maxflow)] | EMSESP_DEFAULT_SOLAR_MAXFLOW;
+
+    settings.dallas_format = root[F_(dallas_format)] | EMSESP_DEFAULT_DALLAS_FORMAT;
+    EMSESP::dallassensor_.dallas_format(settings.dallas_format);
 
     return StateUpdateResult::CHANGED;
 }

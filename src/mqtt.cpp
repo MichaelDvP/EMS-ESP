@@ -35,8 +35,6 @@ uint32_t    Mqtt::publish_time_mixer_;
 uint32_t    Mqtt::publish_time_other_;
 uint32_t    Mqtt::publish_time_sensor_;
 uint8_t     Mqtt::mqtt_format_;
-uint8_t     Mqtt::dallas_format_;
-uint8_t     Mqtt::bool_format_;
 uint8_t     Mqtt::subscribe_format_;
 bool        Mqtt::mqtt_enabled_;
 
@@ -46,7 +44,7 @@ uint16_t                           Mqtt::mqtt_publish_fails_ = 0;
 bool                               Mqtt::connecting_         = false;
 bool                               Mqtt::initialized_        = false;
 uint8_t                            Mqtt::connectcount_       = 0;
-uint16_t                           Mqtt::mqtt_message_id_    = 0;
+uint32_t                           Mqtt::mqtt_message_id_    = 0;
 std::list<Mqtt::QueuedMqttMessage> Mqtt::mqtt_messages_;
 char                               will_topic_[Mqtt::MQTT_TOPIC_MAX_SIZE]; // because MQTT library keeps only char pointer
 
@@ -577,14 +575,6 @@ void Mqtt::set_retain(bool mqtt_retain) {
 
 void Mqtt::set_format(uint8_t mqtt_format) {
     mqtt_format_ = mqtt_format;
-}
-
-void Mqtt::dallas_format(uint8_t dallas_format){
-    dallas_format_ = dallas_format;
-}
-
-void Mqtt::bool_format(uint8_t bool_format){
-    bool_format_ = bool_format;
 }
 
 void Mqtt::subscribe_format(uint8_t subscribe_format){

@@ -17,9 +17,10 @@
  */
 
 #include "helpers.h"
-#include "mqtt.h"
 
 namespace emsesp {
+
+uint8_t Helpers::bool_format_ = BOOL_FORMAT_ONOFF; // on/off
 
 // like itoa but for hex, and quicker
 // note: only for single byte hex values
@@ -127,7 +128,6 @@ void Helpers::json_boolean(JsonObject & json, const __FlashStringHelper * name, 
     if (value == EMS_VALUE_BOOL_NOTSET) {
         return;
     }
-    uint8_t bool_format_ = Mqtt::bool_format();
     if (bool_format_ == BOOL_FORMAT_ONOFF) {
         json[name] = (value != EMS_VALUE_BOOL_OFF) ? "on" : "off";
     } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {
@@ -145,14 +145,14 @@ void Helpers::json_enum(JsonObject & json, const __FlashStringHelper * name, con
         return; // out of bounds
     }
     // return as number
-    if (Mqtt::bool_format() == BOOL_FORMAT_10) {
+    if (bool_format_ == BOOL_FORMAT_10E) {
         json[name] = no;
         return;
     }
     // return text
     json[name] = uuid::read_flash_string(value[no]);
     /* replace on/off by true/false, but mismatch to other strings in the enum
-    if (Mqtt::bool_format() == BOOL_FORMAT_TRUEFALSE) {
+    if (bool_format_ == BOOL_FORMAT_TRUEFALSE) {
         if (no == 0 && uuid::read_flash_string(value[0]) == "off") {
             json[name] = false;
         } else if (no == 1 && uuid::read_flash_string(value[1]) == "on") {
@@ -179,7 +179,6 @@ void Helpers::json_time(JsonObject & json, const __FlashStringHelper * name, con
 
 // work out how to display booleans
 char * Helpers::render_boolean(char * result, bool value) {
-    uint8_t bool_format_ = Mqtt::bool_format();
     if (bool_format_ == BOOL_FORMAT_ONOFF) {
         strlcpy(result, value ? "on" : "off", 5);
     } else if (bool_format_ == BOOL_FORMAT_ONOFF_CAP) {

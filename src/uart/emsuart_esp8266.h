@@ -74,7 +74,7 @@ class EMSuart {
 
 
   private:
-    static void ICACHE_RAM_ATTR   emsuart_rx_intr_handler(void * para);
+    static void IRAM_ATTR         emsuart_rx_intr_handler(void * para);
     static void ICACHE_FLASH_ATTR emsuart_recvTask(os_event_t * events);
     static void ICACHE_FLASH_ATTR restart();
 

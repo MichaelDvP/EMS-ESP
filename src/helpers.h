@@ -25,6 +25,8 @@
 
 #include "telegram.h" // for EMS_VALUE_* settings
 
+enum { BOOL_FORMAT_ONOFF = 1, BOOL_FORMAT_ONOFF_CAP, BOOL_FORMAT_TRUEFALSE, BOOL_FORMAT_10, BOOL_FORMAT_10E }; // matches Web UI settings
+
 namespace emsesp {
 
 class Helpers {
@@ -64,11 +66,23 @@ class Helpers {
     static bool value2string(const char * v, std::string & value);
     static bool value2enum(const char * v, uint8_t & value, const std::vector<const __FlashStringHelper *> & strs);
 
+    // static void    bool_format(uint8_t bool_format);
+    // static uint8_t bool_format();
+
+    static void bool_format(uint8_t bool_format) {
+      bool_format_ = bool_format;
+    }
+
+    static uint8_t bool_format() {
+      return bool_format_;  
+    }
+
 #ifdef EMSESP_STANDALONE
     static char * ultostr(char * ptr, uint32_t value, const uint8_t base);
 #endif
 
   private:
+    static uint8_t bool_format_;
 };
 
 } // namespace emsesp

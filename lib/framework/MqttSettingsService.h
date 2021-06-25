@@ -60,8 +60,6 @@ static String generateClientId() {
 #define FACTORY_MQTT_CLEAN_SESSION true
 #endif
 
-#define EMSESP_DEFAULT_BOOL_FORMAT 1   // on / off
-#define EMSESP_DEFAULT_DALLAS_FORMAT 2 // Number
 #define EMSESP_DEFAULT_MQTT_FORMAT 2   // nested
 #define EMSESP_DEFAULT_MQTT_QOS 0
 #define EMSESP_DEFAULT_MQTT_RETAIN false

@@ -68,7 +68,7 @@ void WebDevicesService::all_devices(AsyncWebServerRequest * request) {
         for (const auto & sensor : EMSESP::sensor_devices()) {
             JsonObject obj = sensors.createNestedObject();
             obj[F("no")]   = i++;
-            if (Mqtt::dallas_format() == Mqtt::Dallas_Format::SENSORID) {
+            if (EMSESP::dallassensor_.dallas_format() == Dallas_Format::SENSORID) {
                 obj["id"] = sensor.to_string();
             } else {
                 obj["id"] = i - 1;

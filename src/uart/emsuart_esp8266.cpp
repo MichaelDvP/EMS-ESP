@@ -41,7 +41,7 @@ bool         drop_next_rx_ = true;
 // Main interrupt handler
 // Important: must not use ICACHE_FLASH_ATTR
 //
-void ICACHE_RAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
+void IRAM_ATTR EMSuart::emsuart_rx_intr_handler(void * para) {
 
     if (USIR(EMSUART_UART) & (1 << UIBD)) {  // BREAK detection = End of EMS data block
         USC0(EMSUART_UART) &= ~(1 << UCBRK); // reset tx-brk

@@ -38,8 +38,6 @@ Solar::Solar(uint8_t device_type, uint8_t device_id, uint8_t product_id, const s
         register_mqtt_cmd(F_(turnoffdiff), [&](const char * value, const int8_t id) { return set_TurnoffDiff(value, id); });
         register_mqtt_cmd(F_(turnondiff), [&](const char * value, const int8_t id) { return set_TurnonDiff(value, id); });
         register_mqtt_cmd(F_(maxflow), [&](const char * value, const int8_t id) { return set_SM10MaxFlow(value, id); });
-        register_mqtt_cmd(F_(collectormaxtemp), [&](const char * value, const int8_t id) { return set_CollectorMaxTemp(value, id); });
-        register_mqtt_cmd(F_(collectormintemp), [&](const char * value, const int8_t id) { return set_CollectorMinTemp(value, id); });
         register_mqtt_cmd(F_(activated), [&](const char * value, const int8_t id) { return set_solarEnabled(value, id); });
     }
 
@@ -231,6 +229,7 @@ void Solar::register_mqtt_ha_config() {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarpower_), device_type(), F_(solarpower), F("W"), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(solarmaxflow_), device_type(), F_(maxflow), F("l/min"), nullptr);
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorshutdown_), device_type(), F_(collectorshutdown), nullptr, nullptr);
+        Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(tankheated_), device_type(), F_(tankheated), nullptr, nullptr);
     }
     if (flags() == EMSdevice::EMS_DEVICE_FLAG_ISM) {
         Mqtt::register_mqtt_ha_sensor(nullptr, nullptr, F_(collectorshutdown_), device_type(), F_(collectorshutdown), nullptr, nullptr);
@@ -394,12 +393,6 @@ bool Solar::updated_values() {
 // Solar(0x30) -> All(0x00), (0x96), data: FF 18 19 0A 02 5A 27 0A 05 2D 1E 0F 64 28 0A
 // pos0: activated, pos 1, 9-14 unknown
 void Solar::process_SM10Config(std::shared_ptr<const Telegram> telegram) {
-    uint8_t colmax = collectorMaxTemp_ / 10;
-    changed_ |= telegram->read_value(colmax, 3);
-    collectorMaxTemp_ = colmax * 10;
-    uint8_t colmin = collectorMinTemp_ / 10;
-    changed_ |= telegram->read_value(colmin, 4);
-    collectorMinTemp_ = colmin * 10;
     changed_ |= telegram->read_value(solarPumpMinMod_, 2);
     changed_ |= telegram->read_value(solarPumpTurnonDiff_, 7);
     changed_ |= telegram->read_value(solarPumpTurnoffDiff_, 8);
@@ -412,6 +405,7 @@ void Solar::process_SM10Config(std::shared_ptr<const Telegram> telegram) {
 void Solar::process_SM10Monitor(std::shared_ptr<const Telegram> telegram) {
     uint8_t solarpumpmod = solarPumpModulation_;
 
+    changed_ |= telegram->read_bitvalue(tankHeated_, 0, 2);
     changed_ |= telegram->read_bitvalue(collectorShutdown_, 0, 3);
     changed_ |= telegram->read_value(collectorTemp_, 2);       // is *10 - TS1: collector temp from SM10
     changed_ |= telegram->read_value(tankBottomTemp_, 5);      // is *10 - TS2: Temperature sensor tank bottom

@@ -116,10 +116,10 @@ Command::CmdFunction * Command::find_command(const uint8_t device_type, char * c
         snprintf_P(tag, 4, PSTR("hc%d"), i);
         uint8_t len = strlen(tag);
         if (strncmp(cmd, tag, len) == 0) {
-            if (cmd[len] != '\0') {
-                strcpy(cmd, &cmd[len + 1]);
+            if (cmd[len] == '\0') {
+                cmd[0] = '\0';
             } else {
-                strcpy(cmd, &cmd[len]);
+                strcpy(cmd, &cmd[len + 1]);
             }
             id = i;
             break;
@@ -132,10 +132,10 @@ Command::CmdFunction * Command::find_command(const uint8_t device_type, char * c
         snprintf_P(tag, 5, PSTR("wwc%d"), i);
         uint8_t len = strlen(tag);
         if (strncmp(cmd, tag, len) == 0) {
-            if (cmd[len] != '\0') {
-                strcpy(cmd, &cmd[len + 1]);
+            if (cmd[len] == '\0') {
+                cmd[0] = '\0';
             } else {
-                strcpy(cmd, &cmd[len]);
+                strcpy(cmd, &cmd[len + 1]);
             }
             id = i + 7;
             break;

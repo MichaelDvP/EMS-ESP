@@ -556,29 +556,13 @@ bool Boiler::export_values_ww(JsonObject & json, const bool textformat) {
     Helpers::json_enum(json, F_(wwtype), {F_(off), F_(flow), F_(buffered_flow), F_(buffer), F_(layered_buffer)}, wWType_);
 
     // Warm Water charging type
-    if (Helpers::hasValue(wWChargeType_, EMS_VALUE_BOOL)) {
-        if (Mqtt::bool_format() == BOOL_FORMAT_10) {
-            json[F_(wwchargetype)] = wWChargeType_ ? 1 : 0;
-        } else{
-            json[F_(wwchargetype)] = wWChargeType_ ? F_(3wayvalve) : F_(chargepump);
-        }
-    }
+    Helpers::json_enum(json, F_(wwchargetype), {F_(chargepump), F_(3wayvalve)}, wWChargeType_);
 
     // Warm Water circulation pump available bool
     Helpers::json_boolean(json, F_(wwcircpump), wWCircPump_);
 
     // Warm Water circulation pump freq
-    if (Helpers::hasValue(wWCircPumpMode_)) {
-        if (Mqtt::bool_format() == BOOL_FORMAT_10) {
-            json[F_(wwcircpumpmode)] = wWCircPumpMode_;
-        } else if (wWCircPumpMode_ == 7) {
-            json[F_(wwcircpumpmode)] = F_(continuous);
-        } else {
-            char s[10];
-            snprintf_P(s, sizeof(s), PSTR("%dx3min"), wWCircPumpMode_);
-            json[F_(wwcircpumpmode)] = s;
-        }
-    }
+    Helpers::json_enum(json, F_(wwcircpumpmode), {F_(off), F("1x3min"), F("2x3min"), F("3x3min"), F("4x3min"), F("5x3min"), F("6x3min"), F_(continuous)}, wWCircPumpMode_);
 
     // Warm Water circulation active bool
     Helpers::json_boolean(json, F_(wwcirc), wWCirc_);
@@ -1123,7 +1107,7 @@ void Boiler::process_UBAParameterWW(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(wWActivated_, 1);    // 0xFF means on
     changed_ |= telegram->read_value(wWCircPump_, 6);     // 0xFF means on
     changed_ |= telegram->read_value(wWCircPumpMode_, 7); // 1=1x3min... 6=6x3min, 7=continuous
-    changed_ |= telegram->read_value(wWChargeType_, 10);  // 0 = charge pump, 0xff = 3-way valve
+    changed_ |= telegram->read_bitvalue(wWChargeType_, 10, 0);  // 0 = charge pump, 0xff = 3-way valve
     changed_ |= telegram->read_value(wWSelTemp_, 2);
     changed_ |= telegram->read_value(wWDisinfectionTemp_, 8);
     changed_ |= telegram->read_value(wWComfort_, 9);
