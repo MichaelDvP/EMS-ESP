@@ -255,7 +255,7 @@ void Thermostat::device_info_web(JsonArray & root, uint8_t & part) {
             create_value_json(root, F_(minflowtemp), FPSTR(prefix_str), F_(minflowtemp_), F_(degrees), json);
             create_value_json(root, F_(maxflowtemp), FPSTR(prefix_str), F_(maxflowtemp_), F_(degrees), json);
             create_value_json(root, F_(summertemp), FPSTR(prefix_str), F_(summertemp_), F_(degrees), json);
-            create_value_json(root, F_(summermode), FPSTR(prefix_str), F_(summermode_), nullptr, json);
+            create_value_json(root, F_(summersetmode), FPSTR(prefix_str), F_(summersetmode_), nullptr, json);
             create_value_json(root, F_(reducemode), FPSTR(prefix_str), F_(reducemode_), nullptr, json);
             create_value_json(root, F_(program), FPSTR(prefix_str), F_(program_), nullptr, json);
             create_value_json(root, F_(controlmode), FPSTR(prefix_str), F_(controlmode_), nullptr, json);
@@ -616,7 +616,7 @@ bool Thermostat::export_values_hc(std::shared_ptr<Thermostat::HeatingCircuit> hc
     }
 
     // Summer mode
-    Helpers::json_enum(dataThermostat, F_(summermode), {F_(summer), F_(auto), F_(winter)}, hc->summer_setmode);
+    Helpers::json_enum(dataThermostat, F_(summersetmode), {F_(summer), F_(auto), F_(winter)}, hc->summer_setmode);
 
     // Reduce mode
     Helpers::json_enum(dataThermostat, F_(reducemode), {F_(nofrost), F_(reduce), F_(room), F_(outdoor)}, hc->reducemode);
@@ -2701,7 +2701,7 @@ void Thermostat::add_commands() {
     }
 
     // common to all thermostats
-    register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); }, FLAG_HC);
+    // register_mqtt_cmd(F_(temp), [&](const char * value, const int8_t id) { return set_temp(value, id); }, FLAG_HC);
     register_mqtt_cmd(F_(seltemp), [&](const char * value, const int8_t id) { return set_temp(value, id); }, FLAG_HC);
     register_mqtt_cmd(F_(mode), [&](const char * value, const int8_t id) { return set_mode(value, id); }, FLAG_HC);
     if (Mqtt::mqtt_format() == Mqtt::Format::HA) {
@@ -2718,7 +2718,7 @@ void Thermostat::add_commands() {
         register_mqtt_cmd(F_(manualtemp), [&](const char * value, const int8_t id) { return set_manualtemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(ecotemp), [&](const char * value, const int8_t id) { return set_ecotemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(comforttemp), [&](const char * value, const int8_t id) { return set_comforttemp(value, id); }, FLAG_HC);
-        register_mqtt_cmd(F_(summermode), [&](const char * value, const int8_t id) { return set_summermode(value, id); }, FLAG_HC);
+        register_mqtt_cmd(F_(summersetmode), [&](const char * value, const int8_t id) { return set_summermode(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(summertemp), [&](const char * value, const int8_t id) { return set_summertemp(value, id); }, FLAG_HC);
         register_mqtt_cmd(F_(wwmode), [&](const char * value, const int8_t id) { return set_wwmode(value, id); });
         register_mqtt_cmd(F_(wwsettemp), [&](const char * value, const int8_t id) { return set_wwtemp(value, id); });

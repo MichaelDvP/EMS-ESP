@@ -82,7 +82,7 @@ Boiler::Boiler(uint8_t device_type, int8_t device_id, uint8_t product_id, const 
     register_mqtt_cmd(F_(wwcircmode), [&](const char * value, const int8_t id) { return set_warmwater_circulation_mode(value, id); });
     register_mqtt_cmd(F_(selflowtemp), [&](const char * value, const int8_t id) { return set_flow_temp(value, id); });
     register_mqtt_cmd(F_(selburnpow), [&](const char * value, const int8_t id) { return set_burn_power(value, id); });
-    register_mqtt_cmd(F_(wwsettemp), [&](const char * value, const int8_t id) { return set_warmwater_temp(value, id); });
+    register_mqtt_cmd(F_(wwseltemp), [&](const char * value, const int8_t id) { return set_warmwater_temp(value, id); });
     register_mqtt_cmd(F_(heatingactivated), [&](const char * value, const int8_t id) { return set_heating_activated(value, id); });
     register_mqtt_cmd(F_(heatingtemp), [&](const char * value, const int8_t id) { return set_heating_temp(value, id); });
     register_mqtt_cmd(F_(burnmaxpower), [&](const char * value, const int8_t id) { return set_max_power(value, id); });

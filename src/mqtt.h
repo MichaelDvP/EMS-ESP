@@ -84,6 +84,7 @@ class Mqtt {
     enum Operation { PUBLISH, SUBSCRIBE };
     enum Dallas_Format : uint8_t { SENSORID = 1, NUMBER };
     enum Format : uint8_t { NONE = 0, SINGLE, NESTED, HA };
+    enum Subscribe_Format : uint8_t { DEVICE = 0, COMMAND, HC_COMMAND };
 
     static constexpr uint8_t MQTT_TOPIC_MAX_SIZE = 128; // note this should really match the user setting in mqttSettings.maxTopicLength
 
@@ -92,7 +93,6 @@ class Mqtt {
     static void subscribe(const uint8_t device_type, const std::string & topic, mqtt_subfunction_p cb);
     static void subscribe(const std::string & topic, mqtt_subfunction_p cb);
     static void resubscribe();
-    static void subscribe_singletopics();
 
     static void publish(const std::string & topic, const std::string & payload);
     static void publish(const __FlashStringHelper * topic, const char * payload);

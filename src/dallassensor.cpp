@@ -153,7 +153,7 @@ void DallasSensor::loop() {
                     }
                 } else {
                     sensorfails_++;
-                    LOG_ERROR(F("Invalid dallas sensor %s"), Sensor(addr).to_string().c_str());
+                    LOG_ERROR(F("Invalid sensor %s"), Sensor(addr).to_string().c_str());
                 }
             } else {
                 if (!parasite_) {
@@ -171,7 +171,7 @@ void DallasSensor::loop() {
                     scancnt_ = 0;
                 } else if (scancnt_ == SCAN_START + 1) { // startup
                     firstscan_ = sensors_.size();
-                    LOG_DEBUG(F("Adding %d dallassensor(s) from first scan"), firstscan_);
+                    LOG_DEBUG(F("Adding %d sensor(s) from first scan"), firstscan_);
                 } else if ((scancnt_ <= 0) && (firstscan_ != sensors_.size())) { // check 2 times for no change of sensor #
                     scancnt_ = SCAN_START;
                     sensors_.clear(); // restart scaning and clear to get correct numbering
