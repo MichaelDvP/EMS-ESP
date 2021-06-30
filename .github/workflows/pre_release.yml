@@ -24,9 +24,6 @@ jobs:
           platform=`grep -E '^#define EMSESP_PLATFORM' ./src/version.h | awk -F'"' '{print $2}'`
           echo "::set-output name=platform::$platform"
 
-      - name: Compile locally
-        run: make
-
       - name: Setup Python
         uses: actions/setup-python@v2
 
