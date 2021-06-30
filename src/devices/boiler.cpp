@@ -1427,7 +1427,7 @@ void Boiler::process_UBAOutdoorTemp(std::shared_ptr<const Telegram> telegram) {
 // UBASetPoint 0x1A
 void Boiler::process_UBASetPoints(std::shared_ptr<const Telegram> telegram) {
     changed_ |= telegram->read_value(setFlowTemp_, 0);    // boiler set temp from thermostat
-    changed_ |= telegram->read_value(setBurnPow_, 1);     // max json power in %
+    changed_ |= telegram->read_value(setBurnPow_, 1);     // max burner power in %
     changed_ |= telegram->read_value(wWSetPumpPower_, 2); // ww pump speed/power?
 }
 

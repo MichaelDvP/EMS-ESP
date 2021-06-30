@@ -198,6 +198,7 @@ void MqttSettings::read(MqttSettings & settings, JsonObject & root) {
 
 StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & settings) {
     MqttSettings newSettings = {};
+    bool         changed     = false;
 
     newSettings.enabled      = root[F_(enabled)] | FACTORY_MQTT_ENABLED;
     newSettings.host         = root[F_(host)] | FACTORY_MQTT_HOST;
@@ -220,17 +221,23 @@ StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & setting
     newSettings.mqtt_retain             = root[F_(mqtt_retain)] | EMSESP_DEFAULT_MQTT_RETAIN;
     newSettings.subscribe_format        = root[F_(subscribe_format)] | EMSESP_DEFAULT_SUBSCRIBE_FORMAT;
 
+    if (newSettings.enabled != settings.enabled) {
+        changed = true;
+    }
     if (newSettings.mqtt_qos != settings.mqtt_qos) {
         emsesp::EMSESP::mqtt_.set_qos(newSettings.mqtt_qos);
+        changed = true;
     }
     if (newSettings.subscribe_format != settings.subscribe_format) {
         emsesp::EMSESP::mqtt_.subscribe_format(newSettings.subscribe_format);
+        changed = true;
     }
     if (newSettings.mqtt_format != settings.mqtt_format) {
         emsesp::EMSESP::mqtt_.set_format(newSettings.mqtt_format);
     }
     if (newSettings.mqtt_retain != settings.mqtt_retain) {
         emsesp::EMSESP::mqtt_.set_retain(newSettings.mqtt_retain);
+        changed = true;
     }
     if (newSettings.publish_time_boiler != settings.publish_time_boiler) {
         emsesp::EMSESP::mqtt_.set_publish_time_boiler(newSettings.publish_time_boiler);
@@ -254,6 +261,10 @@ StateUpdateResult MqttSettings::update(JsonObject & root, MqttSettings & setting
     emsesp::EMSESP::mqtt_.reset_publish_fails(); // reset fail counter back to 0
 
     settings = newSettings;
+
+    if (changed) {
+        emsesp::EMSESP::mqtt_.reset_mqtt();
+    }
 
     return StateUpdateResult::CHANGED;
 }

@@ -85,6 +85,7 @@ class Mqtt {
 
     static void on_connect();
 
+    static void reset_mqtt();
     static void subscribe(const uint8_t device_type, const std::string & topic, mqtt_subfunction_p cb);
     static void subscribe(const std::string & topic, mqtt_subfunction_p cb);
     static void resubscribe();
