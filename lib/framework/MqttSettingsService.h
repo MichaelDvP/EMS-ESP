@@ -12,7 +12,7 @@
 #include "../../src/mqtt.h"
 #include "../../src/dallassensor.h"
 
-#define MQTT_RECONNECTION_DELAY 1000
+#define MQTT_RECONNECTION_DELAY 2000
 
 #define MQTT_SETTINGS_FILE "/config/mqttSettings.json"
 #define MQTT_SETTINGS_SERVICE_PATH "/rest/mqttSettings"

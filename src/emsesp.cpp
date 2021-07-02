@@ -999,6 +999,7 @@ void EMSESP::incoming_telegram(uint8_t * data, const uint8_t length) {
         // get_uptime is only updated once per loop, does not give the right time
         LOG_TRACE(F("[UART_DEBUG] Echo after %d ms: %s"), ::millis() - rx_time_, Helpers::data_to_hex(data, length).c_str());
 #endif
+        rxservice_.add(data, length); // add echo to RxQueue
         return; // it's an echo
     }
 

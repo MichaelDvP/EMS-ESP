@@ -149,11 +149,9 @@ void MqttSettingsService::onStationModeDisconnected(const WiFiEventStationModeDi
 #endif
 
 void MqttSettingsService::configureMqtt() {
-    // disconnect if currently connected
-    _mqttClient.disconnect();
-
     // only connect if WiFi is connected and MQTT is enabled
     if (_state.enabled && WiFi.isConnected()) {
+        _mqttClient.disconnect();
         // Serial.println(F("Connecting to MQTT..."));
         _mqttClient.setServer(retainCstr(_state.host.c_str(), &_retainedHost), _state.port);
         if (_state.username.length() > 0) {
